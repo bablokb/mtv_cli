@@ -1,5 +1,14 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+# --------------------------------------------------------------------------
+# Mediathekview auf der Kommandozeile
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+# --------------------------------------------------------------------------
 
 from argparse import ArgumentParser
 import sys, os, re, lzma, json, datetime
