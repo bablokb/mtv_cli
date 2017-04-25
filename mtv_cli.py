@@ -15,16 +15,16 @@ import sys, os, re, lzma, json, datetime
 import urllib.request as request
 import sqlite3
 
+# --- Konfiguration   -------------------------------------------------------
+
 BUFSIZE=8192
-DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
-URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
-SQLITE_DB_FILE="Filmliste.sqlite"
 MSG_LEVEL="INFO"
+DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
 
-class Options(object):
-  pass
+URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
+SQLITE_DB_FILE=os.environ['HOME']+os.sep+".mediathek3/filmliste.sqlite"
 
-# --- Meldung ausgeben   ----------------------------------------------------
+# --- Konstanten   ----------------------------------------------------------
 
 MSG_LEVELS={
   "DEBUG":1,
@@ -32,6 +32,16 @@ MSG_LEVELS={
   "WARN":3,
   "ERROR":4
   }
+
+SEL_FORMAT = "{:10.10} | {:20.20} | {:54.54}"
+SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Titel")
+
+# --- Hilfsklasse für Optionen   --------------------------------------------
+
+class Options(object):
+  pass
+
+# --- Meldung ausgeben   ----------------------------------------------------
 
 def msg(level,text,nl=True):
   if MSG_LEVELS[level] >= MSG_LEVELS[MSG_LEVEL]:
@@ -221,17 +231,69 @@ def do_now(options):
   """Filmliste anzeigen, sofortiger Download nach Auswahl"""
   print("Sofort noch nicht implementiert")
 
-# --- Download vorgemerkter Filme   ------------------------------------------
+# --- Download vorgemerkter Filme   -----------------------------------------
 
 def do_download(options):
   """Download vorgemerkter Filme"""
   print("Download noch nicht implementiert")
 
-# --- Suche ohne Download   ---------------------------------------------------
+# --- SQL-Query erzeugen   --------------------------------------------------
+
+def get_query(suche):
+  """Aus Suchbegriff eine SQL-Query erzeugen"""
+
+  #Basisausdruck
+  select_clause = "select * from Filme where "
+
+  #Aktuell wird nur Volltextsuche und Raw-Query unterstützt
+  if not len(suche):
+    return select_clause[0:-7]                 # remove " where "
+  elif suche[0].lower().startswith("select"):
+    # Suchausdruck ist fertige Query
+    return ' '.join(suche)
+  else:
+    # Volltextsuche
+    where_clause = ""
+    for token in suche:
+      if where_clause:
+        where_clause = where_clause + " or "
+      where_clause = where_clause + (
+        """Sender       like '%%%s%%' or
+          Thema        like '%%%s%%' or
+          Titel        like '%%%s%%' or
+          Beschreibung like '%%%s%%'""" % (token,token,token,token))
+    return select_clause + where_clause
+
+# --- Suche ausführen, Ergebnis in Liste zurückgeben   ----------------------
+
+def execute_query(options):
+  """Suche ausführen"""
+  if not os.path.isfile(options.dbfile):
+    msg("ERROR","Datenbank existiert nicht!")
+    return None
+
+  db = sqlite3.connect(options.dbfile)
+  cursor = db.cursor()
+  statement = get_query(options.suche)
+  cursor.execute(statement)
+  result = cursor.fetchall()
+  db.close()
+  return result
+
+# --- Suche ohne Download   -------------------------------------------------
 
 def do_search(options):
   """Suche ohne Download"""
-  print("Suche ohne Download noch nicht implementiert")
+  result = execute_query(options)
+  if result:
+    if options.doBatch:
+      for rec in result:
+        print(rec)
+    else:
+      print(SEL_TITEL)
+      print(len(SEL_TITEL)*'_')
+      for rec in result:
+        print(SEL_FORMAT.format(rec[0],rec[1],rec[2]))
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
@@ -258,7 +320,7 @@ def get_parser():
 
   parser.add_argument('-b', '--batch', action='store_true',
     dest='doBatch',
-    help='Ausführung ohne User-Interface (zusammen mit -V und -S)')
+    help='Ausführung ohne User-Interface (zusammen mit -V, -Q und -S)')
   parser.add_argument('-z', '--ziel', metavar='dir', nargs=1,
     dest='target_dir',
     help='Zielverzeichnis')
@@ -271,7 +333,7 @@ def get_parser():
   parser.add_argument('-h', '--hilfe', action='help',
     help='Diese Hilfe ausgeben')
 
-  parser.add_argument('suche', nargs='?', metavar='Suchausdruck',
+  parser.add_argument('suche', nargs='*', metavar='Suchausdruck',
     help='Sucheausdruck')
   return parser
 
