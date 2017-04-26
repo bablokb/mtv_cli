@@ -56,7 +56,7 @@ COLS={
   "NEU":            19
   }
 
-SEL_FORMAT = "{:10.10} | {:20.20} | {:8.8} | {:54.54}"
+SEL_FORMAT = "{:7.7} | {:15.15} | {:8.8} | {:54.54}"
 SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Datum", "Titel")
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
