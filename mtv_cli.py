@@ -33,8 +33,30 @@ MSG_LEVELS={
   "ERROR":4
   }
 
-SEL_FORMAT = "{:10.10} | {:20.20} | {:54.54}"
-SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Titel")
+COLS={
+  "SENDER":          0,
+  "THEMA":           1,
+  "TITEL":           2,
+  "DATUM":           3,
+  "ZEIT":            4,
+  "DAUER":           5,
+  "GROESSE":         6,
+  "BESCHREIBUNG":    7,
+  "URL":             8,
+  "WEBSITE":         9,
+  "URL_UNTERTITEL": 10,
+  "URL_RTMP":       11,
+  "URL_KLEIN":      12,
+  "URL_RTMP_KLEIN": 13,
+  "URL_HD":         14,
+  "URL_RTMP_HD":    15,
+  "DATUML":         16,
+  "URL_HISTORY":    17,
+  "GEO":            18,
+  "NEU:             19
+  }
+SEL_FORMAT = "{:10.10} | {:20.20} | {:8.8} | {:54.54}"
+SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Datum", "Titel")
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
@@ -293,7 +315,8 @@ def do_search(options):
       print(SEL_TITEL)
       print(len(SEL_TITEL)*'_')
       for rec in result:
-        print(SEL_FORMAT.format(rec[0],rec[1],rec[2]))
+        datum=rec[3][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
+        print(SEL_FORMAT.format(rec[0],rec[1],datum,rec[2]))
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
