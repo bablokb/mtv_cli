@@ -53,8 +53,9 @@ COLS={
   "DATUML":         16,
   "URL_HISTORY":    17,
   "GEO":            18,
-  "NEU:             19
+  "NEU":            19
   }
+
 SEL_FORMAT = "{:10.10} | {:20.20} | {:8.8} | {:54.54}"
 SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Datum", "Titel")
 
@@ -150,7 +151,7 @@ def rec2tuple(record):
     datum_obj = to_date(liste[3])
     if datum_obj < date_cutoff:
       return None
-    liste[3] = datum_obj.isoformat()
+    liste[COLS['DATUM']] = datum_obj.isoformat()
     return tuple(liste)
   except:
     print(record)
@@ -315,8 +316,11 @@ def do_search(options):
       print(SEL_TITEL)
       print(len(SEL_TITEL)*'_')
       for rec in result:
-        datum=rec[3][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
-        print(SEL_FORMAT.format(rec[0],rec[1],datum,rec[2]))
+        sender=rec[COLS['SENDER']]
+        thema=rec[COLS['THEMA']]
+        titel=rec[COLS['TITEL']]
+        datum=rec[COLS['DATUM']][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
+        print(SEL_FORMAT.format(sender,thema,datum,titel))
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
