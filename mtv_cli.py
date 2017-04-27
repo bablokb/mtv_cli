@@ -22,7 +22,10 @@ MSG_LEVEL="INFO"
 DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
 
 URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
-SQLITE_DB_FILE=os.environ['HOME']+os.sep+".mediathek3/filmliste.sqlite"
+
+MTV_CLI_HOME=os.environ['HOME']+os.sep+".mediathek3"+os.sep
+FILME_SQLITE=MTV_CLI_HOME+"filmliste.sqlite"
+MTV_CLI_SQLITE=MTV_CLI_HOME+"mtv_cli.sqlite"
 
 # --- Konstanten   ----------------------------------------------------------
 
@@ -246,7 +249,7 @@ def do_update(options):
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-  print("Vormerken noch nicht implementiert")
+
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
@@ -352,7 +355,7 @@ def get_parser():
     dest='target_dir',
     help='Zielverzeichnis')
   parser.add_argument('-d', '--db', metavar='Datei',
-    dest='dbfile', default=SQLITE_DB_FILE,
+    dest='dbfile', default=FILME_SQLITE,
     help='Datenbankdatei')
   parser.add_argument('-q', '--quiet', default=False, action='store_true',
     dest='quiet',
@@ -368,6 +371,10 @@ def get_parser():
 
 parser = get_parser()
 options = parser.parse_args(namespace=Options)
+
+# Verzeichnis HOME/.mediathek3 anlegen
+if not os.path.exists(MTV_CLI_HOME):
+  os.mkdir(MTV_CLI_HOME)
 
 if options.upd_src:
   do_update(options)
