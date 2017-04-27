@@ -259,7 +259,8 @@ def do_update(options):
 
 def get_suche():
   suche_titel = "Auswahl Suchdetails"
-  suche_opts  = ['Ende','Überall []', 'Sender []','Thema []', 'Beschreibung []']
+  suche_opts  = ['Ende','Überall []', 'Sender []','Thema []',
+                 'Titel []', 'Beschreibung []']
   suche_werte = {}
   while True:
     # suche_opts anzeigen
@@ -283,6 +284,18 @@ def get_suche():
       if len(token[1]) > 0:
         result.append(token[0].strip()+"="+token[1])
     return result
+
+# --- Auswahlliste formatieren   --------------------------------------------
+
+def get_select(result):
+  select_liste = []
+  for rec in result:
+    sender=rec[COLS['SENDER']]
+    thema=rec[COLS['THEMA']]
+    titel=rec[COLS['TITEL']]
+    datum=rec[COLS['DATUM']][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
+    select_liste.append(SEL_FORMAT.format(sender,thema,datum,titel))
+  return select_liste
   
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
@@ -290,10 +303,9 @@ def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
   if not options.suche:
     options.suche = get_suche()
-  query = get_query(options.suche)
-  print("query: %s" % query)
-  #result = execute_query(query)
-
+  result = execute_query(options)
+  selected = pick(get_select(result), multi_select=True)
+  print(selected)
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
@@ -369,12 +381,8 @@ def do_search(options):
     else:
       print(SEL_TITEL)
       print(len(SEL_TITEL)*'_')
-      for rec in result:
-        sender=rec[COLS['SENDER']]
-        thema=rec[COLS['THEMA']]
-        titel=rec[COLS['TITEL']]
-        datum=rec[COLS['DATUM']][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
-        print(SEL_FORMAT.format(sender,thema,datum,titel))
+      for line in get_select(result):
+        print(line)
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
