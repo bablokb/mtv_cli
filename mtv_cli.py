@@ -71,9 +71,11 @@ class Options(object):
 
 def msg(level,text,nl=True):
   if MSG_LEVELS[level] >= MSG_LEVELS[MSG_LEVEL]:
-    sys.stderr.write(text)
     if nl:
+      sys.stderr.write("[" + level + "] " + text)
       sys.stderr.write("\n")
+    else:
+      sys.stderr.write(text)
     sys.stderr.flush()
 
 # --- Stream der Filmliste   ------------------------------------------------
@@ -193,12 +195,14 @@ def split_content(fpin,dbfile):
         break
 
     # Sätze aufspalten
-    records = re.split(',\n? +"X" ?: ?',last_rec+str(buffer))
+    records = re.split(',\n? *"X" ?: ?',last_rec+str(buffer))
+    msg("DEBUG","Anzahl Sätze: %d" % len(records))
 
     # Sätze ausgeben. Der letzte Satz ist entweder leer, 
     # oder er ist eigentlich ein Satzanfang und wird aufgehoben
     last_rec = records[-1]
     for record in records[0:-1]:
+      msg("DEBUG",record)
       if not have_header:
         insert_stmt = handle_header(record,cursor)
         have_header = True
@@ -215,9 +219,10 @@ def split_content(fpin,dbfile):
   # Datensätze speichern und Datenbank schließen
   db.commit()
   db.close()
-  msg("INFO","\nAnzahl Buffer:              %d\n" % buf_count)
-  msg("INFO","Anzahl Sätze (gesamt):      %d\n" % total)
-  msg("INFO","Anzahl Sätze (gespeichert): %d\n" % total_add)
+  msg("INFO","\n",False)
+  msg("INFO","Anzahl Buffer:              %d" % buf_count)
+  msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
+  msg("INFO","Anzahl Sätze (gespeichert): %d" % total_add)
 
   # Alte Datenbank löschen und neue umbenennen
   if os.path.isfile(dbfile):
@@ -239,6 +244,7 @@ def do_update(options):
   else:
     src = options.upd_src
 
+  msg("INFO","Erzeuge %s aus %s" % (options.dbfile,src))
   try:
     if src.startswith("http"):
       fpin = get_lzma_fp(get_url_fp(src))
@@ -252,7 +258,13 @@ def do_update(options):
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-
+  suche_opts = ['Ende','Überall', 'Sender','Thema', 'Beschreibung']
+  suche_wert = {}
+  while true:
+    # suche_opts anzeigen
+    # mit readline Suchebegriff abfragen, speichern in suche_wert
+    # break, falls Auswahl "Ende"
+    break
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
