@@ -315,15 +315,22 @@ def get_query(suche):
   #Basisausdruck
   select_clause = "select * from Filme where "
 
-  #Aktuell wird nur Volltextsuche und Raw-Query unterstützt
   if not len(suche):
     return select_clause[0:-7]                 # remove " where "
   elif suche[0].lower().startswith("select"):
     # Suchausdruck ist fertige Query
     return ' '.join(suche)
+
+  where_clause = ""
+  if '=' in suche[0]:
+    # Suche per Schlüsselwort
+    for token in suche:
+      key,value = token.split("=")
+      if where_clause:
+        where_clause = where_clause + " and "
+      where_clause = where_clause + key + " like '%" + value + "%'"
   else:
     # Volltextsuche
-    where_clause = ""
     for token in suche:
       if where_clause:
         where_clause = where_clause + " or "
@@ -332,7 +339,7 @@ def get_query(suche):
           Thema        like '%%%s%%' or
           Titel        like '%%%s%%' or
           Beschreibung like '%%%s%%'""" % (token,token,token,token))
-    return select_clause + where_clause
+  return select_clause + where_clause
 
 # --- Suche ausführen, Ergebnis in Liste zurückgeben   ----------------------
 
