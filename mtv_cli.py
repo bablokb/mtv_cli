@@ -24,7 +24,7 @@ DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
 URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
 
 MTV_CLI_HOME=os.environ['HOME']+os.sep+".mediathek3"+os.sep
-FILME_SQLITE=MTV_CLI_HOME+"filmliste.sqlite"
+FILME_SQLITE=MTV_CLI_HOME+"filme.sqlite"
 MTV_CLI_SQLITE=MTV_CLI_HOME+"mtv_cli.sqlite"
 
 # --- Konstanten   ----------------------------------------------------------
@@ -231,8 +231,11 @@ def do_update(options):
   """Update der Filmliste"""
 
   if options.upd_src == "auto":
-    # TODO: get download-url from list
+    # TODO: download-url aus Liste von Servern
     src = URL_FILMLISTE
+  elif options.upd_src == "json":
+    # existierende Filmliste verwenden
+    src = MTV_CLI_HOME+"filme.json"
   else:
     src = options.upd_src
 
@@ -333,7 +336,7 @@ def get_parser():
 
   parser.add_argument('-A', '--akt', metavar='Quelle',
     dest='upd_src', nargs="?", default=None, const="auto",
-    help='Filmliste aktualisieren (Quelle: auto|Url|Datei)')
+    help='Filmliste aktualisieren (Quelle: auto|json|Url|Datei)')
   parser.add_argument('-V', '--vormerken', action='store_true',
     dest='doLater',
     help='Filmauswahl im Vormerk-Modus')
