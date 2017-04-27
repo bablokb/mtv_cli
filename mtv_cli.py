@@ -14,6 +14,7 @@ from argparse import ArgumentParser
 import sys, os, re, lzma, json, datetime
 import urllib.request as request
 import sqlite3
+from pick import pick
 
 # --- Konfiguration   -------------------------------------------------------
 
@@ -23,9 +24,9 @@ DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
 
 URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
 
-MTV_CLI_HOME=os.environ['HOME']+os.sep+".mediathek3"+os.sep
-FILME_SQLITE=MTV_CLI_HOME+"filme.sqlite"
-MTV_CLI_SQLITE=MTV_CLI_HOME+"mtv_cli.sqlite"
+MTV_CLI_HOME=os.path.join(os.path.expanduser("~"),".mediathek3")
+FILME_SQLITE=os.path.join(MTV_CLI_HOME,"filme.sqlite")
+MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
 
 # --- Konstanten   ----------------------------------------------------------
 
@@ -254,17 +255,45 @@ def do_update(options):
   finally:
     fpin.close()
 
+# --- Interaktiv Suchbegriffe festlegen   -----------------------------------
+
+def get_suche():
+  suche_titel = "Auswahl Suchdetails"
+  suche_opts  = ['Ende','Überall []', 'Sender []','Thema []', 'Beschreibung []']
+  suche_werte = {}
+  while True:
+    # suche_opts anzeigen
+    # mit readline Suchebegriff abfragen, speichern in suche_wert
+    # break, falls Auswahl "Ende"
+    option, index = pick(suche_opts, suche_titel)
+    if not index:
+      break
+    else:
+      begriff = input("Suchbegriff: ")
+      pos = option.find("[")
+      suche_opts[index] = option[0:pos]  + " [" + begriff + "]"
+
+  # Ergebnis extrahieren
+  if len(suche_opts[1]) > len('Überall []'):
+    return [re.split("\[|\]",suche_opts[1])[1]]
+  else:
+    result = []
+    for opt in suche_opts[2:]:
+      token  = re.split("\[|\]",opt)
+      if len(token[1]) > 0:
+        result.append(token[0].strip()+"="+token[1])
+    return result
+  
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-  suche_opts = ['Ende','Überall', 'Sender','Thema', 'Beschreibung']
-  suche_wert = {}
-  while true:
-    # suche_opts anzeigen
-    # mit readline Suchebegriff abfragen, speichern in suche_wert
-    # break, falls Auswahl "Ende"
-    break
+  if not options.suche:
+    options.suche = get_suche()
+  query = get_query(options.suche)
+  print("query: %s" % query)
+  #result = execute_query(query)
+
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
