@@ -57,7 +57,17 @@ COLS={
   "DATUML":         16,
   "URL_HISTORY":    17,
   "GEO":            18,
-  "NEU":            19
+  "NEU":            19,
+  "_ID":            20
+  }
+
+COLS_SEL={
+  "SENDER":          0,
+  "THEMA":           1,
+  "TITEL":           2,
+  "DATUM":           3,
+  "BESCHREIBUNG":    4,
+  "_ID":             5
   }
 
 SEL_FORMAT = "{:7.7} | {:15.15} | {:8.8} | {:54.54}"
@@ -297,10 +307,10 @@ def get_suche():
 def get_select(result):
   select_liste = []
   for rec in result:
-    sender=rec[COLS['SENDER']]
-    thema=rec[COLS['THEMA']]
-    titel=rec[COLS['TITEL']]
-    datum=rec[COLS['DATUM']][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
+    sender=rec[COLS_SEL['SENDER']]
+    thema=rec[COLS_SEL['THEMA']]
+    titel=rec[COLS_SEL['TITEL']]
+    datum=rec[COLS_SEL['DATUM']][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
     select_liste.append(SEL_FORMAT.format(sender,thema,datum,titel))
   return select_liste
   
@@ -332,7 +342,7 @@ def get_query(suche):
   """Aus Suchbegriff eine SQL-Query erzeugen"""
 
   #Basisausdruck
-  select_clause = "select * from Filme where "
+  select_clause = "select Sender,Thema,Titel,Datum,Beschreibung,_id from Filme where "
 
   if not len(suche):
     return select_clause[0:-7]                 # remove " where "
