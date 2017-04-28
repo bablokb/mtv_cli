@@ -73,8 +73,8 @@ class Options(object):
 def msg(level,text,nl=True):
   if MSG_LEVELS[level] >= MSG_LEVELS[MSG_LEVEL]:
     if nl:
-      sys.stderr.write("[" + level + "] " + text)
-      sys.stderr.write("\n")
+      now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      sys.stderr.write("[" + level + "] " + "[" + now + "] " + text + "\n")
     else:
       sys.stderr.write(text)
     sys.stderr.flush()
