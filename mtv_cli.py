@@ -304,7 +304,7 @@ def do_later(options):
   if not options.suche:
     options.suche = get_suche()
   result = execute_query(options)
-  selected = pick(get_select(result), multi_select=True)
+  selected = pick(get_select(result), "  "+SEL_TITEL,multi_select=True)
   print(selected)
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
