@@ -313,16 +313,49 @@ def get_select(result):
     datum=rec[COLS_SEL['DATUM']][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
     select_liste.append(SEL_FORMAT.format(sender,thema,datum,titel))
   return select_liste
+
+# --- Filme zur Auswahl anzeigen   ------------------------------------------
+
+def zeige_liste(options):
+  """ Filmliste anzeigen, Auswahl zurückgeben"""
+  if not options.suche:
+    options.suche = get_suche()
+  result = execute_query(options)
+  return result,pick(get_select(result), "  "+SEL_TITEL,multi_select=True)
+
+# --- Ergebnisse für späteren Download speichern   --------------------------
+
+def save_selected(result,selected,opt):
+  """ Auswahl speichern """
+  # MTV-Datenbank erstellen und öffnen
+  #create_mtv_db()
+  #db_mtv = sqlite3.connect(MTV_CLI_SQLITE)
+  #cursor_mtv = db_mtv.cursor()
+
+  # Film-Datenbank öffnen
+  db_filme = sqlite3.connect(options.dbfile)
+  cursor_filme = db_filme.cursor()
+
+  # Datensätze speichern
+  for sel_text,sel_index in selected:
+    record = result[sel_index]
+    _id = record[-1]
+    cursor_filme.execute("select url,url_klein,url_hd from Filme where _id=?",
+                         (_id,))
+    urls = cursor_filme.fetchone()
+
+  # Aufräumarbeiten
+  #db_mtv.commit()
+  #db_mtv.close()
+  db_filme.close()
   
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-  if not options.suche:
-    options.suche = get_suche()
-  result = execute_query(options)
-  selected = pick(get_select(result), "  "+SEL_TITEL,multi_select=True)
-  print(selected)
+  result,selected = zeige_liste(options)
+  save_selected(result,selected,"V")
+  msg("INFO","%d Filme vorgemerkt für den Download" % len(selected))
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
