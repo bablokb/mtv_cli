@@ -121,8 +121,9 @@ def handle_header(record,cursor):
       DatumL text,
       Url_History text,
       Geo text,
-      neu text)""")
-  return 'INSERT INTO filme VALUES (' + 19 * '?,' + '?)'
+      neu text,
+      _id integer primary key )""")
+  return 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
 
 # --- Datum in ein Date-Objekt umwandeln   ----------------------------------
 
@@ -138,12 +139,13 @@ def to_date(datum):
 
 last_liste=None
 date_cutoff=datetime.date.today() - datetime.timedelta(days=DATE_CUTOFF)
+_id = 1
 def rec2tuple(record):
   """Ein Record in ein Tuple umwandeln. Dazu erzeugt der JSON-Parser erste
      eine Liste, die anschließend in ein Tuple umgewandelt wird. Damit die
      Datenbank nicht zu groß wird, werden nur Sätze der letzten x Tage
      zurückgegeben."""
-  global last_liste, date_cutoff
+  global last_liste, date_cutoff, _id
   try:
     liste = json.loads(record)
     if last_liste:
@@ -154,10 +156,15 @@ def rec2tuple(record):
     last_liste = liste
 
     # Datum ins ISO-Format umwandeln und Cutoff
-    datum_obj = to_date(liste[3])
+    datum_obj = to_date(liste[COLS['DATUM']])
     if datum_obj < date_cutoff:
       return None
     liste[COLS['DATUM']] = datum_obj.isoformat()
+
+
+    # ID hinzufügen
+    liste.append(_id)
+    _id = _id + 1
     return tuple(liste)
   except:
     print(record)
@@ -241,7 +248,7 @@ def do_update(options):
     src = URL_FILMLISTE
   elif options.upd_src == "json":
     # existierende Filmliste verwenden
-    src = MTV_CLI_HOME+"filme.json"
+    src = os.path.join(MTV_CLI_HOME,"filme.json")
   else:
     src = options.upd_src
 
