@@ -10,30 +10,24 @@
 #
 # --------------------------------------------------------------------------
 
+# --- System-Imports   -----------------------------------------------------
+
 from argparse import ArgumentParser
 import sys, os, re, lzma, json, datetime
 import urllib.request as request
 import sqlite3
 from pick import pick
 
+# --- eigene Imports   ------------------------------------------------------
+
 from mtv_const import *
 from mtv_cfg import *
+from mtv_filmdb import FilmDB as FilmDB
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
 class Options(object):
   pass
-
-# --- Meldung ausgeben   ----------------------------------------------------
-
-def msg(level,text,nl=True):
-  if MSG_LEVELS[level] >= MSG_LEVELS[MSG_LEVEL]:
-    if nl:
-      now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      sys.stderr.write("[" + level + "] " + "[" + now + "] " + text + "\n")
-    else:
-      sys.stderr.write(text)
-    sys.stderr.flush()
 
 # --- Stream der Filmliste   ------------------------------------------------
 
@@ -264,9 +258,10 @@ def get_select(result):
 
 def zeige_liste(options):
   """ Filmliste anzeigen, Auswahl zurückgeben"""
+  global gFilmDB
   if not options.suche:
     options.suche = get_suche()
-  result = execute_query(options)
+  result = gFilmDB.execute_query(options.suche)
   return result,pick(get_select(result), "  "+SEL_TITEL,multi_select=True)
 
 # --- Ergebnisse für späteren Download speichern   --------------------------
@@ -315,61 +310,12 @@ def do_download(options):
   """Download vorgemerkter Filme"""
   print("Download noch nicht implementiert")
 
-# --- SQL-Query erzeugen   --------------------------------------------------
-
-def get_query(suche):
-  """Aus Suchbegriff eine SQL-Query erzeugen"""
-
-  #Basisausdruck
-  select_clause = "select Sender,Thema,Titel,Datum,Beschreibung,_id from Filme where "
-
-  if not len(suche):
-    return select_clause[0:-7]                 # remove " where "
-  elif suche[0].lower().startswith("select"):
-    # Suchausdruck ist fertige Query
-    return ' '.join(suche)
-
-  where_clause = ""
-  if '=' in suche[0]:
-    # Suche per Schlüsselwort
-    for token in suche:
-      key,value = token.split("=")
-      if where_clause:
-        where_clause = where_clause + " and "
-      where_clause = where_clause + key + " like '%" + value + "%'"
-  else:
-    # Volltextsuche
-    for token in suche:
-      if where_clause:
-        where_clause = where_clause + " or "
-      where_clause = where_clause + (
-        """Sender       like '%%%s%%' or
-          Thema        like '%%%s%%' or
-          Titel        like '%%%s%%' or
-          Beschreibung like '%%%s%%'""" % (token,token,token,token))
-  return select_clause + where_clause
-
-# --- Suche ausführen, Ergebnis in Liste zurückgeben   ----------------------
-
-def execute_query(options):
-  """Suche ausführen"""
-  if not os.path.isfile(options.dbfile):
-    msg("ERROR","Datenbank existiert nicht!")
-    return None
-
-  db = sqlite3.connect(options.dbfile)
-  cursor = db.cursor()
-  statement = get_query(options.suche)
-  cursor.execute(statement)
-  result = cursor.fetchall()
-  db.close()
-  return result
-
 # --- Suche ohne Download   -------------------------------------------------
 
 def do_search(options):
   """Suche ohne Download"""
-  result = execute_query(options)
+  global gFilmDB
+  result = gFilmDB.execute_query(options.suche)
   if result:
     if options.doBatch:
       for rec in result:
@@ -430,6 +376,9 @@ options = parser.parse_args(namespace=Options)
 # Verzeichnis HOME/.mediathek3 anlegen
 if not os.path.exists(MTV_CLI_HOME):
   os.mkdir(MTV_CLI_HOME)
+
+# Globale Objekte anlegen
+gFilmDB = FilmDB(options.dbfile)
 
 if options.upd_src:
   do_update(options)
