@@ -12,7 +12,7 @@
 #
 # --------------------------------------------------------------------------
 
-import os, sqlite3
+import os, sqlite3, json
 
 from mtv_cfg   import *
 from mtv_const import *
@@ -27,6 +27,116 @@ class FilmDB(object):
   def __init__(self,dbfile):
     """Constructor"""
     self.dbfile = dbfile
+    self.last_liste = None
+    self._id = 0
+    self.INSERT_STMT = 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
+
+  # ------------------------------------------------------------------------
+
+  def create(self):
+    """Neue Datenbank (temporär) erzeugen"""
+    if os.path.isfile(self.dbfile+'.new'):
+        os.remove(self.dbfile+'.new')
+    self.db = sqlite3.connect(self.dbfile+'.new')
+    self.cursor = self.db.cursor()
+
+    self.cursor.execute("""create table filme
+      (Sender text,
+      Thema text,
+      Titel text,
+      Datum text,
+      Zeit text,
+      Dauer text,
+      Groesse text,
+      Beschreibung text,
+      Url text,
+      Website text,
+      Url_Untertitel text,
+      Url_RTMP text,
+      Url_Klein text,
+      Url_RTMP_Klein text,
+      Url_HD text,
+      Url_RTMP_HD text,
+      DatumL text,
+      Url_History text,
+      Geo text,
+      neu text,
+      _id integer primary key )""")
+
+  # ------------------------------------------------------------------------
+
+  def to_date(self,datum):
+    """Datumsstring in ein Date-Objekt umwandeln"""
+    if '.' in datum:
+      return datetime.datetime.strptime(datum,"%d.%m.%Y").date()
+    else:
+      # schon im ISO-Format
+      return datetime.datetime.strptime(datum,"%Y-%m-%d").date()
+
+  # ------------------------------------------------------------------------
+
+  def rec2tuple(self,record):
+    """Ein Record in ein Tuple umwandeln. Dazu erzeugt der JSON-Parser erste
+       eine Liste, die anschließend in ein Tuple umgewandelt wird. Damit die
+       Datenbank nicht zu groß wird, werden nur Sätze der letzten x Tage
+       zurückgegeben."""
+
+    try:
+      liste = json.loads(record)
+      if self.last_liste:
+        # ersetzen leerer Werte durch Werte aus dem Satz davor
+        for i in range(len(liste)):
+          if not liste[i]:
+            liste[i] = self.last_liste[i]
+
+      # Liste für nächsten Durchgang speichern
+      self.last_liste = liste
+
+      # Datum ins ISO-Format umwandeln und Cutoff
+      datum_obj = self.to_date(liste[COLS['DATUM']])
+      if datum_obj < date_cutoff:
+        return None
+      liste[COLS['DATUM']] = datum_obj.isoformat()
+
+      # ID hinzufügen
+      self._id = self._id + 1
+      liste.append(self._id)
+      return tuple(liste)
+    except:
+      print(record)
+      raise
+
+  # ------------------------------------------------------------------------
+
+  def insert(self,record):
+    """Satz zur Datenbank hinzufügen"""
+    tup = self.rec2tuple(record)
+    if tup:
+      self.cursor.execute(self.INSERT_STMT,tup)
+  
+  # ------------------------------------------------------------------------
+
+  def commit(self):
+    """Commit durchführen"""
+    self.db.commit()
+    
+  # ------------------------------------------------------------------------
+
+  def get_count(self):
+    """Anzahl der schon eingefügten Sätze zurückgeben"""
+    return self._id
+  
+  # ------------------------------------------------------------------------
+
+  def save(self):
+    """Temporäre Datenbank endgültig speichern"""
+    self.db.commit()
+    self.db.close()
+
+    # Alte Datenbank löschen und neue umbenennen
+    if os.path.isfile(self.dbfile):
+      os.remove(self.dbfile)
+    os.rename(self.dbfile+'.new',self.dbfile)
 
   # ------------------------------------------------------------------------
   
@@ -66,7 +176,7 @@ class FilmDB(object):
   def execute_query(self,suche):
     """Suche ausführen"""
     if not os.path.isfile(self.dbfile):
-      msg("ERROR","Datenbank existiert nicht!")
+      msg("ERROR","Datenbank %s existiert nicht!" % self.dbfile)
       return None
 
     db = sqlite3.connect(self.dbfile)

@@ -13,9 +13,8 @@
 # --- System-Imports   -----------------------------------------------------
 
 from argparse import ArgumentParser
-import sys, os, re, lzma, json, datetime
+import sys, os, re, lzma, datetime
 import urllib.request as request
-import sqlite3
 from pick import pick
 
 # --- eigene Imports   ------------------------------------------------------
@@ -42,98 +41,18 @@ def get_lzma_fp(url_fp):
   """ Fileponter des LZMA-Entpackers. Argument ist der FP der URL"""
   return lzma.open(url_fp,"rt",encoding='utf-8')
 
-# --- Header verarbeiten   --------------------------------------------------
-
-def handle_header(record,cursor):
-  """Header der Filmliste verarbeiten.
-     Wir verzichten darauf, da der Header nicht ohne große Klimmzüge
-     verwertet kann (theoretisch könnte man die Spalten der Datenbank
-     aus der Header-Information füllen)
-  """
-  # Statische Definition der Tabellenspalten
-  cursor.execute("""create table filme
-     (Sender text,
-      Thema text,
-      Titel text,
-      Datum text,
-      Zeit text,
-      Dauer text,
-      Groesse text,
-      Beschreibung text,
-      Url text,
-      Website text,
-      Url_Untertitel text,
-      Url_RTMP text,
-      Url_Klein text,
-      Url_RTMP_Klein text,
-      Url_HD text,
-      Url_RTMP_HD text,
-      DatumL text,
-      Url_History text,
-      Geo text,
-      neu text,
-      _id integer primary key )""")
-  return 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
-
-# --- Datum in ein Date-Objekt umwandeln   ----------------------------------
-
-def to_date(datum):
-  """Datumsstring in ein Date-Objekt umwandeln"""
-  if '.' in datum:
-    return datetime.datetime.strptime(datum,"%d.%m.%Y").date()
-  else:
-    # schon im ISO-Format
-    return datetime.datetime.strptime(datum,"%Y-%m-%d").date()
-  
-# --- Record in ein Tuple umwandeln   ---------------------------------------
-
-last_liste=None
-date_cutoff=datetime.date.today() - datetime.timedelta(days=DATE_CUTOFF)
-_id = 1
-def rec2tuple(record):
-  """Ein Record in ein Tuple umwandeln. Dazu erzeugt der JSON-Parser erste
-     eine Liste, die anschließend in ein Tuple umgewandelt wird. Damit die
-     Datenbank nicht zu groß wird, werden nur Sätze der letzten x Tage
-     zurückgegeben."""
-  global last_liste, date_cutoff, _id
-  try:
-    liste = json.loads(record)
-    if last_liste:
-      # ersetzen leerer Werte durch Werte aus dem Satz davor
-      for i in range(len(liste)):
-        if not liste[i]:
-          liste[i] = last_liste[i]
-    last_liste = liste
-
-    # Datum ins ISO-Format umwandeln und Cutoff
-    datum_obj = to_date(liste[COLS['DATUM']])
-    if datum_obj < date_cutoff:
-      return None
-    liste[COLS['DATUM']] = datum_obj.isoformat()
-
-
-    # ID hinzufügen
-    liste.append(_id)
-    _id = _id + 1
-    return tuple(liste)
-  except:
-    print(record)
-    raise
-
 # --- Split der Datei   -----------------------------------------------------
 
 def split_content(fpin,dbfile):
   """Inhalt aufteilen"""
+  global gFilmDB
   
   have_header=False
   last_rec = ""
-  if os.path.isfile(dbfile+'.new'):
-    os.remove(dbfile+'.new')
-  db = sqlite3.connect(dbfile+'.new')
-  cursor = db.cursor()
+
+  gFilmDB.create()
 
   total = 0
-  total_add = 0
   buf_count =  0
   while True:
     # Buffer neu lesen
@@ -146,10 +65,7 @@ def split_content(fpin,dbfile):
     if len(buffer) == 0:
       if len(last_rec):
         total = total + 1
-        tup = rec2tuple(last_rec[0:-1])
-        if tup:
-          total_add = total_add + 1
-          cursor.execute(insert_stmt,tup)
+        gFilmDB.insert(last_rec[0:-1])
         break
 
     # Sätze aufspalten
@@ -162,31 +78,22 @@ def split_content(fpin,dbfile):
     for record in records[0:-1]:
       msg("DEBUG",record)
       if not have_header:
-        insert_stmt = handle_header(record,cursor)
         have_header = True
         continue
-      tup = rec2tuple(record)
       total = total + 1
-      if tup:
-        total_add = total_add + 1
-        cursor.execute(insert_stmt,tup)
+      gFilmDB.insert(record)
 
     # ein Commit pro BUFSIZE
-    db.commit()
+    gFilmDB.commit()
 
   # Datensätze speichern und Datenbank schließen
-  db.commit()
-  db.close()
+  gFilmDB.save()
+
   msg("INFO","\n",False)
   msg("INFO","Anzahl Buffer:              %d" % buf_count)
   msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
-  msg("INFO","Anzahl Sätze (gespeichert): %d" % total_add)
+  msg("INFO","Anzahl Sätze (gespeichert): %d" % gFilmDB.get_count())
 
-  # Alte Datenbank löschen und neue umbenennen
-  if os.path.isfile(dbfile):
-    os.remove(dbfile)
-  os.rename(dbfile+'.new',dbfile)
-  
     
 # --- Update verarbeiten   --------------------------------------------------
 
@@ -268,27 +175,28 @@ def zeige_liste(options):
 
 def save_selected(result,selected,opt):
   """ Auswahl speichern """
+  pass
   # MTV-Datenbank erstellen und öffnen
   #create_mtv_db()
   #db_mtv = sqlite3.connect(MTV_CLI_SQLITE)
   #cursor_mtv = db_mtv.cursor()
 
   # Film-Datenbank öffnen
-  db_filme = sqlite3.connect(options.dbfile)
-  cursor_filme = db_filme.cursor()
+  #db_filme = sqlite3.connect(options.dbfile)
+  #cursor_filme = db_filme.cursor()
 
   # Datensätze speichern
-  for sel_text,sel_index in selected:
-    record = result[sel_index]
-    _id = record[-1]
-    cursor_filme.execute("select url,url_klein,url_hd from Filme where _id=?",
-                         (_id,))
-    urls = cursor_filme.fetchone()
+  #for sel_text,sel_index in selected:
+  #  record = result[sel_index]
+  #  _id = record[-1]
+  #  cursor_filme.execute("select url,url_klein,url_hd from Filme where _id=?",
+  #                       (_id,))
+  #  urls = cursor_filme.fetchone()
 
   # Aufräumarbeiten
   #db_mtv.commit()
   #db_mtv.close()
-  db_filme.close()
+  #db_filme.close()
   
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
