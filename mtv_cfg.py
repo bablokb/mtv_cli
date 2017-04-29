@@ -11,6 +11,8 @@
 #
 # --------------------------------------------------------------------------
 
+import os
+
 MSG_LEVEL="INFO"
 DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
 
