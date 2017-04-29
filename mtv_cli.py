@@ -16,62 +16,8 @@ import urllib.request as request
 import sqlite3
 from pick import pick
 
-# --- Konfiguration   -------------------------------------------------------
-
-BUFSIZE=8192
-MSG_LEVEL="INFO"
-DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
-
-URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
-
-MTV_CLI_HOME=os.path.join(os.path.expanduser("~"),".mediathek3")
-FILME_SQLITE=os.path.join(MTV_CLI_HOME,"filme.sqlite")
-MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
-
-# --- Konstanten   ----------------------------------------------------------
-
-MSG_LEVELS={
-  "DEBUG":1,
-  "INFO":2,
-  "WARN":3,
-  "ERROR":4
-  }
-
-COLS={
-  "SENDER":          0,
-  "THEMA":           1,
-  "TITEL":           2,
-  "DATUM":           3,
-  "ZEIT":            4,
-  "DAUER":           5,
-  "GROESSE":         6,
-  "BESCHREIBUNG":    7,
-  "URL":             8,
-  "WEBSITE":         9,
-  "URL_UNTERTITEL": 10,
-  "URL_RTMP":       11,
-  "URL_KLEIN":      12,
-  "URL_RTMP_KLEIN": 13,
-  "URL_HD":         14,
-  "URL_RTMP_HD":    15,
-  "DATUML":         16,
-  "URL_HISTORY":    17,
-  "GEO":            18,
-  "NEU":            19,
-  "_ID":            20
-  }
-
-COLS_SEL={
-  "SENDER":          0,
-  "THEMA":           1,
-  "TITEL":           2,
-  "DATUM":           3,
-  "BESCHREIBUNG":    4,
-  "_ID":             5
-  }
-
-SEL_FORMAT = "{:7.7} | {:15.15} | {:8.8} | {:54.54}"
-SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Datum", "Titel")
+from mtv_const import *
+from mtv_cfg import *
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
