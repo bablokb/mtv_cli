@@ -11,7 +11,7 @@
 #
 # --------------------------------------------------------------------------
 
-import os
+import os, datetime
 
 MSG_LEVEL="INFO"
 DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
@@ -26,3 +26,6 @@ MTV_CLI_HOME=os.path.join(os.path.expanduser("~"),".mediathek3")
 FILME_SQLITE=os.path.join(MTV_CLI_HOME,"filme.sqlite")
 MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
 
+# --- ab hier nichts ändern   -----------------------------------------------
+
+date_cutoff=datetime.date.today() - datetime.timedelta(days=DATE_CUTOFF)
