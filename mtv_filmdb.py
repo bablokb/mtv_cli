@@ -197,6 +197,20 @@ class FilmDB(object):
     self.close()
     return result
 
+  # ------------------------------------------------------------------------
+
+  def read_filme(self,index_liste):
+    """Alle Filme lesen, deren _id in index_liste ist"""
+
+    # Zeilen lesen
+    cursor = self.open()
+    statement = "select * from Filme where _id in %s" % str(tuple(index_liste))
+    cursor.execute(statement)
+    rows = cursor.fetchall()
+    self.close()
+
+    # Zeilen als Liste von FilmInfo-Objekten zurückgeben
+    return [FilmInfo(*row) for row in rows]
 
 # --- MtvDB: Status-Datenbank   --------------------------------------------
 
