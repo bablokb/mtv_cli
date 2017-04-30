@@ -154,10 +154,10 @@ def get_suche():
 def get_select(result):
   select_liste = []
   for rec in result:
-    sender=rec[COLS_SEL['SENDER']]
-    thema=rec[COLS_SEL['THEMA']]
-    titel=rec[COLS_SEL['TITEL']]
-    datum=rec[COLS_SEL['DATUM']][8:10]+'.'+rec[3][5:7]+'.'+rec[3][2:4]
+    sender=rec['SENDER']
+    thema=rec['THEMA']
+    titel=rec['TITEL']
+    datum=rec['DATUM'].strftime("%d.%m.%y")
     select_liste.append(SEL_FORMAT.format(sender,thema,datum,titel))
   return select_liste
 
