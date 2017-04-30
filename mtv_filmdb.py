@@ -174,7 +174,9 @@ class FilmDB(object):
       msg("ERROR","Datenbank %s existiert nicht!" % self.dbfile)
       return None
 
-    db = sqlite3.connect(self.dbfile)
+    db = sqlite3.connect(self.dbfile,
+                              detect_types=sqlite3.PARSE_DECLTYPES)
+    db.row_factory = sqlite3.Row
     cursor = db.cursor()
     statement = self.get_query(suche)
     cursor.execute(statement)
