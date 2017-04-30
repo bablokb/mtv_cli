@@ -51,6 +51,8 @@ class FilmInfo(object):
 
   def to_date(self,datum):
     """Datumsstring in ein Date-Objekt umwandeln"""
+    if isinstance(datum,datetime.date):
+      return datum
     if '.' in datum:
       return datetime.datetime.strptime(datum,"%d.%m.%Y").date()
     else:
