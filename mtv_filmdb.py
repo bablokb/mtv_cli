@@ -34,6 +34,22 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
+  def open(self):
+    """Datenbank öffnen und Cursor zurückgeben"""
+    self.db = sqlite3.connect(self.dbfile,
+                              detect_types=sqlite3.PARSE_DECLTYPES)
+    self.db.row_factory = sqlite3.Row
+    self.cursor = self.db.cursor()
+    return self.cursor
+
+  # ------------------------------------------------------------------------
+
+  def close(self):
+    """Datenbank schließen"""
+    self.db.close()
+
+  # ------------------------------------------------------------------------
+
   def create(self):
     """Neue Datenbank (temporär) erzeugen"""
     if os.path.isfile(self.dbfile+'.new'):
@@ -174,14 +190,11 @@ class FilmDB(object):
       msg("ERROR","Datenbank %s existiert nicht!" % self.dbfile)
       return None
 
-    db = sqlite3.connect(self.dbfile,
-                              detect_types=sqlite3.PARSE_DECLTYPES)
-    db.row_factory = sqlite3.Row
-    cursor = db.cursor()
     statement = self.get_query(suche)
+    cursor = self.open()
     cursor.execute(statement)
     result = cursor.fetchall()
-    db.close()
+    self.close()
     return result
 
 
