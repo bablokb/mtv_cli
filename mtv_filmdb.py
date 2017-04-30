@@ -14,8 +14,9 @@
 
 import os, sqlite3, json
 
-from mtv_cfg   import *
-from mtv_const import *
+from mtv_cfg      import *
+from mtv_const    import *
+from mtv_filminfo import *
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
 
@@ -37,17 +38,18 @@ class FilmDB(object):
     """Neue Datenbank (temporär) erzeugen"""
     if os.path.isfile(self.dbfile+'.new'):
         os.remove(self.dbfile+'.new')
-    self.db = sqlite3.connect(self.dbfile+'.new')
+    self.db = sqlite3.connect(self.dbfile+'.new',
+                              detect_types=sqlite3.PARSE_DECLTYPES)
     self.cursor = self.db.cursor()
 
     self.cursor.execute("""create table filme
       (Sender text,
       Thema text,
       Titel text,
-      Datum text,
+      Datum date,
       Zeit text,
       Dauer text,
-      Groesse text,
+      Groesse integer,
       Beschreibung text,
       Url text,
       Website text,
@@ -65,19 +67,10 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
-  def to_date(self,datum):
-    """Datumsstring in ein Date-Objekt umwandeln"""
-    if '.' in datum:
-      return datetime.datetime.strptime(datum,"%d.%m.%Y").date()
-    else:
-      # schon im ISO-Format
-      return datetime.datetime.strptime(datum,"%Y-%m-%d").date()
-
-  # ------------------------------------------------------------------------
-
-  def rec2tuple(self,record):
-    """Ein Record in ein Tuple umwandeln. Dazu erzeugt der JSON-Parser erste
-       eine Liste, die anschließend in ein Tuple umgewandelt wird. Damit die
+  def rec2FilmInfo(self,record):
+    """Ein Record in ein FilmInfo-Objekt umwandeln.
+       Dazu erzeugt der JSON-Parser erste eine Liste,
+       die anschließend an den Constructor übergeben wird. Damit die
        Datenbank nicht zu groß wird, werden nur Sätze der letzten x Tage
        zurückgegeben."""
 
@@ -92,16 +85,18 @@ class FilmDB(object):
       # Liste für nächsten Durchgang speichern
       self.last_liste = liste
 
-      # Datum ins ISO-Format umwandeln und Cutoff
-      datum_obj = self.to_date(liste[COLS['DATUM']])
-      if datum_obj < date_cutoff:
-        return None
-      liste[COLS['DATUM']] = datum_obj.isoformat()
+      # Dummy-ID hinzufügen
+      liste.append(0)
+      film_info = FilmInfo(*liste)
 
-      # ID hinzufügen
+      # zu alte Sätze ignorieren
+      if film_info.datum < date_cutoff:
+        return None
+
+      # echte ID setzen
       self._id = self._id + 1
-      liste.append(self._id)
-      return tuple(liste)
+      film_info._id = self._id
+      return film_info
     except:
       print(record)
       raise
@@ -110,9 +105,9 @@ class FilmDB(object):
 
   def insert(self,record):
     """Satz zur Datenbank hinzufügen"""
-    tup = self.rec2tuple(record)
-    if tup:
-      self.cursor.execute(self.INSERT_STMT,tup)
+    film_info = self.rec2FilmInfo(record)
+    if film_info:
+      self.cursor.execute(self.INSERT_STMT,film_info.asTuple())
   
   # ------------------------------------------------------------------------
 
