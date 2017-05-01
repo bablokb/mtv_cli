@@ -29,7 +29,7 @@ class FilmDB(object):
     """Constructor"""
     self.dbfile = dbfile
     self.last_liste = None
-    self._id = 0
+    self.total = 0
     self.INSERT_STMT = 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
 
   # ------------------------------------------------------------------------
@@ -79,7 +79,7 @@ class FilmDB(object):
       Url_History text,
       Geo text,
       neu text,
-      _id integer primary key )""")
+      _id text primary key )""")
 
   # ------------------------------------------------------------------------
 
@@ -101,17 +101,14 @@ class FilmDB(object):
       # Liste für nächsten Durchgang speichern
       self.last_liste = liste
 
-      # Dummy-ID hinzufügen
-      liste.append(0)
       film_info = FilmInfo(*liste)
 
       # zu alte Sätze ignorieren
       if film_info.datum < date_cutoff:
         return None
 
-      # echte ID setzen
-      self._id = self._id + 1
-      film_info._id = self._id
+      # Anzahl Sätze aufsummieren
+      self.total += 1
       return film_info
     except:
       print(record)
@@ -135,7 +132,7 @@ class FilmDB(object):
 
   def get_count(self):
     """Anzahl der schon eingefügten Sätze zurückgeben"""
-    return self._id
+    return self.total
   
   # ------------------------------------------------------------------------
 
@@ -211,8 +208,6 @@ class FilmDB(object):
 
     # Zeilen als Liste von FilmInfo-Objekten zurückgeben
     return [FilmInfo(*row) for row in rows]
-
-# --- MtvDB: Status-Datenbank   --------------------------------------------
 
 class MtvDB(object):
   pass
