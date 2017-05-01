@@ -151,13 +151,13 @@ def get_suche():
 
 # --- Auswahlliste formatieren   --------------------------------------------
 
-def get_select(result):
+def get_select(rows):
   select_liste = []
-  for rec in result:
-    sender=rec['SENDER']
-    thema=rec['THEMA']
-    titel=rec['TITEL']
-    datum=rec['DATUM'].strftime("%d.%m.%y")
+  for row in rows:
+    sender=row['SENDER']
+    thema=row['THEMA']
+    titel=row['TITEL']
+    datum=row['DATUM'].strftime("%d.%m.%y")
     select_liste.append(SEL_FORMAT.format(sender,thema,datum,titel))
   return select_liste
 
@@ -168,42 +168,40 @@ def zeige_liste(options):
   global gFilmDB
   if not options.suche:
     options.suche = get_suche()
-  result = gFilmDB.execute_query(options.suche)
-  return result,pick(get_select(result), "  "+SEL_TITEL,multi_select=True)
+  rows = gFilmDB.execute_query(options.suche)
+  return rows,pick(get_select(rows), "  "+SEL_TITEL,multi_select=True)
 
 # --- Ergebnisse für späteren Download speichern   --------------------------
 
-def save_selected(result,selected,opt):
+def save_selected(rows,selected,opt):
   """ Auswahl speichern """
-  pass
+  global gFilmDB
+
+  # _id der Filme extrahieren
+  index_liste = []
+  for sel_text,sel_index in selected:
+    row = rows[sel_index]
+    index_liste.append(row[-1])
+  filme = gFilmDB.read_filme(index_liste)
+
+  for film in filme:
+    print(film)
   # MTV-Datenbank erstellen und öffnen
   #create_mtv_db()
   #db_mtv = sqlite3.connect(MTV_CLI_SQLITE)
   #cursor_mtv = db_mtv.cursor()
 
-  # Film-Datenbank öffnen
-  #db_filme = sqlite3.connect(options.dbfile)
-  #cursor_filme = db_filme.cursor()
-
-  # Datensätze speichern
-  #for sel_text,sel_index in selected:
-  #  record = result[sel_index]
-  #  _id = record[-1]
-  #  cursor_filme.execute("select url,url_klein,url_hd from Filme where _id=?",
-  #                       (_id,))
-  #  urls = cursor_filme.fetchone()
 
   # Aufräumarbeiten
   #db_mtv.commit()
   #db_mtv.close()
-  #db_filme.close()
   
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-  result,selected = zeige_liste(options)
-  save_selected(result,selected,"V")
+  rows,selected = zeige_liste(options)
+  save_selected(rows,selected,"V")
   msg("INFO","%d Filme vorgemerkt für den Download" % len(selected))
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
@@ -223,16 +221,16 @@ def do_download(options):
 def do_search(options):
   """Suche ohne Download"""
   global gFilmDB
-  result = gFilmDB.execute_query(options.suche)
-  if result:
+  rows = gFilmDB.execute_query(options.suche)
+  if rows:
     if options.doBatch:
-      for rec in result:
-        print(rec)
+      for row in rows:
+        print(dict(row))
     else:
       print(SEL_TITEL)
       print(len(SEL_TITEL)*'_')
-      for line in get_select(result):
-        print(line)
+      for row in get_select(rows):
+        print(row)
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
