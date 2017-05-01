@@ -12,7 +12,7 @@
 #
 # --------------------------------------------------------------------------
 
-import datetime
+import datetime, hashlib
 
 class FilmInfo(object):
   """Info über einen einzelnen Film"""
@@ -21,8 +21,8 @@ class FilmInfo(object):
   
   def __init__(self,sender,thema,titel,datum,zeit,dauer,
                groesse,beschreibung,url,website,url_untertitel,url_rtmp,
-               url_klein,url_rtmp_klein,url_hd,url_rtmp_hd,url_datuml,
-               url_history,url_geo,neu,_id):
+               url_klein,url_rtmp_klein,url_hd,url_rtmp_hd,datumL,
+               url_history,geo,neu,_id=None):
     """FilmInfo-Objekt erzeugen"""
 
     self.sender         = sender
@@ -41,11 +41,19 @@ class FilmInfo(object):
     self.url_rtmp_klein = url_rtmp_klein
     self.url_hd         = url_hd
     self.url_rtmp_hd    = url_rtmp_hd
-    self.url_datuml     = url_datuml
+    self.datumL         = datumL
     self.url_history    = url_history
-    self.url_geo        = url_geo
+    self.geo            = geo
     self.neu            = neu
-    self._id            = _id
+    if not _id:
+      self._id            = hashlib.md5((sender+thema+titel+datum+zeit+dauer+
+                                      groesse+beschreibung+url+website+
+                                      url_untertitel+url_rtmp+url_klein+
+                                      url_rtmp_klein+url_hd+url_rtmp_hd+
+                                      url_datuml+url_history+
+                                      url_geo).encode('utf-8')).hexdigest()
+    else:
+      self._id = _id
 
   # ------------------------------------------------------------------------
 
@@ -80,9 +88,37 @@ class FilmInfo(object):
       self.url_rtmp_klein,
       self.url_hd,
       self.url_rtmp_hd,
-      self.url_datuml,
+      self.datumL,
       self.url_history,
-      self.url_geo,
+      self.geo,
       self.neu,
       self._id
       )
+
+  # ------------------------------------------------------------------------
+
+  def asDict(self):
+    """Objekt-Felder als Dict zurückgeben"""
+    return {
+      "Sender": self.sender,
+      "Thema": self.thema,
+      "Titel": self.titel,
+      "Datum": self.datum,
+      "Zeit":  self.zeit,
+      "Dauer": self.dauer,
+      "Groesse": self.groesse,
+      "Beschreibung": self.beschreibung,
+      "Url": self.url,
+      "Website": self.website,
+      "Url_Untertitel": self.url_untertitel,
+      "Url_RTMP": self.url_rtmp,
+      "Url_klein": self.url_klein,
+      "Url_RTMP_klein": self.url_rtmp_klein,
+      "Url_HD": self.url_hd,
+      "Url_RTMP_HD": self.url_rtmp_hd,
+      "DatumL": self.datumL,
+      "Url_History": self.url_history,
+      "geo": self.geo,
+      "neu": self.neu,
+      "_id": self._id
+      }
