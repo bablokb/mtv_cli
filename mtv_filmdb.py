@@ -209,5 +209,29 @@ class FilmDB(object):
     # Zeilen als Liste von FilmInfo-Objekten zurückgeben
     return [FilmInfo(*row) for row in rows]
 
+  # ------------------------------------------------------------------------
+
+  def save_downloads(self,rows):
+    """Downloads, sichern.
+       rows ist eine Liste von (_id,Datum,Status)-Tupeln"""
+
+    CREATE_STMT = """CREATE TABLE IF NOT EXISTS downloads (
+                     _id text primary key,
+                     Datum date,
+                     status text)"""
+    INSERT_STMT = """INSERT OR IGNORE INTO downloads Values (?,?,?)"""
+
+    # Tabelle bei Bedarf erstellen
+    cursor = self.open()
+    cursor.execute(CREATE_STMT)
+    self.commit()
+    cursor.executemany(INSERT_STMT,rows)
+    changes = self.db.total_changes
+    self.commit()
+    self.close()
+    return changes
+
+# --------------------------------------------------------------------------
+
 class MtvDB(object):
   pass
