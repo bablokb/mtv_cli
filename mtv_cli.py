@@ -173,36 +173,24 @@ def zeige_liste(options):
 
 # --- Ergebnisse für späteren Download speichern   --------------------------
 
-def save_selected(rows,selected,opt):
+def save_selected(rows,selected,status):
   """ Auswahl speichern """
   global gFilmDB
 
-  # _id der Filme extrahieren
-  index_liste = []
+  # Datenstruktuer erstellen
+  inserts = []
   for sel_text,sel_index in selected:
     row = rows[sel_index]
-    index_liste.append(row[-1])
-  filme = gFilmDB.read_filme(index_liste)
-
-  for film in filme:
-    print(film)
-  # MTV-Datenbank erstellen und öffnen
-  #create_mtv_db()
-  #db_mtv = sqlite3.connect(MTV_CLI_SQLITE)
-  #cursor_mtv = db_mtv.cursor()
-
-
-  # Aufräumarbeiten
-  #db_mtv.commit()
-  #db_mtv.close()
+    inserts.append((row['_ID'],row['DATUM'],status))
+  return gFilmDB.save_downloads(inserts)
   
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
   rows,selected = zeige_liste(options)
-  save_selected(rows,selected,"V")
-  msg("INFO","%d Filme vorgemerkt für den Download" % len(selected))
+  changes = save_selected(rows,selected,"V")
+  msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
