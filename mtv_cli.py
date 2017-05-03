@@ -204,12 +204,24 @@ def do_later(options):
 
 def do_now(options):
   """Filmliste anzeigen, sofortiger Download nach Auswahl"""
-  print("Sofort noch nicht implementiert")
+  rows = filme_suchen(options)
+  selected = zeige_liste(rows)
+  changes = save_selected(rows,selected,"S")
+  msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
+
+  # Anstoß Downlaod
+  if changes > 0:
+    do_download(options)
 
 # --- Download vorgemerkter Filme   -----------------------------------------
 
 def do_download(options):
   """Download vorgemerkter Filme"""
+  if options.doNow:
+    # Aufruf aus do_now
+    pass
+  else:
+    pass
   print("Download noch nicht implementiert")
 
 # --- Suche ohne Download   -------------------------------------------------
