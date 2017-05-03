@@ -271,6 +271,10 @@ options = parser.parse_args(namespace=Options)
 if not os.path.exists(MTV_CLI_HOME):
   os.mkdir(MTV_CLI_HOME)
 
+if not options.upd_src and not os.path.isfile(options.dbfile):
+  msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
+  sys.exit(3)
+
 # Globale Objekte anlegen
 gFilmDB = FilmDB(options.dbfile)
 
