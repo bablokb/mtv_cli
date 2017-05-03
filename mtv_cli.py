@@ -211,7 +211,9 @@ def do_download(options):
 def do_search(options):
   """Suche ohne Download"""
   global gFilmDB
-  rows = gFilmDB.execute_query(options.suche)
+
+  statement = gFilmDB.get_query(options.suche)
+  rows = gFilmDB.execute_query(statement)
   if rows:
     if options.doBatch:
       for row in rows:
