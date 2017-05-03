@@ -50,8 +50,8 @@ class FilmInfo(object):
                                       groesse+beschreibung+url+website+
                                       url_untertitel+url_rtmp+url_klein+
                                       url_rtmp_klein+url_hd+url_rtmp_hd+
-                                      url_datuml+url_history+
-                                      url_geo).encode('utf-8')).hexdigest()
+                                      datumL+url_history+
+                                      geo).encode('utf-8')).hexdigest()
     else:
       self._id = _id
 
