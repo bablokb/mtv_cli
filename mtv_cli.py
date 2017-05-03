@@ -216,8 +216,14 @@ def do_search(options):
   rows = gFilmDB.execute_query(statement)
   if rows:
     if options.doBatch:
+      print("[")
       for row in rows:
-        print(dict(row))
+        rdict = dict(row)
+        if 'Datum' in rdict:
+          rdict['Datum'] = rdict['Datum'].strftime("%d.%m.%y")
+        print(rdict,end='')
+        print(",")
+      print("]")
     else:
       print(SEL_TITEL)
       print(len(SEL_TITEL)*'_')
