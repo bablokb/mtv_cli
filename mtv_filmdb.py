@@ -15,7 +15,6 @@
 import os, sqlite3, json
 
 from mtv_cfg      import *
-from mtv_const    import *
 from mtv_filminfo import *
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
@@ -180,9 +179,6 @@ class FilmDB(object):
   
   def execute_query(self,suche):
     """Suche ausführen"""
-    if not os.path.isfile(self.dbfile):
-      msg("ERROR","Datenbank %s existiert nicht!" % self.dbfile)
-      return None
 
     statement = self.get_query(suche)
     cursor = self.open()
