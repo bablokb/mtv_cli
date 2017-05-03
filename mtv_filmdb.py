@@ -177,10 +177,8 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
   
-  def execute_query(self,suche):
+  def execute_query(self,statement):
     """Suche ausführen"""
-
-    statement = self.get_query(suche)
     cursor = self.open()
     cursor.execute(statement)
     result = cursor.fetchall()
