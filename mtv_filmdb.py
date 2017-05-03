@@ -51,14 +51,13 @@ class FilmDB(object):
   # ------------------------------------------------------------------------
 
   def create(self):
-    """Neue Datenbank (temporär) erzeugen"""
-    if os.path.isfile(self.dbfile+'.new'):
-        os.remove(self.dbfile+'.new')
-    self.db = sqlite3.connect(self.dbfile+'.new',
+    """Tabelle Filme löschen und neu erzeugen"""
+    self.db = sqlite3.connect(self.dbfile,
                               detect_types=sqlite3.PARSE_DECLTYPES)
     self.cursor = self.db.cursor()
 
-    self.cursor.execute("""create table filme
+    self.cursor.execute("DROP TABLE IF EXISTS filme")
+    self.cursor.execute("""CREATE TABLE filme
       (Sender text,
       Thema text,
       Titel text,
@@ -137,14 +136,12 @@ class FilmDB(object):
   # ------------------------------------------------------------------------
 
   def save(self):
-    """Temporäre Datenbank endgültig speichern"""
+    """Filme speichern und Index erstellen"""
     self.db.commit()
+    self.cursor.execute("CREATE index id_index ON filme(_id)")
+    self.cursor.execute("CREATE index sender_index ON filme(sender)")
+    self.cursor.execute("CREATE index thema_index ON filme(thema)")
     self.db.close()
-
-    # Alte Datenbank löschen und neue umbenennen
-    if os.path.isfile(self.dbfile):
-      os.remove(self.dbfile)
-    os.rename(self.dbfile+'.new',self.dbfile)
 
   # ------------------------------------------------------------------------
   
