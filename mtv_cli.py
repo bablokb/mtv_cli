@@ -168,7 +168,9 @@ def zeige_liste(options):
   global gFilmDB
   if not options.suche:
     options.suche = get_suche()
-  rows = gFilmDB.execute_query(options.suche)
+
+  statement = gFilmDB.get_query(options.suche)
+  rows = gFilmDB.execute_query(statement)
   return rows,pick(get_select(rows), "  "+SEL_TITEL,multi_select=True)
 
 # --- Ergebnisse für späteren Download speichern   --------------------------
