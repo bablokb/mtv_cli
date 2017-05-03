@@ -161,17 +161,22 @@ def get_select(rows):
     select_liste.append(SEL_FORMAT.format(sender,thema,datum,titel))
   return select_liste
 
-# --- Filme zur Auswahl anzeigen   ------------------------------------------
+# --- Filme suchen   --------------------------------------------------------
 
-def zeige_liste(options):
-  """ Filmliste anzeigen, Auswahl zurückgeben"""
+def filme_suchen(options):
+  """Filme gemäß Vorgabe suchen"""
   global gFilmDB
   if not options.suche:
     options.suche = get_suche()
 
   statement = gFilmDB.get_query(options.suche)
-  rows = gFilmDB.execute_query(statement)
-  return rows,pick(get_select(rows), "  "+SEL_TITEL,multi_select=True)
+  return gFilmDB.execute_query(statement)
+
+# --- Filme zur Auswahl anzeigen   ------------------------------------------
+
+def zeige_liste(rows):
+  """ Filmliste anzeigen, Auswahl zurückgeben"""
+  return pick(get_select(rows), "  "+SEL_TITEL,multi_select=True)
 
 # --- Ergebnisse für späteren Download speichern   --------------------------
 
@@ -190,7 +195,8 @@ def save_selected(rows,selected,status):
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-  rows,selected = zeige_liste(options)
+  rows = filme_suchen(options)
+  selected = zeige_liste(rows)
   changes = save_selected(rows,selected,"V")
   msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
 
