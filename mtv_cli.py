@@ -196,7 +196,10 @@ def save_selected(rows,selected,status):
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
   rows = filme_suchen(options)
-  selected = zeige_liste(rows)
+  if options.doBatch:
+    selected = [('dummy',i) for i in range(len(rows))]
+  else:
+    selected = zeige_liste(rows)
   changes = save_selected(rows,selected,"V")
   msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
 
@@ -205,7 +208,10 @@ def do_later(options):
 def do_now(options):
   """Filmliste anzeigen, sofortiger Download nach Auswahl"""
   rows = filme_suchen(options)
-  selected = zeige_liste(rows)
+  if options.doBatch:
+    selected = [('dummy',i) for i in range(len(rows))]
+  else:
+    selected = zeige_liste(rows)
   changes = save_selected(rows,selected,"S")
   msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
 
