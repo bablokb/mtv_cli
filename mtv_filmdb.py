@@ -234,9 +234,9 @@ class FilmDB(object):
        Bedeutung der Status-Codes:
        V - Vorgemerkt
        S - Sofort
-       A - Abgebrochen
-       R - Running (Aktiv)
-       F - Fertig
+       A - Aktiv
+       F - Fehler
+       K - Komplett
     """
 
     # SQL-Teile
