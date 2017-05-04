@@ -227,6 +227,32 @@ class FilmDB(object):
     self.close()
     return changes
 
+  # ------------------------------------------------------------------------
+
+  def read_downloads(self,status="'V','S','A','R','F'"):
+    """Downloads auslesen.
+       Bedeutung der Status-Codes:
+       V - Vorgemerkt
+       S - Sofort
+       A - Abgebrochen
+       R - Running (Aktiv)
+       F - Fertig
+    """
+
+    # SQL-Teile
+    SEL_STMT = """SELECT d.status as status,
+                         f.sender as sender,
+                         f.thema  as thema,
+                         f.titel  as titel,
+                         f.datum  as datum
+                    FROM filme as f, downloads as d
+                      WHERE f._id = d._id AND d.status in (%s)""" % status
+    cursor = self.open()
+    cursor.execute(SEL_STMT)
+    rows = cursor.fetchall()
+    self.close()
+    return rows
+
 # --------------------------------------------------------------------------
 
 class MtvDB(object):
