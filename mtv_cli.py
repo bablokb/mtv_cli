@@ -247,6 +247,30 @@ def do_search(options):
       for row in get_select(rows):
         print(row)
 
+# --- Downloadliste anzeigen und editieren   --------------------------------
+
+def do_edit(options):
+  """Downloadliste anzeigen und editieren"""
+  print("Option -E noch nicht implementiert!")
+  global gFilmDB
+
+  # Liste lesen
+  rows = gFilmDB.read_downloads()
+
+  # Liste aufbereiten
+  select_liste = []
+  dll_format = "{:1.1} | "+SEL_FORMAT
+  for row in rows:
+    status=row['STATUS']
+    sender=row['SENDER']
+    thema=row['THEMA']
+    titel=row['TITEL']
+    datum=row['DATUM'].strftime("%d.%m.%y")
+
+    select_liste.append(dll_format.format(status,sender,thema,datum,titel))
+  selected = pick(select_liste, "Sta | "+SEL_TITEL,multi_select=True)
+
+
 # --- Kommandozeilenparser   ------------------------------------------------
 
 def get_parser():
@@ -262,6 +286,9 @@ def get_parser():
   parser.add_argument('-S', '--sofort', action='store_true',
     dest='doNow',
     help='Filmauswahl im Sofort-Modus')
+  parser.add_argument('-E', '--edit', action='store_true',
+    dest='doEdit',
+    help='Downloadliste bearbeiten')
   
   parser.add_argument('-D', '--download', action='store_true',
     dest='doDownload',
@@ -307,6 +334,8 @@ gFilmDB = FilmDB(options.dbfile)
 
 if options.upd_src:
   do_update(options)
+elif options.doEdit:
+  do_edit(options)
 elif options.doLater:
   do_later(options)
 elif options.doNow:
