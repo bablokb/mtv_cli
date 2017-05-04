@@ -207,10 +207,15 @@ class FilmDB(object):
        rows ist eine Liste von (_id,Datum,Status)-Tupeln"""
 
     CREATE_STMT = """CREATE TABLE IF NOT EXISTS downloads (
-                     _id text primary key,
-                     Datum date,
-                     status text)"""
-    INSERT_STMT = """INSERT OR IGNORE INTO downloads Values (?,?,?)"""
+                     _id       text primary key,
+                     Datum     date,
+                     status    text,
+                     DatumNeu  date)"""
+    INSERT_STMT = """INSERT OR IGNORE INTO downloads Values (?,?,?,?)"""
+
+    # Aktuelles Datum an Werte anfügen
+    for i in range(len(rows)):
+      rows[i] = rows[i] +(datetime.date.today(),)
 
     # Tabelle bei Bedarf erstellen
     cursor = self.open()
