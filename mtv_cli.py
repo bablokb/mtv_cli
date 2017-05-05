@@ -21,6 +21,7 @@ from pick import pick
 
 from mtv_const import *
 from mtv_cfg import *
+from mtv_download import *
 from mtv_filmdb import FilmDB as FilmDB
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
@@ -257,7 +258,6 @@ def do_search(options):
 
 def do_edit(options):
   """Downloadliste anzeigen und editieren"""
-  print("Option -E noch nicht implementiert!")
   global gFilmDB
 
   # Liste lesen
@@ -275,6 +275,17 @@ def do_edit(options):
 
     select_liste.append(dll_format.format(status,sender,thema,datum,titel))
   selected = pick(select_liste, "Sta | "+SEL_TITEL,multi_select=True)
+
+  # IDs extrahieren und Daten löschen
+  deletes = []
+  for sel_text,sel_index in selected:
+    row = rows[sel_index]
+    deletes.append((row['_ID'],))
+  if len(deletes):
+    changes = gFilmDB.delete_downloads(deletes)
+  else:
+    changes = 0
+  msg("INFO","%d vorgemerkte Filme gelöscht" % changes)
 
 
 # --- Kommandozeilenparser   ------------------------------------------------
