@@ -229,8 +229,21 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
-  def read_downloads(self,status="'V','S','A','R','F'"):
-    """Downloads auslesen.
+  def delete_downloads(self,rows):
+    """Downloads löschen"""
+    DEL_STMT = "DELETE FROM downloads where _id=?"
+
+    cursor = self.open()
+    cursor.executemany(DEL_STMT,rows)
+    changes = self.db.total_changes
+    self.commit()
+    self.close()
+    return changes
+
+  # ------------------------------------------------------------------------
+
+  def read_downloads(self,ui=True,status="'V','S','A','R','F'"):
+    """Downloads auslesen. Falls ui=True, Subset für Anzeige.
        Bedeutung der Status-Codes:
        V - Vorgemerkt
        S - Sofort
@@ -240,18 +253,28 @@ class FilmDB(object):
     """
 
     # SQL-Teile
-    SEL_STMT = """SELECT d.status as status,
-                         f.sender as sender,
-                         f.thema  as thema,
-                         f.titel  as titel,
-                         f.datum  as datum
-                    FROM filme as f, downloads as d
-                      WHERE f._id = d._id AND d.status in (%s)""" % status
+    if ui:
+      SEL_STMT = """SELECT d.status as status,
+                           d._id    as _id,
+                           f.sender as sender,
+                           f.thema  as thema,
+                           f.titel  as titel,
+                           f.datum  as datum
+                      FROM filme as f, downloads as d
+                        WHERE f._id = d._id AND d.status in (%s)""" % status
+    else:
+      SEL_STMT = """SELECT f.*
+                      FROM filme as f, downloads as d
+                        WHERE f._id = d._id AND d.status in (%s)""" % status
+
     cursor = self.open()
     cursor.execute(SEL_STMT)
     rows = cursor.fetchall()
     self.close()
-    return rows
+    if ui:
+      return rows
+    else:
+      return [FilmInfo(*row) for row in rows]
 
 # --------------------------------------------------------------------------
 
