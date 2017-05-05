@@ -224,12 +224,12 @@ def do_now(options):
 
 def do_download(options):
   """Download vorgemerkter Filme"""
+  global gFilmDB
   if options.doNow:
     # Aufruf aus do_now
-    pass
+    download_filme(gFilmDB,status="'S'")
   else:
-    pass
-  print("Download noch nicht implementiert")
+    download_filme(gFilmDB)
 
 # --- Suche ohne Download   -------------------------------------------------
 
