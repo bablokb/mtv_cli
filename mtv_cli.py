@@ -335,31 +335,32 @@ def get_parser():
 
 # --- Hauptprogramm   -------------------------------------------------------
 
-parser = get_parser()
-options = parser.parse_args(namespace=Options)
+if __name__ == '__main__':
+  parser = get_parser()
+  options = parser.parse_args(namespace=Options)
 
-# Verzeichnis HOME/.mediathek3 anlegen
-if not os.path.exists(MTV_CLI_HOME):
-  os.mkdir(MTV_CLI_HOME)
+  # Verzeichnis HOME/.mediathek3 anlegen
+  if not os.path.exists(MTV_CLI_HOME):
+    os.mkdir(MTV_CLI_HOME)
 
-if not options.upd_src and not os.path.isfile(options.dbfile):
-  msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
-  sys.exit(3)
+  if not options.upd_src and not os.path.isfile(options.dbfile):
+    msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
+    sys.exit(3)
 
-# Globale Objekte anlegen
-gFilmDB = FilmDB(options.dbfile)
+  # Globale Objekte anlegen
+  gFilmDB = FilmDB(options.dbfile)
 
-if options.upd_src:
-  do_update(options)
-elif options.doEdit:
-  do_edit(options)
-elif options.doLater:
-  do_later(options)
-elif options.doNow:
-  do_now(options)
-elif options.doDownload:
-  do_download(options)
-elif options.doSearch:
-  do_search(options)
-sys.exit(0)
+  if options.upd_src:
+    do_update(options)
+  elif options.doEdit:
+    do_edit(options)
+  elif options.doLater:
+    do_later(options)
+  elif options.doNow:
+    do_now(options)
+  elif options.doDownload:
+    do_download(options)
+  elif options.doSearch:
+    do_search(options)
+  sys.exit(0)
 
