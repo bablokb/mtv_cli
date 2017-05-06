@@ -21,6 +21,7 @@ DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
 URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
 NUM_DOWNLOADS=2
 ZIEL_DOWNLOADS="/data/videos/{Sender}_{Datum}_{Thema}_{Titel}.mp4"
+GROESSE_DOWNLOADS="HD"    # HD, SD, LOW
 
 # Pfade
 
