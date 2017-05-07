@@ -14,6 +14,8 @@
 
 import datetime, hashlib
 
+from mtv_cfg import *
+
 class FilmInfo(object):
   """Info über einen einzelnen Film"""
 
@@ -122,3 +124,24 @@ class FilmInfo(object):
       "neu": self.neu,
       "_id": self._id
       }
+
+  # ------------------------------------------------------------------------
+
+  def get_url(self):
+    """Bevorzugte URL zurückgeben
+       Ergebnis ist (Qualität,URL)"""
+
+    size = ""
+    if GROESSE_DOWNLOADS == "HD" and self.url_hd:
+      url_suffix = self.url_hd
+      size = "HD"
+
+    if GROESSE_DOWNLOADS == "SD" or not self.url_hd:
+      return "SD",self.url
+    elif not size:
+      url_suffix = self.url_klein
+      size = "LOW"
+
+    parts = url_suffix.split("|")
+    offset = int(parts[0])
+    return size,self.url[0:offset] + parts[1]
