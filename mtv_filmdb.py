@@ -13,6 +13,7 @@
 # --------------------------------------------------------------------------
 
 import os, sqlite3, json
+from multiprocessing import Lock
 
 from mtv_cfg      import *
 from mtv_filminfo import *
@@ -28,6 +29,7 @@ class FilmDB(object):
     """Constructor"""
     self.dbfile = dbfile
     self.last_liste = None
+    self.lock = Lock()
     self.total = 0
     self.INSERT_STMT = 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
 
@@ -221,6 +223,11 @@ class FilmDB(object):
     cursor = self.open()
     cursor.execute(CREATE_STMT)
     self.commit()
+
+    # Ein Lock ist hier nicht nötig, da Downloads bei -V immer in
+    # einem eigene Aufruf von mtv_cli stattfinden und bei -S immer
+    # nach save_downloads
+
     cursor.executemany(INSERT_STMT,rows)
     changes = self.db.total_changes
     self.commit()
@@ -233,6 +240,9 @@ class FilmDB(object):
     """Downloads löschen"""
     DEL_STMT = "DELETE FROM downloads where _id=?"
 
+    # Ein Lock ist hier nicht nötig, da Downloads immer in
+    # einem eigene Aufruf von mtv_cli stattfinden
+
     cursor = self.open()
     cursor.executemany(DEL_STMT,rows)
     changes = self.db.total_changes
@@ -242,7 +252,21 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
-  def read_downloads(self,ui=True,status="'V','S','A','R','F'"):
+  def update_downloads(self,_id,status):
+    """Status eines Satzes ändern"""
+    UPD_STMT = "UPDATE downloads SET status=? where _id=?"
+    try:
+      self.lock.acquire()
+      cursor = self.open()
+      cursor.execute(UPD_STMT,(status,_id))
+      self.commit()
+      self.close()
+    finally:
+      self.lock.release()
+
+  # ------------------------------------------------------------------------
+
+  def read_downloads(self,ui=True,status="'V','S','A','F'"):
     """Downloads auslesen. Falls ui=True, Subset für Anzeige.
        Bedeutung der Status-Codes:
        V - Vorgemerkt
