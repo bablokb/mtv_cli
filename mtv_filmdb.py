@@ -103,13 +103,11 @@ class FilmDB(object):
 
       film_info = FilmInfo(*liste)
 
-      # zu alte Sätze ignorieren
-      if film_info.datum < date_cutoff:
+      # Sätze per blacklist aussortieren (def in mtv_cfg)
+      if blacklist(film_info):
         return None
-
-      # Anzahl Sätze aufsummieren
-      self.total += 1
-      return film_info
+      else:
+        return film_info
     except:
       print(record)
       raise
@@ -120,6 +118,7 @@ class FilmDB(object):
     """Satz zur Datenbank hinzufügen"""
     film_info = self.rec2FilmInfo(record)
     if film_info:
+      self.total += 1
       self.cursor.execute(self.INSERT_STMT,film_info.asTuple())
   
   # ------------------------------------------------------------------------
