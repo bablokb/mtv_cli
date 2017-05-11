@@ -16,6 +16,7 @@ import os, sqlite3, json
 from multiprocessing import Lock
 
 from mtv_cfg      import *
+from mtv_const    import *
 from mtv_filminfo import *
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
@@ -292,8 +293,12 @@ class FilmDB(object):
                         WHERE f._id = d._id AND d.status in (%s)""" % status
 
     cursor = self.open()
-    cursor.execute(SEL_STMT)
-    rows = cursor.fetchall()
+    try:
+      cursor.execute(SEL_STMT)
+      rows = cursor.fetchall()
+    except sqlite3.OperationalError as e:
+      msg("DEBUG","SQL-Fehler: %s" % e)
+      rows = None
     self.close()
     if ui:
       return rows
