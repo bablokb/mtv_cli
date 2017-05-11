@@ -263,6 +263,9 @@ def do_edit(options):
 
   # Liste lesen
   rows = gFilmDB.read_downloads()
+  if not rows:
+    msg("INFO","Keine vorgemerkten Filme vorhanden")
+    return
 
   # Liste aufbereiten
   select_liste = []
