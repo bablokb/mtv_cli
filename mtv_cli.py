@@ -272,9 +272,10 @@ def do_edit(options):
     sender=row['SENDER']
     thema=row['THEMA']
     titel=row['TITEL']
+    dauer=row['DAUER']
     datum=row['DATUM'].strftime("%d.%m.%y")
 
-    select_liste.append(dll_format.format(status,sender,thema,datum,titel))
+    select_liste.append(dll_format.format(status,sender,thema,datum,dauer,titel))
   selected = pick(select_liste, "Sta | "+SEL_TITEL,multi_select=True)
 
   # IDs extrahieren und Daten löschen
