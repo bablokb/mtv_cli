@@ -148,7 +148,7 @@ class FilmDB(object):
   def get_query(self,suche):
     """Aus Suchbegriff eine SQL-Query erzeugen"""
     #Basisausdruck
-    select_clause = "select Sender,Thema,Titel,Datum,Beschreibung,_id from Filme where "
+    select_clause = "select * from Filme where "
 
     if not len(suche):
       return select_clause[0:-7]                 # remove " where "

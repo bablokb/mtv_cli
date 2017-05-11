@@ -159,7 +159,8 @@ def get_select(rows):
     thema=row['THEMA']
     titel=row['TITEL']
     datum=row['DATUM'].strftime("%d.%m.%y")
-    select_liste.append(SEL_FORMAT.format(sender,thema,datum,titel))
+    dauer=row['DAUER']
+    select_liste.append(SEL_FORMAT.format(sender,thema,datum,dauer,titel))
   return select_liste
 
 # --- Filme suchen   --------------------------------------------------------

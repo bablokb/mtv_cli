@@ -23,8 +23,8 @@ MSG_LEVELS={
   "ERROR":4
   }
 
-SEL_FORMAT = "{:7.7} | {:15.15} | {:8.8} | {:54.54}"
-SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Datum", "Titel")
+SEL_FORMAT = "{:7.7} | {:15.15} | {:8.8} | {:8.8} | {:46.46}"
+SEL_TITEL  = SEL_FORMAT.format("Sender","Thema","Datum","Dauer","Titel")
 
 # --- Meldung ausgeben   ----------------------------------------------------
 
