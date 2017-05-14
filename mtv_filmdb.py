@@ -266,7 +266,7 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
-  def read_downloads(self,ui=True,status="'V','S','A','F'"):
+  def read_downloads(self,ui=True,status="'V','S','A','F','K'"):
     """Downloads auslesen. Falls ui=True, Subset für Anzeige.
        Bedeutung der Status-Codes:
        V - Vorgemerkt
