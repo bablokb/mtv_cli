@@ -255,11 +255,11 @@ class FilmDB(object):
 
   def update_downloads(self,_id,status):
     """Status eines Satzes ändern"""
-    UPD_STMT = "UPDATE downloads SET status=? where _id=?"
+    UPD_STMT = "UPDATE downloads SET status=?,DatumStatus=? where _id=?"
     try:
       self.lock.acquire()
       cursor = self.open()
-      cursor.execute(UPD_STMT,(status,_id))
+      cursor.execute(UPD_STMT,(status,datetime.date.today(),_id))
       self.commit()
       self.close()
     finally:
