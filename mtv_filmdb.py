@@ -279,13 +279,14 @@ class FilmDB(object):
 
     # SQL-Teile
     if ui:
-      SEL_STMT = """SELECT d.status as status,
-                           d._id    as _id,
-                           f.sender as sender,
-                           f.thema  as thema,
-                           f.titel  as titel,
-                           f.dauer  as dauer,
-                           f.datum  as datum
+      SEL_STMT = """SELECT d.status      as status,
+                           d.DatumStatus as DatumStatus,
+                           d._id         as _id,
+                           f.sender      as sender,
+                           f.thema       as thema,
+                           f.titel       as titel,
+                           f.dauer       as dauer,
+                           f.datum       as datum
                       FROM filme as f, downloads as d
                         WHERE f._id = d._id AND d.status in (%s)""" % status
     else:
