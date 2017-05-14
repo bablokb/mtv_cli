@@ -210,10 +210,10 @@ class FilmDB(object):
        rows ist eine Liste von (_id,Datum,Status)-Tupeln"""
 
     CREATE_STMT = """CREATE TABLE IF NOT EXISTS downloads (
-                     _id       text primary key,
-                     Datum     date,
-                     status    text,
-                     DatumNeu  date)"""
+                     _id          text primary key,
+                     Datum        date,
+                     status       text,
+                     DatumStatus  date)"""
     INSERT_STMT = """INSERT OR IGNORE INTO downloads Values (?,?,?,?)"""
 
     # Aktuelles Datum an Werte anfügen
