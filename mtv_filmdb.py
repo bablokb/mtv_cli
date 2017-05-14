@@ -32,7 +32,6 @@ class FilmDB(object):
     self.last_liste = None
     self.lock = Lock()
     self.total = 0
-    self.INSERT_STMT = 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
 
   # ------------------------------------------------------------------------
 
@@ -117,10 +116,12 @@ class FilmDB(object):
 
   def insert(self,record):
     """Satz zur Datenbank hinzufügen"""
+    INSERT_STMT = 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
+
     film_info = self.rec2FilmInfo(record)
     if film_info:
       self.total += 1
-      self.cursor.execute(self.INSERT_STMT,film_info.asTuple())
+      self.cursor.execute(INSERT_STMT,film_info.asTuple())
   
   # ------------------------------------------------------------------------
 
