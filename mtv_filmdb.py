@@ -288,7 +288,8 @@ class FilmDB(object):
                            f.dauer       as dauer,
                            f.datum       as datum
                       FROM filme as f, downloads as d
-                        WHERE f._id = d._id AND d.status in (%s)""" % status
+                        WHERE f._id = d._id AND d.status in (%s)
+                        ORDER BY DatumStatus DESC""" % status
     else:
       SEL_STMT = """SELECT f.*
                       FROM filme as f, downloads as d
