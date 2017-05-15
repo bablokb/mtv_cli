@@ -56,6 +56,7 @@ def split_content(fpin,filmDB):
 
   total = 0
   buf_count =  0
+  regex = re.compile(',\n? *"X" ?: ?')
   while True:
     # Buffer neu lesen
     buffer = fpin.read(BUFSIZE)
@@ -71,7 +72,7 @@ def split_content(fpin,filmDB):
         break
 
     # Sätze aufspalten
-    records = re.split(',\n? *"X" ?: ?',last_rec+str(buffer))
+    records = regex.split(last_rec+str(buffer))
     msg("DEBUG","Anzahl Sätze: %d" % len(records))
 
     # Sätze ausgeben. Der letzte Satz ist entweder leer, 
