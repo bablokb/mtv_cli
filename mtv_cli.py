@@ -124,7 +124,7 @@ def do_update(options):
 
 def get_suche():
   suche_titel = "Auswahl Suchdetails"
-  suche_opts  = ['Ende','Überall []', 'Sender []','Thema []',
+  suche_opts  = ['Weiter','Global []', 'Sender []','Datum []','Thema []',
                  'Titel []', 'Beschreibung []']
   suche_werte = {}
   while True:
@@ -140,7 +140,7 @@ def get_suche():
       suche_opts[index] = option[0:pos]  + " [" + begriff + "]"
 
   # Ergebnis extrahieren
-  if len(suche_opts[1]) > len('Überall []'):
+  if len(suche_opts[1]) > len('Global []'):
     return [re.split("\[|\]",suche_opts[1])[1]]
   else:
     result = []
