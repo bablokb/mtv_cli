@@ -14,7 +14,7 @@
 
 # --- System-Imports   -----------------------------------------------------
 
-import multiprocessing
+import multiprocessing, os
 import subprocess
 import shlex
 from subprocess import DEVNULL,STDOUT
@@ -38,6 +38,11 @@ def download_film(filmdb,film):
   film.titel = film.titel.replace('/','_')
   ziel = ZIEL_DOWNLOADS.format(ext=url.split(".")[-1],**film.asDict())
   cmd = CMD_DOWNLOADS.format(ziel=ziel,url=url)
+
+  # Zielverzeichnis erstellen
+  ziel_dir = os.path.dirname(ziel)
+  if not os.path.exists(ziel_dir):
+    os.mkdirs(ziel_dir)
 
   # Download ausführen
   filmdb.update_downloads(_id,'A')
