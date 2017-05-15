@@ -115,7 +115,7 @@ def do_update(options):
       fpin = get_lzma_fp(get_url_fp(src))
     else:
       fpin = open(src,"r",encoding='utf-8')
-    split_content(fpin,options.dbfile)
+    split_content(fpin,options.filmDB)
   finally:
     fpin.close()
 
