@@ -44,14 +44,13 @@ def get_lzma_fp(url_fp):
 
 # --- Split der Datei   -----------------------------------------------------
 
-def split_content(fpin,dbfile):
+def split_content(fpin,filmDB):
   """Inhalt aufteilen"""
-  global gFilmDB
   
   have_header=False
   last_rec = ""
 
-  gFilmDB.create()
+  filmDB.create()
 
   total = 0
   buf_count =  0
@@ -66,7 +65,7 @@ def split_content(fpin,dbfile):
     if len(buffer) == 0:
       if len(last_rec):
         total = total + 1
-        gFilmDB.insert(last_rec[0:-1])
+        filmDB.insert(last_rec[0:-1])
         break
 
     # Sätze aufspalten
@@ -82,18 +81,18 @@ def split_content(fpin,dbfile):
         have_header = True
         continue
       total = total + 1
-      gFilmDB.insert(record)
+      filmDB.insert(record)
 
     # ein Commit pro BUFSIZE
-    gFilmDB.commit()
+    filmDB.commit()
 
   # Datensätze speichern und Datenbank schließen
-  gFilmDB.save()
+  filmDB.save()
 
   msg("INFO","\n",False)
   msg("INFO","Anzahl Buffer:              %d" % buf_count)
   msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
-  msg("INFO","Anzahl Sätze (gespeichert): %d" % gFilmDB.get_count())
+  msg("INFO","Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
 
     
 # --- Update verarbeiten   --------------------------------------------------
@@ -167,12 +166,11 @@ def get_select(rows):
 
 def filme_suchen(options):
   """Filme gemäß Vorgabe suchen"""
-  global gFilmDB
   if not options.suche:
     options.suche = get_suche()
 
-  statement = gFilmDB.get_query(options.suche)
-  return gFilmDB.execute_query(statement)
+  statement = options.filmDB.get_query(options.suche)
+  return options.filmDB.execute_query(statement)
 
 # --- Filme zur Auswahl anzeigen   ------------------------------------------
 
@@ -182,16 +180,15 @@ def zeige_liste(rows):
 
 # --- Ergebnisse für späteren Download speichern   --------------------------
 
-def save_selected(rows,selected,status):
+def save_selected(filmDB,rows,selected,status):
   """ Auswahl speichern """
-  global gFilmDB
 
   # Datenstruktuer erstellen
   inserts = []
   for sel_text,sel_index in selected:
     row = rows[sel_index]
     inserts.append((row['_ID'],row['DATUM'],status))
-  return gFilmDB.save_downloads(inserts)
+  return filmDB.save_downloads(inserts)
   
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
@@ -202,7 +199,7 @@ def do_later(options):
     selected = [('dummy',i) for i in range(len(rows))]
   else:
     selected = zeige_liste(rows)
-  changes = save_selected(rows,selected,"V")
+  changes = save_selected(options.filmDB,rows,selected,"V")
   msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
@@ -214,7 +211,7 @@ def do_now(options):
     selected = [('dummy',i) for i in range(len(rows))]
   else:
     selected = zeige_liste(rows)
-  changes = save_selected(rows,selected,"S")
+  changes = save_selected(options.filmDB,rows,selected,"S")
   msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
 
   # Anstoß Downlaod
@@ -225,18 +222,16 @@ def do_now(options):
 
 def do_download(options):
   """Download vorgemerkter Filme"""
-  global gFilmDB
   if options.doNow:
     # Aufruf aus do_now
-    download_filme(gFilmDB,status="'S'")
+    download_filme(options.filmDB,status="'S'")
   else:
-    download_filme(gFilmDB)
+    download_filme(options.filmDB)
 
 # --- Suche ohne Download   -------------------------------------------------
 
 def do_search(options):
   """Suche ohne Download"""
-  global gFilmDB
 
   rows = filme_suchen(options)
   if rows:
@@ -259,10 +254,9 @@ def do_search(options):
 
 def do_edit(options):
   """Downloadliste anzeigen und editieren"""
-  global gFilmDB
 
   # Liste lesen
-  rows = gFilmDB.read_downloads()
+  rows = options.filmDB.read_downloads()
   if not rows:
     msg("INFO","Keine vorgemerkten Filme vorhanden")
     return
@@ -288,7 +282,7 @@ def do_edit(options):
     row = rows[sel_index]
     deletes.append((row['_ID'],))
   if len(deletes):
-    changes = gFilmDB.delete_downloads(deletes)
+    changes = options.filmDB.delete_downloads(deletes)
   else:
     changes = 0
   msg("INFO","%d vorgemerkte Filme gelöscht" % changes)
@@ -354,7 +348,7 @@ if __name__ == '__main__':
     sys.exit(3)
 
   # Globale Objekte anlegen
-  gFilmDB = FilmDB(options.dbfile)
+  options.filmDB = FilmDB(options.dbfile)
 
   if options.upd_src:
     do_update(options)
