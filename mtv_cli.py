@@ -51,6 +51,8 @@ def split_content(fpin,filmDB):
   last_rec = ""
 
   filmDB.create()
+  filmDB.isolation_level = None
+  filmDB.cursor.execute("BEGIN;")
 
   total = 0
   buf_count =  0
@@ -83,10 +85,8 @@ def split_content(fpin,filmDB):
       total = total + 1
       filmDB.insert(record)
 
-    # ein Commit pro BUFSIZE
-    filmDB.commit()
-
   # Datensätze speichern und Datenbank schließen
+  filmDB.commit()
   filmDB.save()
 
   msg("INFO","\n",False)
