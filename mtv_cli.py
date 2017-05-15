@@ -269,17 +269,18 @@ def do_edit(options):
 
   # Liste aufbereiten
   select_liste = []
-  dll_format = "{:1.1} | "+SEL_FORMAT
   for row in rows:
     status=row['STATUS']
+    datum_status=row['DATUMSTATUS'].strftime("%d.%m.%y")
     sender=row['SENDER']
     thema=row['THEMA']
     titel=row['TITEL']
     dauer=row['DAUER']
     datum=row['DATUM'].strftime("%d.%m.%y")
 
-    select_liste.append(dll_format.format(status,sender,thema,datum,dauer,titel))
-  selected = pick(select_liste, "Sta | "+SEL_TITEL,multi_select=True)
+    select_liste.append(DLL_FORMAT.format(status,datum_status,
+                                          sender,thema,datum,dauer,titel))
+  selected = pick(select_liste, DLL_TITEL,multi_select=True)
 
   # IDs extrahieren und Daten löschen
   deletes = []
