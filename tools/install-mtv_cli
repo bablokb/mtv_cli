@@ -1,0 +1,42 @@
+#!/bin/bash
+# --------------------------------------------------------------------------
+# Mediathekview auf der Kommandozeile
+#
+# Dieses Skript installiert die Projektdateien
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+# --------------------------------------------------------------------------
+
+# --- defaults used during installation   ----------------------------------
+
+# --- basic packages   ------------------------------------------------------
+
+check_packages() {
+  local p
+  for p in "$@"; do
+    echo -en "Checking $p ... " >&2
+    dpkg -s "$p" 2>/dev/null | grep -q "Status.*ok" || return 0
+    echo "ok" >&2
+  done
+  return 1
+}
+
+PACKAGES="python3 python3-pip"
+if [ -n "$PACKAGES" ] && check_packages $PACKAGES; then
+  apt-get update
+  apt-get -y install $PACKAGES
+fi
+
+pip3 show pick | grep -q Version || pip3 install pick
+
+# --- install specific files   ----------------------------------------------
+
+for f in `find $(dirname "$0")/../files/ -not -path "*__pycache__*" -type f`; do
+  cp -v "$f" "${f#*files}"
+  chown root:root "${f#*files}"
+done
+chmod 755 /usr/local/bin/mtv_cli.py
