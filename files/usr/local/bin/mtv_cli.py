@@ -13,7 +13,7 @@
 # --- System-Imports   -----------------------------------------------------
 
 from argparse import ArgumentParser
-import sys, os, re, lzma, datetime
+import sys, os, re, lzma, datetime, random
 import urllib.request as request
 from pick import pick
 
@@ -102,8 +102,7 @@ def do_update(options):
   """Update der Filmliste"""
 
   if options.upd_src == "auto":
-    # TODO: download-url aus Liste von Servern
-    src = URL_FILMLISTE
+    src = random.choice(URL_FILMLISTE)
   elif options.upd_src == "json":
     # existierende Filmliste verwenden
     src = os.path.join(MTV_CLI_HOME,"filme.json")

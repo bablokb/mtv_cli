@@ -16,9 +16,6 @@ import os, datetime
 MSG_LEVEL="INFO"
 DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
 
-# Downlaod-URLs
-
-URL_FILMLISTE="http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz"
 NUM_DOWNLOADS=2
 ZIEL_DOWNLOADS="/data/videos/{Sender}_{Datum}_{Thema}_{Titel}.{ext}"
 CMD_DOWNLOADS="wget -q -c -O '{ziel}' '{url}'"
@@ -38,5 +35,18 @@ def blacklist(film_info):
 
 
 # --- ab hier nichts ändern   -----------------------------------------------
+
+# Downlaod-URLs
+
+URL_FILMLISTE=[
+  "http://verteiler4.mediathekview.de/Filmliste-akt.xz",
+  "http://verteiler5.mediathekview.de/Filmliste-akt.xz",
+  "http://verteiler6.mediathekview.de/Filmliste-akt.xz",
+  "http://download10.onlinetvrecorder.com/mediathekview/Filmliste-akt.xz",
+  "http://mediathekview.jankal.me/Filmliste-akt.xz",
+  "http://verteiler1.mediathekview.de/Filmliste-akt.xz",
+  "http://verteiler2.mediathekview.de/Filmliste-akt.xz",
+  "http://verteiler3.mediathekview.de/Filmliste-akt.xz"
+  ]
 
 date_cutoff=datetime.date.today() - datetime.timedelta(days=DATE_CUTOFF)
