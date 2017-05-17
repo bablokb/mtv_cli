@@ -13,7 +13,7 @@
 # --- System-Imports   -----------------------------------------------------
 
 from argparse import ArgumentParser
-import sys, os, re, lzma, datetime, random
+import sys, os, re, lzma, datetime, random, fcntl
 import urllib.request as request
 from pick import pick
 
@@ -333,9 +333,26 @@ def get_parser():
     help='Sucheausdruck')
   return parser
 
+# --- Lock anfordern  -------------------------------------------------------
+
+def get_lock(pgm):
+  global fd_pgm
+  fd_pgm = open(pgm,"r")
+  try:
+    lock = fcntl.flock(fd_pgm,fcntl.LOCK_NB | fcntl.LOCK_EX)
+    return True
+  except IOError:
+    return False
+
 # --- Hauptprogramm   -------------------------------------------------------
 
 if __name__ == '__main__':
+
+  # Lock anfordern
+  if not get_lock(sys.argv[0]):
+    msg("ERROR","Programm %s läuft schon" % sys.argv[0])
+    sys.exit(3)
+
   parser = get_parser()
   options = parser.parse_args(namespace=Options)
 
