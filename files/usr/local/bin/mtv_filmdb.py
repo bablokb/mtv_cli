@@ -159,10 +159,10 @@ class FilmDB(object):
       return ' '.join(suche)
 
     where_clause = ""
-    if '=' in suche[0]:
+    if ':' in suche[0]:
       # Suche per Schlüsselwort
       for token in suche:
-        key,value = token.split("=")
+        key,value = token.split(":")
         if where_clause:
           where_clause = where_clause + " and "
         where_clause = where_clause + key + " like '%" + value + "%'"

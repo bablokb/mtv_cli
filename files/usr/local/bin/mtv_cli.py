@@ -146,7 +146,7 @@ def get_suche():
     for opt in suche_opts[2:]:
       token  = re.split("\[|\]",opt)
       if len(token[1]) > 0:
-        result.append(token[0].strip()+"="+token[1])
+        result.append(token[0].strip()+":"+token[1])
     return result
 
 # --- Auswahlliste formatieren   --------------------------------------------
