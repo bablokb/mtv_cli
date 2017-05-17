@@ -159,24 +159,24 @@ class FilmDB(object):
       return ' '.join(suche)
 
     where_clause = ""
-    if ':' in suche[0]:
-      # Suche per Schlüsselwort
-      for token in suche:
+    for token in suche:
+      if ':' in token:
+        # Suche per Schlüsselwort
         key,value = token.split(":")
         if where_clause:
-          where_clause = where_clause + " and "
+          where_clause = where_clause + ") and ("
         where_clause = where_clause + key + " like '%" + value + "%'"
-    else:
-      # Volltextsuche
-      for token in suche:
+      else:
+        # Volltextsuche
         if where_clause:
-          where_clause = where_clause + " or "
+          where_clause = where_clause + ") or ("
         where_clause = where_clause + (
           """Sender       like '%%%s%%' or
           Thema        like '%%%s%%' or
           Titel        like '%%%s%%' or
           Beschreibung like '%%%s%%'""" % (token,token,token,token))
-    return select_clause + where_clause
+    msg("DEBUG","SQL-Where: (%s)" % where_clause)
+    return select_clause + "(" + where_clause +")"
 
   # ------------------------------------------------------------------------
   
