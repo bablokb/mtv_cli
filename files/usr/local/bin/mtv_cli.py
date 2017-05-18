@@ -335,11 +335,15 @@ def get_parser():
 
 # --- Lock anfordern  -------------------------------------------------------
 
-def get_lock(pgm):
-  global fd_pgm
-  fd_pgm = open(pgm,"r")
+def get_lock(datei):
+  global fd_datei
+
+  if not os.path.isfile(datei):
+    return True
+
+  fd_datei = open(datei,"r")
   try:
-    lock = fcntl.flock(fd_pgm,fcntl.LOCK_NB | fcntl.LOCK_EX)
+    lock = fcntl.flock(fd_datei,fcntl.LOCK_NB | fcntl.LOCK_EX)
     return True
   except IOError:
     return False
@@ -348,10 +352,6 @@ def get_lock(pgm):
 
 if __name__ == '__main__':
 
-  # Lock anfordern
-  if not get_lock(sys.argv[0]):
-    msg("ERROR","Programm %s läuft schon" % sys.argv[0])
-    sys.exit(3)
 
   parser = get_parser()
   options = parser.parse_args(namespace=Options)
@@ -362,6 +362,11 @@ if __name__ == '__main__':
 
   if not options.upd_src and not os.path.isfile(options.dbfile):
     msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
+    sys.exit(3)
+
+  # Lock anfordern
+  if not get_lock(options.dbfile):
+    msg("ERROR","Datenbank %s ist gesperrt" % options.dbfile)
     sys.exit(3)
 
   # Globale Objekte anlegen
