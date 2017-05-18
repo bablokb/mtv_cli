@@ -83,6 +83,13 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
+  def blacklist(film_info):
+    """Gibt True zurück für Filme, die eingeschlossen werden sollen"""
+    return (film_info.datum < date_cutoff or
+          film_info.dauer_as_minutes() >= DAUER_CUTOFF)
+
+  # ------------------------------------------------------------------------
+
   def rec2FilmInfo(self,record):
     """Ein Record in ein FilmInfo-Objekt umwandeln.
        Dazu erzeugt der JSON-Parser erste eine Liste,
@@ -104,7 +111,7 @@ class FilmDB(object):
       film_info = FilmInfo(*liste)
 
       # Sätze per blacklist aussortieren (def in mtv_cfg)
-      if blacklist(film_info):
+      if self.blacklist(film_info):
         return None
       else:
         return film_info

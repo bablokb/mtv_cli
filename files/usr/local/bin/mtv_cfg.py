@@ -28,13 +28,6 @@ MTV_CLI_HOME=os.path.join(os.path.expanduser("~"),".mediathek3")
 FILME_SQLITE=os.path.join(MTV_CLI_HOME,"filme.sqlite")
 MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
 
-# blacklist Methode
-
-def blacklist(film_info):
-  return (film_info.datum < date_cutoff or
-          film_info.dauer_as_minutes() >= DAUER_CUTOFF)
-
-
 # --- ab hier nichts ändern   -----------------------------------------------
 
 # Downlaod-URLs
