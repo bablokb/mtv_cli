@@ -146,6 +146,14 @@ class FilmDB(object):
     self.db.close()
 
   # ------------------------------------------------------------------------
+
+  def iso_date(self,datum):
+    """Deutsches Datum in ISO-Datum umwandeln"""
+    parts=datum.split(".")
+    return ("20" if len(parts[2]) == 2 else "") + \
+           parts[2] + "-" + parts[1] + "-" + parts[0]
+
+  # ------------------------------------------------------------------------
   
   def get_query(self,suche):
     """Aus Suchbegriff eine SQL-Query erzeugen"""
@@ -162,6 +170,8 @@ class FilmDB(object):
     op = ""
     for token in suche:
       if token in ["(","und","oder","and","or",")"]:
+        if op:
+          where_clause = where_clause + op
         op = " %s " % token
         continue
       if ':' in token:
@@ -169,7 +179,29 @@ class FilmDB(object):
         key,value = token.split(":")
         if where_clause:
           where_clause = where_clause +  (op if op else " and ")
-        where_clause = where_clause + "(%s like '%%%s%%')" % (key,value)
+        if key.upper() == "DATUM":
+          # Sonderbehandlung Datum:
+          if (">" in value) or ("<" in value) or ("=" in value):
+            # datum:=xxx, datum:>xxx, datum:>=xxx usw.
+            if value[1] in ["<",">","="]:
+              date_op = value[0:2]
+              value = value[2:]
+            else:
+              date_op = value[0]
+              value = value[1:]
+            where_clause = where_clause + "(%s %s '%s')" % \
+                           (key,date_op,self.iso_date(value))
+          elif "-" in value:
+            # datum:start-end
+            limits = value.split("-")
+            where_clause = where_clause + (
+              "(%s >= '%s' and %s <= '%s')" % (key,self.iso_date(limits[0])
+                                           ,key,self.iso_date(limits[1])))
+          else:
+            # datum:xxx (identisch zu datum:=xxx)
+            where_clause = where_clause + "(%s='%s')" % (key,self.iso_date(value))
+        else:
+          where_clause = where_clause + "(%s like '%%%s%%')" % (key,value)
       else:
         # Volltextsuche
         if where_clause:
