@@ -32,6 +32,7 @@ class FilmDB(object):
     self.last_liste = None
     self.lock = Lock()
     self.total = 0
+    self.date_cutoff=datetime.date.today() - datetime.timedelta(days=DATE_CUTOFF)
 
   # ------------------------------------------------------------------------
 
@@ -85,7 +86,7 @@ class FilmDB(object):
 
   def blacklist(film_info):
     """Gibt True zurück für Filme, die eingeschlossen werden sollen"""
-    return (film_info.datum < date_cutoff or
+    return (film_info.datum < self.date_cutoff or
           film_info.dauer_as_minutes() >= DAUER_CUTOFF)
 
   # ------------------------------------------------------------------------
