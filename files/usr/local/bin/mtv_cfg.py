@@ -15,6 +15,7 @@ import os, datetime
 
 MSG_LEVEL="INFO"
 DATE_CUTOFF=30   # die letzten x-Tage werden gespeichert
+DAUER_CUTOFF=5   # nur Filme >= 5 Minuten werden gespeichert
 
 NUM_DOWNLOADS=2
 ZIEL_DOWNLOADS="/data/videos/{Sender}_{Datum}_{Thema}_{Titel}.{ext}"
@@ -31,7 +32,7 @@ MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
 
 def blacklist(film_info):
   return (film_info.datum < date_cutoff or
-          film_info.dauer_as_minutes() < 6)
+          film_info.dauer_as_minutes() >= DAUER_CUTOFF)
 
 
 # --- ab hier nichts ändern   -----------------------------------------------
