@@ -15,7 +15,6 @@
 import os, sqlite3, json
 from multiprocessing import Lock
 
-from mtv_cfg      import *
 from mtv_const    import *
 from mtv_filminfo import *
 
