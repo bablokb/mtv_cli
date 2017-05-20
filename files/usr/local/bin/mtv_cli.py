@@ -15,12 +15,13 @@
 from argparse import ArgumentParser
 import sys, os, re, lzma, datetime, random, fcntl
 import urllib.request as request
+import configparser
+
 from pick import pick
 
 # --- eigene Imports   ------------------------------------------------------
 
 from mtv_const import *
-from mtv_cfg import *
 from mtv_download import *
 from mtv_filmdb import FilmDB as FilmDB
 
@@ -348,13 +349,29 @@ def get_lock(datei):
   except IOError:
     return False
 
+# --- Konfigurationsobjekt erzeugen   ---------------------------------------
+
+def get_config(parser):
+  return {
+    "MSG_LEVEL":         parser.get('CONFIG',"MSG_LEVEL"),
+    "DATE_CUTOFF":       parser.getint('CONFIG',"DATE_CUTOFF"),
+    "DAUER_CUTOFF":      parser.getint('CONFIG',"DAUER_CUTOFF"),
+    "NUM_DOWNLOADS":     parser.getint('CONFIG',"NUM_DOWNLOADS"),
+    "ZIEL_DOWNLOADS":    parser.get('CONFIG',"ZIEL_DOWNLOADS"),
+    "CMD_DOWNLOADS":     parser.get('CONFIG',"CMD_DOWNLOADS"),
+    "GROESSE_DOWNLOADS": parser.get('CONFIG',"GROESSE_DOWNLOADS")
+    }
+
 # --- Hauptprogramm   -------------------------------------------------------
 
 if __name__ == '__main__':
 
+  config_parser = configparser.RawConfigParser()
+  config_parser.read('files/etc/mtv_cli.conf')
+  config = get_config(config_parser)
 
-  parser = get_parser()
-  options = parser.parse_args(namespace=Options)
+  opt_parser = get_parser()
+  options = opt_parser.parse_args(namespace=Options)
 
   # Verzeichnis HOME/.mediathek3 anlegen
   if not os.path.exists(MTV_CLI_HOME):
@@ -371,6 +388,7 @@ if __name__ == '__main__':
 
   # Globale Objekte anlegen
   options.filmDB = FilmDB(options.dbfile)
+  options.config = config
 
   if options.upd_src:
     do_update(options)
