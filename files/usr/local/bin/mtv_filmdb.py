@@ -124,7 +124,7 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
-  def insert(self,record):
+  def insert_film(self,record):
     """Satz zur Datenbank hinzufügen"""
     INSERT_STMT = 'INSERT INTO filme VALUES (' + 20 * '?,' + '?)'
 

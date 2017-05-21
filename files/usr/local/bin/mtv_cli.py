@@ -70,7 +70,7 @@ def split_content(fpin,filmDB):
     if len(buffer) == 0:
       if len(last_rec):
         total = total + 1
-        filmDB.insert(last_rec[0:-1])
+        filmDB.insert_film(last_rec[0:-1])
         break
 
     # Sätze aufspalten
@@ -86,7 +86,7 @@ def split_content(fpin,filmDB):
         have_header = True
         continue
       total = total + 1
-      filmDB.insert(record)
+      filmDB.insert_film(record)
 
   # Datensätze speichern und Datenbank schließen
   filmDB.commit()
