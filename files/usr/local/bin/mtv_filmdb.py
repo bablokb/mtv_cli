@@ -154,6 +154,7 @@ class FilmDB(object):
     self.cursor.execute("CREATE index sender_index ON filme(sender)")
     self.cursor.execute("CREATE index thema_index ON filme(thema)")
     self.db.close()
+    self.save_status('akt')
 
   # ------------------------------------------------------------------------
 
@@ -354,4 +355,30 @@ class FilmDB(object):
       return rows
     else:
       return [FilmInfo(*row) for row in rows]
+
+  # ------------------------------------------------------------------------
+
+  def save_status(self,key,text=None):
+    """Status in Status-Tabelle speichern"""
+
+    CREATE_STMT = """CREATE TABLE IF NOT EXISTS status (
+                     key          text primary key,
+                     Zeit         timestamp,
+                     text         text)"""
+    INSERT_STMT = """INSERT OR REPLACE INTO status Values (?,?,?)"""
+
+    # Zeitstempel
+    now = datetime.datetime.now()
+
+    # Tabelle bei Bedarf erstellen
+    try:
+      self.lock.acquire()
+      cursor = self.open()
+      cursor.execute(CREATE_STMT)
+      self.commit()
+      cursor.execute(INSERT_STMT,(key,now,text))
+      self.commit()
+      self.close()
+    finally:
+      self.lock.release()
 
