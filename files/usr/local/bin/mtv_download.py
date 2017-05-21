@@ -81,3 +81,5 @@ def download_filme(options,status="'V','F','A'"):
         pool.apply_async(download_film,(options,film))
       pool.close()
       pool.join()
+
+  options.filmDB.save_status('_download')
