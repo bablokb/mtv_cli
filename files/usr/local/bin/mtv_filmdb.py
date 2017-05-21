@@ -54,7 +54,7 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
-  def create(self):
+  def create_filmtable(self):
     """Tabelle Filme löschen und neu erzeugen"""
     self.db = sqlite3.connect(self.dbfile,
                               detect_types=sqlite3.PARSE_DECLTYPES)

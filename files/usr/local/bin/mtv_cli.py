@@ -52,7 +52,7 @@ def split_content(fpin,filmDB):
   have_header=False
   last_rec = ""
 
-  filmDB.create()
+  filmDB.create_filmtable()
   filmDB.isolation_level = None
   filmDB.cursor.execute("BEGIN;")
 
