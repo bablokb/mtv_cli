@@ -89,7 +89,7 @@ class FilmDB(object):
   def blacklist(self,film_info):
     """Gibt True zurück für Filme, die eingeschlossen werden sollen"""
     return (film_info.datum < self.date_cutoff or
-          film_info.dauer_as_minutes() >= self.config["DAUER_CUTOFF"])
+          film_info.dauer_as_minutes() < self.config["DAUER_CUTOFF"])
 
   # ------------------------------------------------------------------------
 
