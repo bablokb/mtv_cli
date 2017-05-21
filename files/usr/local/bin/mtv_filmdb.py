@@ -147,7 +147,7 @@ class FilmDB(object):
   
   # ------------------------------------------------------------------------
 
-  def save(self):
+  def save_filmtable(self):
     """Filme speichern und Index erstellen"""
     self.db.commit()
     self.cursor.execute("CREATE index id_index ON filme(_id)")

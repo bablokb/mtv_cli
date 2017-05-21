@@ -90,7 +90,7 @@ def split_content(fpin,filmDB):
 
   # Datensätze speichern und Datenbank schließen
   filmDB.commit()
-  filmDB.save()
+  filmDB.save_filmtable()
 
   Msg.msg("INFO","\n",False)
   Msg.msg("INFO","Anzahl Buffer:              %d" % buf_count)
