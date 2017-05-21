@@ -17,6 +17,7 @@ from multiprocessing import Lock
 
 from mtv_const    import *
 from mtv_filminfo import *
+from mtv_msg      import Msg as Msg
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
 
@@ -25,13 +26,15 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
   
-  def __init__(self,dbfile):
+  def __init__(self,options):
     """Constructor"""
-    self.dbfile = dbfile
+    self.config = options.config
+    self.dbfile = options.dbfile
     self.last_liste = None
     self.lock = Lock()
     self.total = 0
-    self.date_cutoff=datetime.date.today() - datetime.timedelta(days=DATE_CUTOFF)
+    self.date_cutoff=(datetime.date.today() -
+                      datetime.timedelta(days=self.config["DATE_CUTOFF"]))
 
   # ------------------------------------------------------------------------
 
@@ -86,7 +89,7 @@ class FilmDB(object):
   def blacklist(film_info):
     """Gibt True zurück für Filme, die eingeschlossen werden sollen"""
     return (film_info.datum < self.date_cutoff or
-          film_info.dauer_as_minutes() >= DAUER_CUTOFF)
+          film_info.dauer_as_minutes() >= self.config["DAUER_CUTOFF"])
 
   # ------------------------------------------------------------------------
 
@@ -219,7 +222,7 @@ class FilmDB(object):
           Titel        like '%%%s%%' or
           Beschreibung like '%%%s%%')""" % (token,token,token,token))
       op = ""
-    msg("DEBUG","SQL-Where: %s" % where_clause)
+    Msg.msg("DEBUG","SQL-Where: %s" % where_clause)
     return select_clause + where_clause
 
   # ------------------------------------------------------------------------
@@ -344,7 +347,7 @@ class FilmDB(object):
       cursor.execute(SEL_STMT)
       rows = cursor.fetchall()
     except sqlite3.OperationalError as e:
-      msg("DEBUG","SQL-Fehler: %s" % e)
+      Msg.msg("DEBUG","SQL-Fehler: %s" % e)
       rows = None
     self.close()
     if ui:
@@ -352,7 +355,3 @@ class FilmDB(object):
     else:
       return [FilmInfo(*row) for row in rows]
 
-# --------------------------------------------------------------------------
-
-class MtvDB(object):
-  pass

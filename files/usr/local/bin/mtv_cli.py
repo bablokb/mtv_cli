@@ -21,9 +21,10 @@ from pick import pick
 
 # --- eigene Imports   ------------------------------------------------------
 
-from mtv_const import *
+from mtv_const    import *
 from mtv_download import *
-from mtv_filmdb import FilmDB as FilmDB
+from mtv_filmdb   import FilmDB as FilmDB
+from mtv_msg      import Msg as Msg
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
@@ -63,7 +64,7 @@ def split_content(fpin,filmDB):
     buffer = fpin.read(BUFSIZE)
     buf_count = buf_count + 1
     if not buf_count%100:
-      msg("INFO",'.',False)
+      Msg.msg("INFO",'.',False)
 
     # Verarbeitung Dateiende (verbliebenen Satz schreiben)
     if len(buffer) == 0:
@@ -74,13 +75,13 @@ def split_content(fpin,filmDB):
 
     # Sätze aufspalten
     records = regex.split(last_rec+str(buffer))
-    msg("DEBUG","Anzahl Sätze: %d" % len(records))
+    Msg.msg("DEBUG","Anzahl Sätze: %d" % len(records))
 
     # Sätze ausgeben. Der letzte Satz ist entweder leer, 
     # oder er ist eigentlich ein Satzanfang und wird aufgehoben
     last_rec = records[-1]
     for record in records[0:-1]:
-      msg("DEBUG",record)
+      Msg.msg("DEBUG",record)
       if not have_header:
         have_header = True
         continue
@@ -91,10 +92,10 @@ def split_content(fpin,filmDB):
   filmDB.commit()
   filmDB.save()
 
-  msg("INFO","\n",False)
-  msg("INFO","Anzahl Buffer:              %d" % buf_count)
-  msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
-  msg("INFO","Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
+  Msg.msg("INFO","\n",False)
+  Msg.msg("INFO","Anzahl Buffer:              %d" % buf_count)
+  Msg.msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
+  Msg.msg("INFO","Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
 
     
 # --- Update verarbeiten   --------------------------------------------------
@@ -110,7 +111,7 @@ def do_update(options):
   else:
     src = options.upd_src
 
-  msg("INFO","Erzeuge %s aus %s" % (options.dbfile,src))
+  Msg.msg("INFO","Erzeuge %s aus %s" % (options.dbfile,src))
   try:
     if src.startswith("http"):
       fpin = get_lzma_fp(get_url_fp(src))
@@ -201,7 +202,7 @@ def do_later(options):
   else:
     selected = zeige_liste(rows)
   changes = save_selected(options.filmDB,rows,selected,"V")
-  msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
+  Msg.msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
@@ -213,7 +214,7 @@ def do_now(options):
   else:
     selected = zeige_liste(rows)
   changes = save_selected(options.filmDB,rows,selected,"S")
-  msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
+  Msg.msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
 
   # Anstoß Downlaod
   if changes > 0:
@@ -225,9 +226,9 @@ def do_download(options):
   """Download vorgemerkter Filme"""
   if options.doNow:
     # Aufruf aus do_now
-    download_filme(options.filmDB,status="'S'")
+    download_filme(options,status="'S'")
   else:
-    download_filme(options.filmDB)
+    download_filme(options)
 
 # --- Suche ohne Download   -------------------------------------------------
 
@@ -259,7 +260,7 @@ def do_edit(options):
   # Liste lesen
   rows = options.filmDB.read_downloads()
   if not rows:
-    msg("INFO","Keine vorgemerkten Filme vorhanden")
+    Msg.msg("INFO","Keine vorgemerkten Filme vorhanden")
     return
 
   # Liste aufbereiten
@@ -286,7 +287,7 @@ def do_edit(options):
     changes = options.filmDB.delete_downloads(deletes)
   else:
     changes = 0
-  msg("INFO","%d vorgemerkte Filme gelöscht" % changes)
+  Msg.msg("INFO","%d vorgemerkte Filme gelöscht" % changes)
 
 
 # --- Kommandozeilenparser   ------------------------------------------------
@@ -359,7 +360,7 @@ def get_config(parser):
     "NUM_DOWNLOADS":     parser.getint('CONFIG',"NUM_DOWNLOADS"),
     "ZIEL_DOWNLOADS":    parser.get('CONFIG',"ZIEL_DOWNLOADS"),
     "CMD_DOWNLOADS":     parser.get('CONFIG',"CMD_DOWNLOADS"),
-    "GROESSE_DOWNLOADS": parser.get('CONFIG',"GROESSE_DOWNLOADS")
+    "QUALITAET":         parser.get('CONFIG',"QUALITAET")
     }
 
 # --- Hauptprogramm   -------------------------------------------------------
@@ -367,8 +368,11 @@ def get_config(parser):
 if __name__ == '__main__':
 
   config_parser = configparser.RawConfigParser()
-  config_parser.read('files/etc/mtv_cli.conf')
+  config_parser.read('/etc/mtv_cli.conf')
   config = get_config(config_parser)
+
+  # Message-Klasse konfigurieren
+  Msg.level = config["MSG_LEVEL"]
 
   opt_parser = get_parser()
   options = opt_parser.parse_args(namespace=Options)
@@ -378,17 +382,17 @@ if __name__ == '__main__':
     os.mkdir(MTV_CLI_HOME)
 
   if not options.upd_src and not os.path.isfile(options.dbfile):
-    msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
+    Msg.msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
     sys.exit(3)
 
   # Lock anfordern
   if not get_lock(options.dbfile):
-    msg("ERROR","Datenbank %s ist gesperrt" % options.dbfile)
+    Msg.msg("ERROR","Datenbank %s ist gesperrt" % options.dbfile)
     sys.exit(3)
 
   # Globale Objekte anlegen
-  options.filmDB = FilmDB(options.dbfile)
   options.config = config
+  options.filmDB = FilmDB(options)
 
   if options.upd_src:
     do_update(options)

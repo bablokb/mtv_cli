@@ -11,7 +11,7 @@
 #
 # --------------------------------------------------------------------------
 
-import os, datetime, sys
+import os
 
 BUFSIZE=8192
 
@@ -28,25 +28,6 @@ DLL_TITEL  = ("St"+DLL_FORMAT).format("a","S-Datum","Sender","Thema","Datum","Da
 MTV_CLI_HOME=os.path.join(os.path.expanduser("~"),".mediathek3")
 FILME_SQLITE=os.path.join(MTV_CLI_HOME,"filme.sqlite")
 MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
-
-# --- Meldung ausgeben   ----------------------------------------------------
-
-MSG_LEVELS={
-  "DEBUG":1,
-  "INFO":2,
-  "WARN":3,
-  "ERROR":4
-  }
-
-def msg(level,text,nl=True):
-  if MSG_LEVELS[level] >= MSG_LEVELS[MSG_LEVEL]:
-    if nl:
-      now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      sys.stderr.write("[" + level + "] " + "[" + now + "] " + text + "\n")
-    else:
-      sys.stderr.write(text)
-    sys.stderr.flush()
-
 
 # --- Downlaod-URLs   --------------------------------------------------------
 
