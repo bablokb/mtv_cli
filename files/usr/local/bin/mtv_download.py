@@ -66,6 +66,10 @@ def download_filme(options,status="'V','F','A'"):
   # Filme lesen
   filme = options.filmDB.read_downloads(ui=False,status=status)
 
+  if not filme:
+    Msg.msg("INFO","Keine vorgemerkten Filme vorhanden")
+    return
+
   if NUM_DOWNLOADS == 1:
     # Spezialbehandlung (erleichtert Debugging)
     for film in filme:
