@@ -332,7 +332,7 @@ def get_parser():
     help='Diese Hilfe ausgeben')
 
   parser.add_argument('suche', nargs='*', metavar='Suchausdruck',
-    help='Sucheausdruck')
+    help='Suchausdruck')
   return parser
 
 # --- Lock anfordern  -------------------------------------------------------
