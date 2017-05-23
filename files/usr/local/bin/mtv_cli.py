@@ -81,7 +81,7 @@ def split_content(fpin,filmDB):
     # oder er ist eigentlich ein Satzanfang und wird aufgehoben
     last_rec = records[-1]
     for record in records[0:-1]:
-      Msg.msg("DEBUG",record)
+      Msg.msg("TRACE",record)
       if not have_header:
         have_header = True
         continue
