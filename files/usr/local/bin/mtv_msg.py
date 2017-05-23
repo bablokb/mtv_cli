@@ -18,6 +18,7 @@ class Msg(object):
   """Simple Klasse für Meldungen"""
 
   MSG_LEVELS={
+    "TRACE":0,
     "DEBUG":1,
     "INFO":2,
     "WARN":3,
