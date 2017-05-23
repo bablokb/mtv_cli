@@ -319,9 +319,6 @@ def get_parser():
   parser.add_argument('-b', '--batch', action='store_true',
     dest='doBatch',
     help='Ausführung ohne User-Interface (zusammen mit -V, -Q und -S)')
-  parser.add_argument('-z', '--ziel', metavar='dir', nargs=1,
-    dest='target_dir',
-    help='Zielverzeichnis')
   parser.add_argument('-d', '--db', metavar='Datei',
     dest='dbfile', default=FILME_SQLITE,
     help='Datenbankdatei')
