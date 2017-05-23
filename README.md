@@ -34,6 +34,10 @@ Voraussetzungen:
 Das Skript `tools/install-mtv_cli` (per sudo aufrufen) installiert das
 Programm und alle Voraussetzungen automatisch.
 
+**Nach der Installation sollte auf alle Fälle die Variable `ZIEL_DOWNLOADS`
+in der Konfiguration angepasst werden!** Details zur Konfiguration sind
+weiter unten beschrieben.
+
 
 Verwendung
 ----------
@@ -60,7 +64,6 @@ Verwendung
       -Q, --query           Filme suchen
       -b, --batch           Ausführung ohne User-Interface (zusammen mit -V, -Q
                             und -S)
-      -z dir, --ziel dir    Zielverzeichnis
       -d Datei, --db Datei  Datenbankdatei
       -q, --quiet           Keine Meldungen ausgeben
       -h, --hilfe           Diese Hilfe ausgeben
@@ -103,7 +106,7 @@ in den Feldern Sender, Thema, Titel und Beschreibung:
 
 Der erste Aufruf sucht nach "Terra" oder "X" ohne Berücksichtigung von
 Groß-/Kleinschreibung. Der zweite Aufruf sucht nach "Terra X". Es wird
-automatisch mit Wildcards gesucht, deshalb führt ein "*Terra X*" oder
+automatisch mit Wildcards gesucht, deshalb führt ein "\*Terra X\*" oder
 "%Terra X%" nicht zum Erfolg.
 
 Die Suche kann auf einzelne Felder (Sender, Thema, Datum, Titel, Beschreibung)
@@ -138,6 +141,8 @@ In der Datei `/et/mtv_cli.conf` gibt es eine Reihe von Konfigurationsvariablen:
   - `CMD_DOWNLOADS`: Download-Kommando
   - `QUALITAET`: Download-Qualität ("LOW", "SD", "HD")
 
+**Nach der Installation sollte auf alle Fälle die Variable `ZIEL_DOWNLOADS`
+angepasst werden!**
 
 Anwendungsfälle
 ---------------
@@ -155,5 +160,5 @@ Die typischen Anwendungsszenarien von `mtv_cli` sehen so aus:
   - Das automatisches Aufzeichnen von Sendungen ("Abo") funktioniert mit
     `mtv_cli.py -b -V "Terra X"`. Die Optionen `-V` und `-S` nehmen nur
     Sendungen in die Downloadliste auf, die dort noch nicht vorhanden sind.
-  - Für den noochmaligen Download einer Sendung muss der entsprechende
+  - Für den nochmaligen Download einer Sendung muss der entsprechende
     Eintrag in der Downloadliste erst mit `mtv_cli.py -E` gelöscht werden.
