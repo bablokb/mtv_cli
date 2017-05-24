@@ -383,3 +383,22 @@ class FilmDB(object):
     finally:
       self.lock.release()
 
+  # ------------------------------------------------------------------------
+
+  def read_status(self,keys):
+    """Status aus Status-Tabelle auslesen"""
+
+    SEL_STMT = "SELECT * FROM status WHERE key in %s" % str(tuple(keys))
+    rows = None
+    try:
+      self.lock.acquire()
+      cursor = self.open()
+      cursor.execute(SEL_STMT)
+      rows = cursor.fetchall()
+      self.close()
+    except sqlite3.OperationalError as e:
+      Msg.msg("DEBUG","SQL-Fehler: %s" % e)
+      rows = None
+    finally:
+      self.lock.release()
+      return rows
