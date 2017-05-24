@@ -154,7 +154,8 @@ class FilmDB(object):
     self.cursor.execute("CREATE index sender_index ON filme(sender)")
     self.cursor.execute("CREATE index thema_index ON filme(thema)")
     self.db.close()
-    self.save_status('akt')
+    self.save_status('_akt')
+    self.save_status('_anzahl',str(self.total))
 
   # ------------------------------------------------------------------------
 
