@@ -17,24 +17,19 @@
           <a class="pure-menu-heading" href="#">Aktionen</a>
           <ul class="pure-menu-list">
             <li class="pure-menu-item">
-              <a href="search"
-                target="content"
+              <a onclick="showPart('#content_suche')"
                 class="pure-menu-link">Suchen</a></li>
             <li class="pure-menu-item">
-              <a href="update"
-                target="content"
+              <a onclick="showPart('#content_akt')"
                 class="pure-menu-link">Aktualisieren</a></li>
             <li class="pure-menu-item">
-              <a href="download"
-                target="content"
+              <a onclick="showPart('#content_down')"
                 class="pure-menu-link">Herunterladen</a></li>
             <li class="pure-menu-item">
-              <a href="edit"
-                target="content"
+              <a onclick="showPart('#content_edit')"
                 class="pure-menu-link">Editieren</a></li>
             <li class="pure-menu-item">
-              <a href="status"
-                target="content"
+              <a onclick="showStatus()"
                 class="pure-menu-link">Status</a></li>
           </ul>
 
