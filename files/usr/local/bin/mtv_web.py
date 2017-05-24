@@ -25,6 +25,7 @@ from bottle import route
 
 import mtv_cli
 from mtv_const    import *
+from mtv_filmdb   import FilmDB as FilmDB
 from mtv_msg      import Msg as Msg
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
@@ -55,6 +56,21 @@ def css_pages(filepath):
 @route('/')
 def main_page():
   return bottle.template(get_webpath("index.html"))
+
+@route('/status')
+def status():
+  rows =  options.filmDB.read_status(['_akt','_anzahl'])
+  result = {}
+  for row in rows:
+    key    = row['key']
+    if key == "_akt":
+      tstamp = row['Zeit'].strftime("%d.%m.%Y %H:%M:%S")
+      result[key] = tstamp
+    else:
+      text   = row['text']
+      result[key] = text
+  Msg.msg("DEBUG","Status: " + str(result))
+  return str(result)
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
@@ -93,6 +109,10 @@ if __name__ == '__main__':
   if not os.path.isfile(options.dbfile):
     Msg.msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
     sys.exit(3)
+
+  # Globale Objekte anlegen
+  options.config = config
+  options.filmDB = FilmDB(options)
 
   # Server starten
   WEB_ROOT = get_webroot(__file__)
