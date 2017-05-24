@@ -8,15 +8,33 @@
 //
 // ---------------------------------------------------------------------------
 
+
 /**
-  Status abfragen
+  Sichtbarkeit der Abschnitte steuern.
+ */
+showPart=function(id) {
+  parts = [
+           "#content_status",
+           "#content_suche"
+           ];
+  parts.forEach(function(part) {
+      if (part == id) {
+        $(part).show();
+      } else {
+        $(part).hide();
+      }
+    });
+}
+
+/**
+  Status anzeigen
 */
 
-getStatus=function() {
+showStatus=function() {
     $.getJSON("/status", function( data ) {
-        console.error("data: ",data);
-      $("#status_akt").text(data._akt);
-      $("#status_anzahl").text(data._anzahl);
+        showPart("#content_status");
+        $("#status_akt").text(data._akt);
+        $("#status_anzahl").text(data._anzahl);
     });
 };
 
