@@ -8,6 +8,17 @@
 //
 // ---------------------------------------------------------------------------
 
+/**
+  Status abfragen
+*/
+
+getStatus=function() {
+    $.getJSON("/status", function( data ) {
+        console.error("data: ",data);
+      $("#status_akt").text(data._akt);
+      $("#status_anzahl").text(data._anzahl);
+    });
+};
 
 /**
   Show message in message-area
