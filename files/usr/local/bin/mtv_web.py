@@ -55,7 +55,8 @@ def css_pages(filepath):
   
 @route('/')
 def main_page():
-  return bottle.template(get_webpath("index.html"))
+  tpl = bottle.SimpleTemplate(name="index.html",lookup=[WEB_ROOT])
+  return tpl.render()
 
 @route('/status')
 def status():
