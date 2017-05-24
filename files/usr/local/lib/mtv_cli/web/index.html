@@ -29,10 +29,16 @@
      <!-- jquery and special functions -->
      <script src="js/jquery-min.js"></script>
      <script src="js/utils.js"></script>
+
+     <script  type="text/javascript">
+       $(document).ready(function() {
+          console.error("ready");
+          getStatus();
+       });
+     </script>
   </head>
 
   <body style="margin:0">
-
     <div id="layout">
       <!-- Menu toggle -->
       <a href="#menu" id="menuLink" class="menu-link">
@@ -101,8 +107,22 @@
         <!--Message area (content via handler) -->
         <p><span id="msgarea"></span></p>
 
-          <iframe id="content" src="status" name="content" 
-                  style="display:block;border:none;height:85vh;width:100%"/>
+        <div id="content" class="content">
+          <div id="status">
+            <h2 class="content-subhead">Status</h2>
+              <table class="pure-table pure-table-bordered pure-table-striped">
+                <tr>
+                  <td>Letzte Aktualisierung</td>
+                  <td id="status_akt"></td>
+                </tr>
+                <tr>
+                  <td>Anzahl Filme</td>
+                  <td id="status_anzahl"></td>
+                </tr>
+              </table>
+          </div>         <!-- id=status -->
+        </div>        <!-- id=content   -->
+    </div>          <!-- id=main        -->
 	    
     <script src="js/ui.js"></script>
 
