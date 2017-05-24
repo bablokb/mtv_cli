@@ -14,7 +14,7 @@
 
 # --- System-Imports   ------------------------------------------------------
 
-import os
+import os, json
 from argparse import ArgumentParser
 import configparser
 
@@ -70,7 +70,8 @@ def status():
       text   = row['text']
       result[key] = text
   Msg.msg("DEBUG","Status: " + str(result))
-  return str(result)
+  bottle.response.content_type = 'application/json'
+  return json.dumps(result)
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
