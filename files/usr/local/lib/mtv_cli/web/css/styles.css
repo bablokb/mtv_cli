@@ -1,0 +1,42 @@
+/*
+# --------------------------------------------------------------------------
+# Mediathekview auf der Kommandozeile (Webinterface)
+#
+# Zusätzliche Styles.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+# --------------------------------------------------------------------------
+*/
+
+.msg_info, .upload_msgerr, .upload_msgok {
+  display: inline-block;
+  margin: 10px 0px;
+  padding:12px;
+  border: 1px solid;
+  border-radius:.5em;
+}
+
+.msg_info {
+  color: blue;
+  background-color: #acdcff;
+}
+
+.upload_msgerr {
+  color: red;
+  background-color: #ffe6e6;
+}
+
+.upload_msgok {
+  color: green;
+  background-color: #e6ffe6;
+}
+
+.upload_preview {
+  height: 75px;
+  border: 1px solid #000;
+  margin: 10px 5px 0 0;
+}
