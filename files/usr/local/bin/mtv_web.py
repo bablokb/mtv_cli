@@ -15,8 +15,22 @@
 # --- System-Imports   ------------------------------------------------------
 
 import os
+from argparse import ArgumentParser
+import configparser
+
 import bottle
 from bottle import route
+
+# --- eigene Imports   ------------------------------------------------------
+
+import mtv_cli
+from mtv_const    import *
+from mtv_msg      import Msg as Msg
+
+# --- Hilfsklasse für Optionen   --------------------------------------------
+
+class Options(object):
+  pass
 
 # --- Webroot dynamisch bestimmen   -----------------------------------------
 
@@ -42,8 +56,49 @@ def css_pages(filepath):
 def main_page():
   return bottle.template(get_webpath("index.html"))
 
+# --- Kommandozeilenparser   ------------------------------------------------
+
+def get_parser():
+  parser = ArgumentParser(add_help=False,
+    description='Simpler Webserver für Mediathekview auf der Kommandozeile')
+
+  parser.add_argument('-d', '--db', metavar='Datei',
+    dest='dbfile', default=FILME_SQLITE,
+    help='Datenbankdatei')
+  parser.add_argument('-l', '--level', metavar='Log-Level',
+    dest='level', default=None,
+    help='Meldungen ab angegebenen Level ausgeben')
+  parser.add_argument('-h', '--hilfe', action='help',
+    help='Diese Hilfe ausgeben')
+  return parser
+
 # --- Hauptprogramm   -------------------------------------------------------
 
 if __name__ == '__main__':
+  # Konfiguration lesen
+  config_parser = configparser.RawConfigParser()
+  config_parser.read('/etc/mtv_cli.conf')
+  config = mtv_cli.get_config(config_parser)
+
+  # Optionen lesen
+  opt_parser = get_parser()
+  options = opt_parser.parse_args(namespace=Options)
+
+  # Message-Klasse konfigurieren
+  if options.level:
+    Msg.level = options.level
+  else:
+    Msg.level = config["MSG_LEVEL"]
+
+  if not os.path.isfile(options.dbfile):
+    Msg.msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
+    sys.exit(3)
+
+  # Server starten
   WEB_ROOT = get_webroot(__file__)
-  bottle.run(host='localhost', port=2626, debug=True,reloader=True)
+  Msg.msg("DEBUG","Web-Root Verzeichnis: %s" % WEB_ROOT)
+  if Msg.level == "DEBUG":
+    Msg.msg("DEBUG","Starte den Webserver im Debug-Modus")
+    bottle.run(host='localhost', port=2626, debug=True,reloader=True)
+  else:
+    bottle.run(host='localhost', port=2626, debug=False,reloader=False)
