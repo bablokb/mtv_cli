@@ -12,9 +12,18 @@
 # --------------------------------------------------------------------------
 -->
 
+<script  type="text/javascript">
+  $(document).ready(function() {
+    $("#form_suche").on('submit', function(e) {
+        e.preventDefault();
+        sucheFilme();
+    });
+  });
+</script>
+
 <div id="content_suche" class="content">
 
-<form action="/suche" method='post' class="pure-form pure-form-aligned">
+<form id="form_suche" method="post" class="pure-form pure-form-aligned">
     <fieldset>
         <div class="pure-control-group">
             <label for="global">Global</label>
