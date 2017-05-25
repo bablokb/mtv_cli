@@ -14,21 +14,21 @@
 
 <div id="content_suche" class="content">
 
-<form class="pure-form pure-form-aligned">
+<form action="/suche" method='post' class="pure-form pure-form-aligned">
     <fieldset>
         <div class="pure-control-group">
             <label for="global">Global</label>
-            <input id="global" type="text" placeholder="Globale Suche">
+            <input name="global" type="text" placeholder="Globale Suche">
         </div>
 
         <div class="pure-control-group">
             <label for="sender">Sender</label>
-            <input id="sender" type="text" placeholder="Sender">
+            <input name="sender" type="text" placeholder="Sender">
         </div>
 
         <div class="pure-control-group">
             <label for="thema">Thema</label>
-            <input id="thema" type="text" placeholder="Thema">
+            <input name="thema" type="text" placeholder="Thema">
         </div>
 
         <div class="pure-control-group">
@@ -38,12 +38,12 @@
 
         <div class="pure-control-group">
             <label for="titel">Titel</label>
-            <input id="titel" type="text" placeholder="Titel">
+            <input name="titel" type="text" placeholder="Titel">
         </div>
 
         <div class="pure-control-group">
             <label for="beschreibung">Beschreibung</label>
-            <input id="beschreibung" type="text" placeholder="Beschreibung">
+            <input name="beschreibung" type="text" placeholder="Beschreibung">
         </div>
 
          <div class="pure-controls">
