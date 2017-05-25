@@ -42,7 +42,7 @@ def get_webroot(pgm):
 def get_webpath(path):
   return os.path.join(WEB_ROOT,path)
 
-# --- Methoden für das Routing   --------------------------------------------
+# --- Statische Routen   ----------------------------------------------------
 
 @route('/css/<filepath:path>')
 def css_pages(filepath):
@@ -52,11 +52,15 @@ def css_pages(filepath):
 @route('/js/<filepath:path>')
 def css_pages(filepath):
     return bottle.static_file(filepath, root=get_webpath('js'))
-  
+
+# --- Hauptseite   ----------------------------------------------------------
+
 @route('/')
 def main_page():
   tpl = bottle.SimpleTemplate(name="index.html",lookup=[WEB_ROOT])
   return tpl.render()
+
+# --- Status   --------------------------------------------------------------
 
 @route('/status')
 def status():
@@ -71,6 +75,38 @@ def status():
       text   = row['text']
       result[key] = text
   Msg.msg("DEBUG","Status: " + str(result))
+  bottle.response.content_type = 'application/json'
+  return json.dumps(result)
+
+# --- Suche   ---------------------------------------------------------------
+
+@route('/suche',method='POST')
+def suche():
+  # Auslesen Request-Parameter
+  such_args = []
+  token = bottle.request.forms.get('global')
+  if token:
+    such_args.append(token)
+  for arg in ['sender','thema','datum','titel','bechreibung']:
+    token = bottle.request.forms.get(arg)
+    if token:
+      such_args.append(arg+':'+token)
+  Msg.msg("DEBUG","Suchbegriffe: " + str(such_args))
+
+  # Film-DB abfragen
+  statement = options.filmDB.get_query(such_args)
+  rows = options.filmDB.execute_query(statement)
+
+  # Ergebnis aufbereiten
+  result = []
+  for row in rows:
+    item = {}
+    item['DATUM'] = row['DATUM'].strftime("%d.%m.%y")
+    for key in ['SENDER','THEMA','TITEL','DAUER']:
+      item[key] = row[key]
+    result.append(item)
+
+  Msg.msg("DEBUG","Anzahl Treffer: %d" % len(result))
   bottle.response.content_type = 'application/json'
   return json.dumps(result)
 
