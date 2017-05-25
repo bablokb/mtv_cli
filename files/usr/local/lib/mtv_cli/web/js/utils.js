@@ -14,8 +14,9 @@
  */
 showPart=function(id) {
   parts = [
-           "#content_status",
-           "#content_suche"
+           "#content_suche",
+           "#content_filme",
+           "#content_status"
            ];
   parts.forEach(function(part) {
       if (part == id) {
@@ -25,6 +26,26 @@ showPart=function(id) {
       }
     });
 }
+
+/**
+  Filme suchen
+*/
+
+sucheFilme=function() {
+  $.ajax({
+    type: "POST",
+    data : $("#form_suche").serialize(),
+    cache: false,
+    url: "/suche",
+    success: function(data){
+      showPart("#content_filme");
+      var table = $('#film_liste').DataTable();
+      table.clear();
+      table.rows.add(data).draw();
+    }
+  });
+   return false;
+};
 
 /**
   Status anzeigen
