@@ -35,8 +35,22 @@ pip3 show pick | grep -q Version || pip3 install pick
 
 # --- install specific files   ----------------------------------------------
 
+rand="$RANDOM"
+if [ -f /etc/mtv_cli.conf ]; then
+  # save current configuration
+  mv /etc/mtv_cli.conf /etc/mtv_cli.conf.$rand
+fi
+
 for f in `find $(dirname "$0")/../files/ -not -path "*__pycache__*" -type f`; do
   cp -v "$f" "${f#*files}"
   chown root:root "${f#*files}"
 done
 chmod 755 /usr/local/bin/mtv_cli.py
+chmod 644 /etc/mtv_cli.conf
+
+# restore old configuration
+if [ -f /etc/mtv_cli.conf.$rand ]; then
+  mv -f /etc/mtv_cli.conf /etc/mtv_cli.conf.neu
+  mv /etc/mtv_cli.conf.$rand /etc/mtv_cli.conf
+  echo -e "\nNeue Version der Konfigurationsdatei: /etc/mtv_cli.conf.neu"
+fi
