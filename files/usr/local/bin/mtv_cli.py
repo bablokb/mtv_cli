@@ -325,6 +325,9 @@ def get_parser():
   parser.add_argument('-q', '--quiet', default=False, action='store_true',
     dest='quiet',
     help='Keine Meldungen ausgeben')
+  parser.add_argument('-l', '--level', metavar='Log-Level',
+    dest='level', default=None,
+    help='Meldungen ab angegebenen Level ausgeben')
   parser.add_argument('-h', '--hilfe', action='help',
     help='Diese Hilfe ausgeben')
 
@@ -368,11 +371,14 @@ if __name__ == '__main__':
   config_parser.read('/etc/mtv_cli.conf')
   config = get_config(config_parser)
 
-  # Message-Klasse konfigurieren
-  Msg.level = config["MSG_LEVEL"]
-
   opt_parser = get_parser()
   options = opt_parser.parse_args(namespace=Options)
+
+  # Message-Klasse konfigurieren
+  if options.level:
+    Msg.level = options.level
+  else:
+    Msg.level = config["MSG_LEVEL"]
 
   # Verzeichnis HOME/.mediathek3 anlegen
   if not os.path.exists(MTV_CLI_HOME):
