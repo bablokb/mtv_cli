@@ -223,6 +223,10 @@ class FilmDB(object):
           Titel        like '%%%s%%' or
           Beschreibung like '%%%s%%')""" % (token,token,token,token))
       op = ""
+
+    # falls noch ein Operator übrig ist:
+    if op:
+      where_clause = where_clause + op
     Msg.msg("DEBUG","SQL-Where: %s" % where_clause)
     return select_clause + where_clause
 
