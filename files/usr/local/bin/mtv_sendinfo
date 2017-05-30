@@ -1,0 +1,30 @@
+#!/bin/bash
+# --------------------------------------------------------------------------
+# Mediathekview auf der Kommandozeile
+#
+# Beispielskript: verschickt neue Filme seit letztem Lauf per Mail.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+# --------------------------------------------------------------------------
+
+# --- Konstanten (anpassen)   ----------------------------------------------
+
+SUCHE="'(' 'sender:zdf' and 'thema:Terra X' ')' or \
+        '(' 'sender:ard' and 'thema:Erlebnis Erde' ')'"
+
+# --- ab hier nichts mehr ändern   -----------------------------------------
+
+last_run_file="$HOME/.mediathek3/.mtvsendinfo"
+last_run="01.01.2000"
+
+if [ -f "$last_run_file" ]; then
+  last_run=$(date -r "$last_run_file)" +"%Y.%m.%d")
+fi
+
+SUCHE="'datum:>=$last_run' and '(' $SUCHE ')'"
+
+eval mtv_cli.py -Q $SUCHE
