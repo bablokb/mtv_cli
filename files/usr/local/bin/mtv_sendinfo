@@ -28,3 +28,7 @@ fi
 SUCHE="'datum:>=$last_run' and '(' $SUCHE ')'"
 
 eval mtv_cli.py -Q $SUCHE
+
+# --- Speichere Zeitpunkt aktueller Lauf   ----------------------------------
+
+# touch "$last_run_file"
