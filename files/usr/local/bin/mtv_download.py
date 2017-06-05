@@ -70,7 +70,7 @@ def download_filme(options,status="'V','F','A'"):
     Msg.msg("INFO","Keine vorgemerkten Filme vorhanden")
     return
 
-  if NUM_DOWNLOADS == 1:
+  if options.config["NUM_DOWNLOADS"] == 1:
     # Spezialbehandlung (erleichtert Debugging)
     for film in filme:
       download_film(options,film)
