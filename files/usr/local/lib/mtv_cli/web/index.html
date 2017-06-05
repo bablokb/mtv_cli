@@ -1,0 +1,69 @@
+<!doctype html>
+<!--
+# --------------------------------------------------------------------------
+# Mediathekview auf der Kommandozeile (Webinterface)
+#
+# Hauptseite mit Navigation.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+# --------------------------------------------------------------------------
+-->
+
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hauptseite Mediathek auf der Kommandozeile">
+
+    <title>MediathekView Web</title>
+
+    <!-- layout and styling thanks to purecss.io -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pure-min.css">
+    <link rel="stylesheet" href="css/layouts/side-menu.css">
+    <link rel="stylesheet" type="text/css" href="css/datatables.min.css"/>
+
+     <!-- jquery and special functions -->
+     <script src="js/jquery-min.js"></script>
+     <script src="js/utils.js"></script>
+     <script type="text/javascript" src="js/datatables.min.js"></script>
+
+     <script  type="text/javascript">
+       $(document).ready(function() {
+          showStatus();
+       });
+     </script>
+  </head>
+
+  <body style="margin:0">
+    <div id="layout">
+      <!-- Menu toggle -->
+      <a href="#menu" id="menuLink" class="menu-link">
+        <span></span>
+      </a>
+
+      %include('menu.tpl')
+    </div>
+
+    <div id="main">
+        <div class="header">
+            <h1>MediathekView Web</h1>
+        </div>
+
+        <!--Message area (content via handler) -->
+        <p><span id="msgarea"></span></p>
+
+        %include('content_status.tpl')
+        %include('content_suche.tpl')
+        %include('content_filme.tpl')
+
+    </div>          <!-- id=main        -->
+	    
+    <script src="js/ui.js"></script>
+
+</body>
+</html>
