@@ -16,6 +16,7 @@
 
 import os, json
 from argparse import ArgumentParser
+from multiprocessing import Process
 import configparser
 
 import bottle
@@ -27,6 +28,7 @@ import mtv_cli
 from mtv_const    import *
 from mtv_filmdb   import FilmDB as FilmDB
 from mtv_msg      import Msg as Msg
+from mtv_download import *
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
@@ -109,6 +111,44 @@ def suche():
   Msg.msg("DEBUG","Anzahl Treffer: %d" % len(result))
   bottle.response.content_type = 'application/json'
   return json.dumps(result)
+
+# --- Vormerken   -----------------------------------------------------------
+
+@route('/vormerken',method='POST')
+def vormerken():
+  # Auslesen Request-Parameter
+  ids = bottle.request.forms.get('ids').split(" ")
+  dates = bottle.request.forms.get('dates').split(" ")
+  Msg.msg("DEBUG","IDs: " + str(ids))
+
+  inserts = []
+  i = 0
+  for id in ids:
+    inserts.append((id,dates[i],'V'))
+    i += 1
+  changes = options.filmDB.save_downloads(inserts)
+
+  bottle.response.content_type = 'application/json'
+  return "{'msg':
+    '%d von %d Filme vorgemerkt für den Download' % (changes,len(ids))}"
+
+# --- Aktualisieren   -------------------------------------------------------
+
+@route('/aktualisieren',method='GET')
+def aktualisieren():
+  p = Process(target=mtv_cli.do_update,args=(options,))
+  p.start()
+  bottle.response.content_type = 'application/json'
+  return "{'msg': 'Aktualisierung angestoßen'}"
+
+# --- Download   ------------------------------------------------------------
+
+@route('/download',method='GET')
+def download():
+  p = Process(target=download_filme,args=(options,))
+  p.start()
+  bottle.response.content_type = 'application/json'
+  return "{'msg': 'Aktualisierung angestoßen'}"
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
