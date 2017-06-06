@@ -4,6 +4,16 @@
 #
 # Beispielskript: verschickt neue Filme seit letztem Lauf per Mail.
 #
+# Das Skript verwendet das Tool esmtp, das mit apt-get installiert wird.
+# In der Datei ~./esmtprc stehen dann die Zugangsdaten für den Sendeaccount,
+# zum Beispiel:
+#
+#identity pi1@mein.provider.de
+#  hostname smtp.mein.provider.de:587
+#  username pi1@mein.provider.de
+#  password sehr_geHeim
+#  starttls enabled
+#
 # Author: Bernhard Bablok
 # License: GPL3
 #
@@ -12,6 +22,9 @@
 # --------------------------------------------------------------------------
 
 # --- Konstanten (anpassen)   ----------------------------------------------
+
+VON="pi1@mein.provider.de"
+AN="ich@mein.provider.de"
 
 SUCHE="'(' 'sender:zdf' and 'thema:Terra X' ')' or \
         '(' 'sender:ard' and 'thema:Erlebnis Erde' ')'"
@@ -27,8 +40,9 @@ fi
 
 SUCHE="'datum:>=$last_run' and '(' $SUCHE ')'"
 
-eval mtv_cli.py -Q $SUCHE
+( echo -e "Subject: Neues von der Mediathek\n";
+  eval mtv_cli.py -Q $SUCHE ) | esmtp -f $VON $AN
 
 # --- Speichere Zeitpunkt aktueller Lauf   ----------------------------------
 
-# touch "$last_run_file"
+touch "$last_run_file"
