@@ -35,7 +35,7 @@ last_run_file="$HOME/.mediathek3/.mtvsendinfo"
 last_run="01.01.2000"
 
 if [ -f "$last_run_file" ]; then
-  last_run=$(date -r "$last_run_file" +"%Y.%m.%d")
+  last_run=$(date -r "$last_run_file" +"%d.%m.%Y")
 fi
 
 SUCHE="'datum:>=$last_run' and '(' $SUCHE ')'"
