@@ -322,12 +322,16 @@ def get_parser():
   parser.add_argument('-d', '--db', metavar='Datei',
     dest='dbfile', default=FILME_SQLITE,
     help='Datenbankdatei')
+
   parser.add_argument('-q', '--quiet', default=False, action='store_true',
     dest='quiet',
     help='Keine Meldungen ausgeben')
   parser.add_argument('-l', '--level', metavar='Log-Level',
     dest='level', default=None,
     help='Meldungen ab angegebenen Level ausgeben')
+  parser.add_argument('--version', action='store_true',
+    dest='doVersionInfo',
+    help='Ausgabe Versionsnummer')
   parser.add_argument('-h', '--hilfe', action='help',
     help='Diese Hilfe ausgeben')
 
@@ -373,6 +377,9 @@ if __name__ == '__main__':
 
   opt_parser = get_parser()
   options = opt_parser.parse_args(namespace=Options)
+  if options.doVersionInfo:
+    print("Version: %s" % VERSION)
+    sys.exit(0)
 
   # Message-Klasse konfigurieren
   if options.level:
