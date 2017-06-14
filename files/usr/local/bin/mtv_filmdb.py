@@ -348,6 +348,7 @@ class FilmDB(object):
                       FROM filme as f, downloads as d
                         WHERE f._id = d._id AND d.status in (%s)""" % status
 
+    Msg.msg("DEBUG","SQL-Query: %s" % SEL_STMT)
     cursor = self.open()
     try:
       cursor.execute(SEL_STMT)
