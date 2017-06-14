@@ -13,6 +13,8 @@
 
 import os
 
+VERSION=2      # Erhöhung nur bei inkompatiblen Änderungen
+
 BUFSIZE=8192
 
 # --- Titel   ---------------------------------------------------------------
