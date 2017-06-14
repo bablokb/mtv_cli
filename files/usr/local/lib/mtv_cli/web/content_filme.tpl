@@ -15,6 +15,7 @@
 <script  type="text/javascript">
   $(document).ready(function() {
       $("#film_liste").DataTable( {
+        select: true,
         columns: [
             { data: "SENDER", title: "Sender" },
             { data: "THEMA", title: "Thema" },
