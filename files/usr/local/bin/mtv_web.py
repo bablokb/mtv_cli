@@ -129,7 +129,7 @@ def vormerken():
   changes = options.filmDB.save_downloads(inserts)
 
   bottle.response.content_type = 'application/json'
-  return "{'msg':
+  return "{'msg': \
     '%d von %d Filme vorgemerkt für den Download' % (changes,len(ids))}"
 
 # --- Aktualisieren   -------------------------------------------------------
