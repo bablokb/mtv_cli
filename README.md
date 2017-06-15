@@ -15,12 +15,26 @@ Die Anwendung verwendet die Mediathekview-Filmliste, allerdings konvertiert
 in ein richtiges Datenbankformat.
 
 
-Status
-------
+Status/Neuigkeiten
+------------------
 
-Alle Funktionen sind implementiert. Aktuell gibt es keine bekannten Fehler.
-Die Fehlerbehandlung ist noch etwas rudimentär.
+### Version 2 ###
 
+Diese Version enthält hauptsächlich Bugfixes und kleinere Optimierungen.
+Desweiteren enthält diese Version ein rudimentäres Webinterface. Aktuell
+funktioniert nur die Suche (allerdings noch mit unbefriedigendem Layout).
+
+Die Version 2 ändert die intern generierte ID der Filme. Diese hat sich in
+der vorherigen Version nicht als stabil erwiesen. Als Folge sind alle in
+der Download-Tabelle gespeicherten Einträge nicht mehr gültig. Es wird
+deshalb empfohlen, alle vorgemerkten Filme noch mit der alten Version
+herunterzuladen, danach den Update durchzuführen und dann die Datei
+`~/.mediathek3/filme.sqlite` zu löschen. Momentan wird noch untersucht, ob
+die neue ID-Funktion funktioniert.
+
+### Version 1 ###
+
+Erstes Release mit der Grundfunktionalität.
 
 Installation
 ------------
@@ -66,6 +80,7 @@ Verwendung
                             und -S)
       -d Datei, --db Datei  Datenbankdatei
       -q, --quiet           Keine Meldungen ausgeben
+      --version             Ausgabe der Versionsnummer
       -h, --hilfe           Diese Hilfe ausgeben
 
 
