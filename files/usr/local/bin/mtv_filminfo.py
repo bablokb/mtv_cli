@@ -69,13 +69,15 @@ class FilmInfo(object):
     """Dauer HH:MM:SS in Minuten (Integer) umwandeln"""
     if isinstance(self.dauer,int):
       return self.dauer
-    else:
+    elif self.dauer:
       parts = self.dauer.split(":")
       minutes = 60*int(parts[0])+int(parts[1])
       if int(parts[2]) > 30:
         # Aufrunden von Sekunden
         minutes += 1
       return minutes
+    else:
+      return 999
 
   # ------------------------------------------------------------------------
 
