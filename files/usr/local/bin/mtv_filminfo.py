@@ -46,12 +46,8 @@ class FilmInfo(object):
     self.geo            = geo
     self.neu            = neu
     if not _id:
-      self._id            = hashlib.md5((sender+thema+titel+datum+zeit+dauer+
-                                      groesse+beschreibung+url+website+
-                                      url_untertitel+url_rtmp+url_klein+
-                                      url_rtmp_klein+url_hd+url_rtmp_hd+
-                                      datumL+url_history+
-                                      geo).encode('utf-8')).hexdigest()
+      self._id            = hashlib.md5((sender+thema+titel+datum+zeit+
+                                         url).encode('utf-8')).hexdigest()
     else:
       self._id = _id
 
