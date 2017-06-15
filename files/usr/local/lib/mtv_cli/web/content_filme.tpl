@@ -54,5 +54,5 @@
 <div id="content_filme" class="content">
 
   <h2>Filmliste</h2>
-  <table id="film_liste" class="display" width="100%"></table>
+  <table id="film_liste" class="display compact nowrap" width="100%" cellspacing="0"></table>
 </div>
