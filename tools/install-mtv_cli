@@ -13,6 +13,8 @@
 
 # --- defaults used during installation   ----------------------------------
 
+MTV_CLI_USER="pi"
+
 # --- basic packages   ------------------------------------------------------
 
 check_packages() {
@@ -53,4 +55,17 @@ if [ -f /etc/mtv_cli.conf.$rand ]; then
   mv -f /etc/mtv_cli.conf /etc/mtv_cli.conf.neu
   mv /etc/mtv_cli.conf.$rand /etc/mtv_cli.conf
   echo -e "\nNeue Version der Konfigurationsdatei: /etc/mtv_cli.conf.neu"
+fi
+
+# crontab-Einträge schreiben
+
+if [ ! -f /etc/cron.d/mtv_cli ]; then
+let hour_a=23*$RANDOM/32767
+let hour_d=hour_a+1
+cat >/etc/cron.d/mtv_cli <<EOF
+15 $hour_a   * * *   $MTV_CLI_USER /usr/local/bin/mtv_cli.py -A
+#30 $hour_a   * * *  $MTV_CLI_USER /usr/local/bin/mtv_sendinfo
+00 $hour_d   * * *  $MTV_CLI_USER /usr/local/bin/mtv_cli.py -D
+EOF
+  echo -e "\nBitte crontab-Einträge in /etc/cron.d/mtv_cli anpassen!"
 fi
