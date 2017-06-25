@@ -48,6 +48,22 @@ sucheFilme=function() {
 };
 
 /**
+  Filmliste aktualisieren
+*/
+
+updateListe=function() {
+  $.ajax({
+    type: "GET",
+    cache: false,
+    url: "/aktualisieren",
+    success: function(data){
+        showMsg(data.msg,3000);
+    }
+  });
+   return false;
+};
+
+/**
   Status anzeigen
 */
 
