@@ -189,6 +189,7 @@ if __name__ == '__main__':
     sys.exit(3)
 
   # Globale Objekte anlegen
+  options.upd_src = "auto"
   options.config = config
   options.filmDB = FilmDB(options)
 
