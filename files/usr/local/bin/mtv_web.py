@@ -148,7 +148,7 @@ def download():
   p = Process(target=download_filme,args=(options,))
   p.start()
   bottle.response.content_type = 'application/json'
-  return "{'msg': 'Aktualisierung angestoßen'}"
+  return '{"msg": "Download angestoßen"}'
 
 # --- Kommandozeilenparser   ------------------------------------------------
 
