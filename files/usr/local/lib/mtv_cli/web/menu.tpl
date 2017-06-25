@@ -20,7 +20,7 @@
               <a onclick="showPart('#content_suche')"
                 class="pure-menu-link">Suchen</a></li>
             <li class="pure-menu-item">
-              <a onclick="showPart('#content_akt')"
+              <a onclick="updateListe()"
                 class="pure-menu-link">Aktualisieren</a></li>
             <li class="pure-menu-item">
               <a onclick="showPart('#content_down')"
