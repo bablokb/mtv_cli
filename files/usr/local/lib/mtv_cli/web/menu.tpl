@@ -23,7 +23,7 @@
               <a onclick="updateListe()"
                 class="pure-menu-link">Aktualisieren</a></li>
             <li class="pure-menu-item">
-              <a onclick="showPart('#content_down')"
+              <a onclick="downloadFilme()"
                 class="pure-menu-link">Herunterladen</a></li>
             <li class="pure-menu-item">
               <a onclick="showPart('#content_edit')"
