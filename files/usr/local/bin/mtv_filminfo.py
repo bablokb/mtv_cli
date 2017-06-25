@@ -31,7 +31,7 @@ class FilmInfo(object):
     self.datum          = self.to_date(datum)
     self.zeit           = zeit
     self.dauer          = dauer
-    self.groesse        = int(groesse)
+    self.groesse        = int(groesse) if groesse else 0
     self.beschreibung   = beschreibung
     self.url            = url
     self.website        = website
