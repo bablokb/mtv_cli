@@ -129,8 +129,8 @@ def vormerken():
   changes = options.filmDB.save_downloads(inserts)
 
   bottle.response.content_type = 'application/json'
-  return "{'msg': \
-    '%d von %d Filme vorgemerkt für den Download' % (changes,len(ids))}"
+  return '{"msg": \
+    "%d von %d Filme vorgemerkt für den Download" % (changes,len(ids))}'
 
 # --- Aktualisieren   -------------------------------------------------------
 
@@ -139,7 +139,7 @@ def aktualisieren():
   p = Process(target=mtv_cli.do_update,args=(options,))
   p.start()
   bottle.response.content_type = 'application/json'
-  return "{'msg': 'Aktualisierung angestoßen'}"
+  return '{"msg": "Aktualisierung angestoßen"}'
 
 # --- Download   ------------------------------------------------------------
 
