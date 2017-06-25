@@ -64,6 +64,22 @@ updateListe=function() {
 };
 
 /**
+  Filmliste aktualisieren
+*/
+
+downloadFilme=function() {
+  $.ajax({
+    type: "GET",
+    cache: false,
+    url: "/download",
+    success: function(data){
+        showMsg(data.msg,3000);
+    }
+  });
+   return false;
+};
+
+/**
   Status anzeigen
 */
 
