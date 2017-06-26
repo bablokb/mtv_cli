@@ -54,11 +54,12 @@
 <div id="content_filme" class="content">
 
   <h2>Filmliste</h2>
-  <div class="pure-button-group" role="group" aria-label="Optionen">
+  <div  style="margin-bottom: 50px;" class="pure-button-group" role="group" aria-label="Optionen">
     <button onClick="saveSelected()" class="pure-button  pure-button-primary
                    pure-button-active">Vormerken</button>
     <button onClick="showPart('#content_suche')" class="pure-button">Zurück</button>
   </div>
 
-  <table id="film_liste" class="display compact nowrap" width="100%" cellspacing="0"></table>
+  <table id="film_liste" class="display compact nowrap"
+         width="100%" cellspacing="0"></table>
 </div>
