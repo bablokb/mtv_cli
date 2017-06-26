@@ -166,6 +166,14 @@ def get_parser():
     help='Diese Hilfe ausgeben')
   return parser
 
+# --- Konfiguration auslesen (mtv_web spezifisch)   -------------------------
+
+def get_config(parser,config):
+  if parser.has_section('WEB'):
+    config["PORT"] = parser.getint('WEB',"PORT")
+  else:
+    config["PORT"] = 2626
+
 # --- Hauptprogramm   -------------------------------------------------------
 
 if __name__ == '__main__':
@@ -173,6 +181,7 @@ if __name__ == '__main__':
   config_parser = configparser.RawConfigParser()
   config_parser.read('/etc/mtv_cli.conf')
   config = mtv_cli.get_config(config_parser)
+  get_config(config_parser,config)
 
   # Optionen lesen
   opt_parser = get_parser()
@@ -198,6 +207,6 @@ if __name__ == '__main__':
   Msg.msg("DEBUG","Web-Root Verzeichnis: %s" % WEB_ROOT)
   if Msg.level == "DEBUG":
     Msg.msg("DEBUG","Starte den Webserver im Debug-Modus")
-    bottle.run(host='localhost', port=2626, debug=True,reloader=True)
+    bottle.run(host='localhost', port=config["PORT"], debug=True,reloader=True)
   else:
-    bottle.run(host='localhost', port=2626, debug=False,reloader=False)
+    bottle.run(host='localhost', port=config["PORT"], debug=False,reloader=False)
