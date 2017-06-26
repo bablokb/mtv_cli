@@ -104,7 +104,7 @@ def suche():
   for row in rows:
     item = {}
     item['DATUM'] = row['DATUM'].strftime("%d.%m.%y")
-    for key in ['SENDER','THEMA','TITEL','DAUER']:
+    for key in ['SENDER','THEMA','TITEL','DAUER','_ID']:
       item[key] = row[key]
     result.append(item)
 
@@ -120,17 +120,20 @@ def vormerken():
   ids = bottle.request.forms.get('ids').split(" ")
   dates = bottle.request.forms.get('dates').split(" ")
   Msg.msg("DEBUG","IDs: " + str(ids))
+  Msg.msg("DEBUG","Datum: " + str(dates))
 
   inserts = []
   i = 0
   for id in ids:
     inserts.append((id,dates[i],'V'))
     i += 1
+  Msg.msg("DEBUG","inserts: " + str(inserts))
   changes = options.filmDB.save_downloads(inserts)
+  Msg.msg("DEBUG","changes: " + str(changes))
 
   bottle.response.content_type = 'application/json'
-  return '{"msg": \
-    "%d von %d Filme vorgemerkt für den Download" % (changes,len(ids))}'
+  msg = '"%d von %d Filme vorgemerkt für den Download"' % (changes,len(ids))
+  return '{"msg": ' + msg +'}'
 
 # --- Aktualisieren   -------------------------------------------------------
 
