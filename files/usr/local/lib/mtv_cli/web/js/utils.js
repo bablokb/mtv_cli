@@ -64,6 +64,42 @@ updateListe=function() {
 };
 
 /**
+  Ausgewählte Filme vormerken
+*/
+
+saveSelected=function() {
+  var table = $('#film_liste').DataTable();
+  var auswahl = table.rows({selected: true}).data();
+  var ids, dates;
+
+  // ID und Datum aus ausgewählten Zeilen extrahieren ...
+  for (i=0; i< auswahl.length; ++i) {
+    if (ids) {
+      ids = ids + " " + auswahl[i]._ID;
+    } else {
+      ids = auswahl[i]._ID;
+    }
+    if (dates) {
+      dates = dates + " " + auswahl[i].DATUM;
+    } else {
+      dates = auswahl[i].DATUM;
+    }
+  }
+
+  // .. und posten
+  $.ajax({
+    type: "POST",
+        data : {ids:ids, dates: dates},
+    cache: false,
+    url: "/vormerken",
+    success: function(data){
+        showMsg(data.msg,3000);
+    }
+  });
+  return false;
+};
+
+/**
   Filmliste aktualisieren
 */
 
