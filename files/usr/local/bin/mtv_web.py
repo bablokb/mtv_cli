@@ -66,16 +66,19 @@ def main_page():
 
 @route('/status')
 def status():
-  rows =  options.filmDB.read_status(['_akt','_anzahl'])
-  result = {}
-  for row in rows:
-    key    = row['key']
-    if key == "_akt":
-      tstamp = row['Zeit'].strftime("%d.%m.%Y %H:%M:%S")
-      result[key] = tstamp
-    else:
-      text   = row['text']
-      result[key] = text
+  result = {"_akt": "00.00.0000", "_anzahl": "0" }
+  try:
+    rows =  options.filmDB.read_status(['_akt','_anzahl'])
+    for row in rows:
+      key    = row['key']
+      if key == "_akt":
+        tstamp = row['Zeit'].strftime("%d.%m.%Y %H:%M:%S")
+        result[key] = tstamp
+      else:
+        text   = row['text']
+        result[key] = text
+  except:
+    pass
   Msg.msg("DEBUG","Status: " + str(result))
   bottle.response.content_type = 'application/json'
   return json.dumps(result)
@@ -174,8 +177,10 @@ def get_parser():
 def get_config(parser,config):
   if parser.has_section('WEB'):
     config["PORT"] = parser.getint('WEB',"PORT")
+    config["HOST"] = parser.get('WEB',"HOST")
   else:
-    config["PORT"] = 2626
+    config["PORT"] = 8026
+    config["HOST"] = "0.0.0.0"
 
 # --- Hauptprogramm   -------------------------------------------------------
 
@@ -208,4 +213,4 @@ if __name__ == '__main__':
     Msg.msg("DEBUG","Starte den Webserver im Debug-Modus")
     bottle.run(host='localhost', port=config["PORT"], debug=True,reloader=True)
   else:
-    bottle.run(host='localhost', port=config["PORT"], debug=False,reloader=False)
+    bottle.run(host=config["HOST"], port=config["PORT"], debug=False,reloader=False)
