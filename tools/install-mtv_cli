@@ -43,6 +43,9 @@ if [ -f /etc/mtv_cli.conf ]; then
   mv /etc/mtv_cli.conf /etc/mtv_cli.conf.$rand
 fi
 
+cp -a $(dirname "$0")/../files/usr/local/lib/mtv_cli /usr/local/lib
+chown -R root:root /usr/local/lib/mtv_cli
+
 for f in `find $(dirname "$0")/../files/ -not -path "*__pycache__*" -type f`; do
   cp -v "$f" "${f#*files}"
   chown root:root "${f#*files}"
