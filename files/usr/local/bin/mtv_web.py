@@ -196,10 +196,6 @@ if __name__ == '__main__':
   else:
     Msg.level = config["MSG_LEVEL"]
 
-  if not os.path.isfile(options.dbfile):
-    Msg.msg("ERROR","Datenbank %s existiert nicht!" % options.dbfile)
-    sys.exit(3)
-
   # Globale Objekte anlegen
   options.upd_src = "auto"
   options.config = config
