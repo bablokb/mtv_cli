@@ -1,0 +1,25 @@
+# --------------------------------------------------------------------------
+# Systemd service Definition für mtv_web.service.
+#
+# Der Service startet das Skript /usr/local/sbin/mtv_web.py
+#
+# In der Datei /etc/mtv_cli.conf wird der Port für den Webserver festgelegt.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+# --------------------------------------------------------------------------
+
+[Unit]
+Description=Simples Webinterface für die Mediathek auf der Kommandozeile
+After=multi-user.target
+ 
+[Service]
+Type=simple
+User=pi
+ExecStart=/usr/local/bin/mtv_web.py
+
+[Install]
+WantedBy=multi-user.target
