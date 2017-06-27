@@ -14,7 +14,7 @@
 
 # --- System-Imports   ------------------------------------------------------
 
-import os, json
+import sys, os, json
 from argparse import ArgumentParser
 from multiprocessing import Process
 import configparser
