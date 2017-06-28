@@ -26,8 +26,8 @@
               <a onclick="downloadFilme()"
                 class="pure-menu-link">Herunterladen</a></li>
             <li class="pure-menu-item">
-              <a onclick="showPart('#content_edit')"
-                class="pure-menu-link">Editieren</a></li>
+              <a onclick="showPart('#content_liste')"
+                class="pure-menu-link">Vormerkliste</a></li>
             <li class="pure-menu-item">
               <a onclick="showStatus()"
                 class="pure-menu-link">Status</a></li>
