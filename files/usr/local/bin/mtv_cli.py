@@ -257,6 +257,9 @@ def do_search(options):
       print(len(SEL_TITEL)*'_')
       for row in get_select(rows):
         print(row)
+    return True
+  else:
+    return False
 
 # --- Downloadliste anzeigen und editieren   --------------------------------
 
@@ -421,6 +424,9 @@ if __name__ == '__main__':
   elif options.doDownload:
     do_download(options)
   elif options.doSearch:
-    do_search(options)
+    if do_search(options):
+      sys.exit(0)
+    else:
+      sys.exit(1)
   sys.exit(0)
 
