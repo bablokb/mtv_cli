@@ -53,8 +53,10 @@ fi
 
 SUCHE="'datum:>=$last_run' and '(' $SUCHE ')'"
 
-( echo -e "Subject: Neues von der Mediathek\n";
-  eval mtv_cli.py -Q $SUCHE ) | esmtp -f $VON $AN
+if eval mtv_cli.py -Q $SUCHE > /dev/null; then
+  ( echo -e "Subject: Neues von der Mediathek\n";
+    eval mtv_cli.py -Q $SUCHE ) | esmtp -f $VON $AN
+fi
 
 # --- Speichere Zeitpunkt aktueller Lauf   ----------------------------------
 
