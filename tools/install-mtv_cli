@@ -37,15 +37,20 @@ pip3 show pick | grep -q Version || pip3 install pick
 
 # --- install specific files   ----------------------------------------------
 
+# save current configuration
 rand="$RANDOM"
 if [ -f /etc/mtv_cli.conf ]; then
-  # save current configuration
   mv /etc/mtv_cli.conf /etc/mtv_cli.conf.$rand
 fi
+if [ -f /etc/mtv_sendinforc ]; then
+  mv /etc/mtv_sendinforc /etc/mtv_sendinforc.$rand
+fi
 
+# copy lib (web) directories
 cp -a $(dirname "$0")/../files/usr/local/lib/mtv_cli /usr/local/lib
 chown -R root:root /usr/local/lib/mtv_cli
 
+# for other files dirs should exist, so this works
 for f in `find $(dirname "$0")/../files/ -not -path "*__pycache__*" -type f`; do
   cp -v "$f" "${f#*files}"
   chown root:root "${f#*files}"
@@ -57,9 +62,13 @@ chmod 644 /etc/systemd/system/mtv_web.service
 
 # restore old configuration
 if [ -f /etc/mtv_cli.conf.$rand ]; then
-  mv -f /etc/mtv_cli.conf /etc/mtv_cli.conf.neu
+  mv -f /etc/mtv_cli.conf    /etc/mtv_cli.conf.neu
   mv /etc/mtv_cli.conf.$rand /etc/mtv_cli.conf
   echo -e "\nNeue Version der Konfigurationsdatei: /etc/mtv_cli.conf.neu"
+fi
+if [ -f /etc/mtv_sendinforc.$rand ]; then
+  mv -f /etc/mtv_sendinforc       /etc/mtv_sendinforc.neu
+  mv -f /etc/mtv_sendinforc.$rand /etc/mtv_sendinforc
 fi
 
 # --- crontab-Einträge schreiben   ------------------------------------------

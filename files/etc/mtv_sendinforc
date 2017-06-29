@@ -1,0 +1,21 @@
+#!/bin/bash
+# --------------------------------------------------------------------------
+# Mediathekview auf der Kommandozeile
+#
+# Konfigurationsdatei für mtv_sendinfo
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+# --------------------------------------------------------------------------
+
+# --- Konstanten (anpassen)   ----------------------------------------------
+
+VON="pi1@mein.provider.de"
+AN="ich@mein.provider.de"
+
+SUCHE="'(' 'sender:zdf' and 'thema:Terra X' ')' or \
+        '(' 'sender:ard' and 'thema:Erlebnis Erde' ')'"
+
