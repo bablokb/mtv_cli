@@ -115,6 +115,30 @@ def suche():
   bottle.response.content_type = 'application/json'
   return json.dumps(result)
 
+# --- Downloads   -----------------------------------------------------------
+
+@route('/downloads',method='POST')
+def downloads():
+  # Film-DB abfragen
+  rows = options.filmDB.read_downloads()
+  if not rows:
+    Msg.msg("DEBUG","Keine vorgemerkten Filme vorhanden")
+    return "{}"
+
+  # Liste aufbereiten
+  result = []
+  for row in rows:
+    item = {}
+    item['DATUM']       = row['DATUM'].strftime("%d.%m.%y")
+    item['DATUMSTATUS'] = row['DATUMSTATUS'].strftime("%d.%m.%y")
+    for key in ['STATUS','SENDER','THEMA','TITEL','DAUER','_ID']:
+      item[key] = row[key]
+    result.append(item)
+
+  Msg.msg("DEBUG","Anzahl Einträge in Downloadliste: %d" % len(result))
+  bottle.response.content_type = 'application/json'
+  return json.dumps(result)
+
 # --- Vormerken   -----------------------------------------------------------
 
 @route('/vormerken',method='POST')
