@@ -26,7 +26,7 @@
               <a onclick="downloadFilme()"
                 class="pure-menu-link">Herunterladen</a></li>
             <li class="pure-menu-item">
-              <a onclick="showPart('#content_liste')"
+              <a onclick="sucheDownloads()"
                 class="pure-menu-link">Vormerkliste</a></li>
             <li class="pure-menu-item">
               <a onclick="showStatus()"
