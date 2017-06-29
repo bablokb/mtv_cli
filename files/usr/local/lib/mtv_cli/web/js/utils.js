@@ -16,6 +16,7 @@ showPart=function(id) {
   parts = [
            "#content_suche",
            "#content_filme",
+           "#content_liste",
            "#content_status"
            ];
   parts.forEach(function(part) {
@@ -97,6 +98,25 @@ saveSelected=function() {
     }
   });
   return false;
+};
+
+/**
+  Downloads suchen
+*/
+
+sucheDownloads=function() {
+  $.ajax({
+    type: "POST",
+    cache: false,
+    url: "/downloads",
+    success: function(data){
+      showPart("#content_liste");
+      var table = $('#vormerk_liste').DataTable();
+      table.clear();
+      table.rows.add(data).draw();
+    }
+  });
+   return false;
 };
 
 /**
