@@ -197,28 +197,34 @@ def save_selected(filmDB,rows,selected,status):
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
   rows = filme_suchen(options)
-  if options.doBatch:
-    selected = [('dummy',i) for i in range(len(rows))]
+  if rows:
+    if options.doBatch:
+      selected = [('dummy',i) for i in range(len(rows))]
+    else:
+      selected = zeige_liste(rows)
+    changes = save_selected(options.filmDB,rows,selected,"V")
+    Msg.msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
   else:
-    selected = zeige_liste(rows)
-  changes = save_selected(options.filmDB,rows,selected,"V")
-  Msg.msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
+    Msg.msg("INFO","Keine Suchtreffer")
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
 def do_now(options):
   """Filmliste anzeigen, sofortiger Download nach Auswahl"""
   rows = filme_suchen(options)
-  if options.doBatch:
-    selected = [('dummy',i) for i in range(len(rows))]
-  else:
-    selected = zeige_liste(rows)
-  changes = save_selected(options.filmDB,rows,selected,"S")
-  Msg.msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
+  if rows:
+    if options.doBatch:
+      selected = [('dummy',i) for i in range(len(rows))]
+    else:
+      selected = zeige_liste(rows)
+    changes = save_selected(options.filmDB,rows,selected,"S")
+    Msg.msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
 
-  # Anstoß Downlaod
-  if changes > 0:
-    do_download(options)
+    # Anstoß Downlaod
+    if changes > 0:
+      do_download(options)
+  else:
+    Msg.msg("INFO","Keine Suchtreffer")
 
 # --- Download vorgemerkter Filme   -----------------------------------------
 
