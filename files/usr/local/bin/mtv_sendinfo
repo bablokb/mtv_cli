@@ -14,6 +14,10 @@
 #  password sehr_geHeim
 #  starttls enabled
 #
+# Die Konstanten VON, AN und SUCHE sollte man entweder in die /etc/mtv_sendinforc,
+# oder in die ~/.mtv_sendinforc eintragen, sonst werden sie bei jeder neuen
+# Version dieses Skripts überschrieben.
+#
 # Author: Bernhard Bablok
 # License: GPL3
 #
@@ -28,6 +32,15 @@ AN="ich@mein.provider.de"
 
 SUCHE="'(' 'sender:zdf' and 'thema:Terra X' ')' or \
         '(' 'sender:ard' and 'thema:Erlebnis Erde' ')'"
+
+# Überschreibungen aus globaler und/oder benutzerspezifischen Datei
+
+if [ -f /etc/mtv_sendinforc ]; then
+  . /etc/mtv_sendinforc
+fi
+if [ -f $HOME/.mtv_sendinforc ]; then
+  . $HOME/.mtv_sendinforc
+fi
 
 # --- ab hier nichts mehr ändern   -----------------------------------------
 
