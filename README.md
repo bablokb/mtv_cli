@@ -18,7 +18,23 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
-### Version 2 ###
+### Version 2 / 30.06.17 ###
+
+  - Das Webinterface ist fast komplett, man kann jetzt Filme für den Download
+    vormerken, den Download anstoßen und auch eine Aktualisierung der
+    Filmliste aus dem Webinterface heraus starten. Nur die Bearbeitung der
+    Vormerkliste funktioniert nicht.
+  - Die Installation legt Crontab-Einträge für die automatische Aktualisierung
+    und den Download an.
+  - Die Konfiguration des Beispielskripts `mtv_sendinfo` wurde nach
+    `/etc/mtv_sendinfo.rc` bzw. `~/.mtv_sendinforc` ausgelagert.
+  - Die Versionsnummer bleibt bei 2, da sich keine strukturellen Änderungen
+    am Datenmodell ergeben haben. Es scheint aber leider so zu sein,
+    dass auch die neue ID-Funktion nicht stabil ist - hier ist noch eine
+    Änderung zu erwarten.
+
+
+### Version 2 / 15.06.17 ###
 
 Diese Version enthält hauptsächlich Bugfixes und kleinere Optimierungen.
 Desweiteren enthält diese Version ein rudimentäres Webinterface. Aktuell
@@ -43,10 +59,32 @@ Voraussetzungen:
 
   - Python3
   - python3-curses
+  - python3-bottle
   - pick
 
 Das Skript `tools/install-mtv_cli` (per sudo aufrufen) installiert das
-Programm und alle Voraussetzungen automatisch.
+Programm und alle Voraussetzungen automatisch. **Wer einen anderen
+Standarduser anstatt `pi` verwendet, muss die Variable `MTV_CLI_USER` im
+Installationsskript anpassen**.
+
+Während der Installation wird ein neuer Systemd-Service angelegt:
+`mtv_web.service`. Die Konfiguration erfolgt in `/etc/mtv_cli.conf`, Abschnitt
+`[WEB]` (momentan ist das nur Port und IP-Bereich). Der Default-Port
+für den Webserver ist 8026. Gestartet wird der Service über
+
+    sudo systemctl start mtv_web.service
+
+oder durch einen Reboot. Wer den Service nicht nutzen will, schaltet ihn mit
+
+    sudo systemctl disable mtv_web.service
+
+ab.
+
+Außerdem legt das Installationsskript in `/etc/cron.d/mtv_cli` Einträge
+für die Aktualisierung der Filmliste und den Download der vorgemerkten
+Filme an. Damit nicht jede Installation die Filmliste zum selben Zeitpunkt
+aktualisiert, wählt die Installation einen zufälligen Zeitpunkt. Die
+Datei ist deshalb an eigene Bedürfnisse anzupassen.
 
 **Nach der Installation sollte auf alle Fälle die Variable `ZIEL_DOWNLOADS`
 in der Konfiguration angepasst werden!** Details zur Konfiguration sind
@@ -60,8 +98,8 @@ Verwendung
 
 
     usage: mtv_cli.py [-A [Quelle]] [-V] [-S] [-D] [-Q] [-b] [-z dir] [-d Datei]
-                      [-q] [-h]
-                      [Suchausdruck]
+                      [-q] [-l Log-Level] [--version] [-h]
+                      [Suchausdruck [Suchausdruck ...]]]
 
     Mediathekview auf der Kommandozeile
 
@@ -80,6 +118,8 @@ Verwendung
                             und -S)
       -d Datei, --db Datei  Datenbankdatei
       -q, --quiet           Keine Meldungen ausgeben
+      -l Log-Level, --level Log-Level
+                            Meldungen ab angegebenen Level ausgeben
       --version             Ausgabe der Versionsnummer
       -h, --hilfe           Diese Hilfe ausgeben
 
@@ -97,6 +137,10 @@ Filme aus der Vormerkliste gelöscht werden.
 
 Im Batch-Modus `-b` gibt es keine Interaktion mit dem Benutzer. Hier müssen
 unbedingt Suchbegriffe auf der Kommandozeile angegeben werden.
+
+Die Option `-l` (bzw. `--level`) überschreibt den Wert von `MSG_LEVEL` in
+der Konfigurationsdatei `/etc/mtv_cli.conf`. Über die Option kann kurzfristig
+für Debugzwecke die Geschwätzigkeit des Skripts angepasst werden.
 
 
 Syntax für die Suche
@@ -143,7 +187,8 @@ werden. Ohne Angabe von Operatoren werden generische Suchbegriffe mit
 Konfiguration
 -------------
 
-In der Datei `/et/mtv_cli.conf` gibt es eine Reihe von Konfigurationsvariablen:
+In der Datei `/et/mtv_cli.conf` gibt es im Abschnitt `[CONFIG]`
+eine Reihe von Konfigurationsvariablen:
 
   - `DATE_CUTOFF`: Filme die älter sind, landen bei der Aktualisierung nicht
      in der Datenbank
@@ -159,6 +204,16 @@ In der Datei `/et/mtv_cli.conf` gibt es eine Reihe von Konfigurationsvariablen:
 **Nach der Installation sollte auf alle Fälle die Variable `ZIEL_DOWNLOADS`
 angepasst werden!**
 
+Der Abschnitt `[WEB]` steuert die Webserver:
+
+  - `PORT`: Portnummer, auf den der Webserver auf Verbindungen wartet
+            (Default: 8026)
+  - `HOST`: IP-Adresse, von der Anfragen entgegen genommen werden. Der
+            Default `0.0.0.0` lässt Anfragen von überall zu. Soll der
+            Webserver hinter einem anderen lokal laufenden Server arbeiten,
+            ist hier `127.0.0.1` der richtige Wert.
+
+
 Anwendungsfälle
 ---------------
 
@@ -172,8 +227,10 @@ Die typischen Anwendungsszenarien von `mtv_cli` sehen so aus:
         mtv_cli.py -Q thema:"erlebnis erde" | \
             mail -s"Neues zu Erlebnis Erde" ich@meinprovider.de
 
+    Hierfür gibt es ein Beispielskript (`/usr/local/bin/mtv_sendinfo`)
   - Das automatisches Aufzeichnen von Sendungen ("Abo") funktioniert mit
     `mtv_cli.py -b -V "Terra X"`. Die Optionen `-V` und `-S` nehmen nur
     Sendungen in die Downloadliste auf, die dort noch nicht vorhanden sind.
+    (**Achtung: diese Funktionalität ist aktuell nicht stabil**)
   - Für den nochmaligen Download einer Sendung muss der entsprechende
     Eintrag in der Downloadliste erst mit `mtv_cli.py -E` gelöscht werden.
