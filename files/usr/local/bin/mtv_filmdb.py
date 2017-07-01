@@ -298,6 +298,8 @@ class FilmDB(object):
     """Downloads löschen"""
     DEL_STMT = "DELETE FROM downloads where _id=?"
 
+    Msg.msg("DEBUG","rows: " + str(rows))
+
     # Ein Lock ist hier nicht nötig, da Downloads immer in
     # einem eigene Aufruf von mtv_cli stattfinden
 
