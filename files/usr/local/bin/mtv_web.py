@@ -180,6 +180,25 @@ def download():
   bottle.response.content_type = 'application/json'
   return '{"msg": "Download angestoßen"}'
 
+# --- Vorgemerkte Downloads löschen   ---------------------------------------
+
+@route('/loeschen',method='POST')
+def loeschen():
+  # Auslesen Request-Parameter
+  ids = bottle.request.forms.get('ids').split(" ")
+  Msg.msg("DEBUG","IDs: " + str(ids))
+
+  if len(ids):
+    # delete_downloads braucht Array von Tuplen
+    changes = options.filmDB.delete_downloads([(id,) for id in ids])
+  else:
+    changes = 0
+  Msg.msg("INFO","%d vorgemerkte Filme gelöscht" % changes)
+
+  bottle.response.content_type = 'application/json'
+  msg = '"%d vorgemerkte Filme gelöscht"' % changes
+  return '{"msg": ' + msg +'}'
+
 # --- Kommandozeilenparser   ------------------------------------------------
 
 def get_parser():
