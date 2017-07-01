@@ -120,7 +120,7 @@ sucheDownloads=function() {
 };
 
 /**
-  Filmliste aktualisieren
+  Filme sofort herunterladen
 */
 
 downloadFilme=function() {
@@ -133,6 +133,38 @@ downloadFilme=function() {
     }
   });
    return false;
+};
+
+/**
+  Ausgewählte Einträge löschen
+*/
+
+deleteSelected=function() {
+  var table = $('#vormerk_liste').DataTable();
+  var auswahl = table.rows({selected: true}).data();
+  var ids, dates;
+
+  // ID aus ausgewählten Zeilen extrahieren ...
+  for (i=0; i< auswahl.length; ++i) {
+    if (ids) {
+      ids = ids + " " + auswahl[i]._ID;
+    } else {
+      ids = auswahl[i]._ID;
+    }
+  }
+
+  // .. und posten
+  $.ajax({
+    type: "POST",
+        data : {ids:ids},
+    cache: false,
+    url: "/loeschen",
+    success: function(data){
+        showMsg(data.msg,3000);
+        sucheDownloads();
+    }
+  });
+  return false;
 };
 
 /**
