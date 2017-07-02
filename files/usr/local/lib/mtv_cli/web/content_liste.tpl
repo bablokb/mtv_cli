@@ -58,7 +58,7 @@
   <h2>Vormerkliste</h2>
   <div  style="margin-bottom: 50px;" class="pure-button-group" role="group" aria-label="Optionen">
     <button onClick="deleteSelected()" class="pure-button  pure-button-primary
-                   pure-button-active">Eintrag löschen</button>
+                   pure-button-active">Einträge löschen</button>
     <button onClick="showPart('#content_status')" class="pure-button">Zurück</button>
   </div>
 
