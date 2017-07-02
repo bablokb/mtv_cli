@@ -18,6 +18,10 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
+### Version 2 / 02.07.17 ###
+
+  - Die Bearbeitung der Vormerkliste funktioniert jetzt auch.
+
 ### Version 2 / 30.06.17 ###
 
   - Das Webinterface ist fast komplett, man kann jetzt Filme für den Download
