@@ -107,7 +107,7 @@ def suche():
   for row in rows:
     item = {}
     item['DATUM'] = row['DATUM'].strftime("%d.%m.%y")
-    for key in ['SENDER','THEMA','TITEL','DAUER','_ID']:
+    for key in ['SENDER','THEMA','TITEL','DAUER','BESCHREIBUNG','_ID']:
       item[key] = row[key]
     result.append(item)
 
