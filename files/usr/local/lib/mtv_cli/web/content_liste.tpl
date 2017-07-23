@@ -15,7 +15,7 @@
 <script  type="text/javascript">
   $(document).ready(function() {
       $("#vormerk_liste").DataTable( {
-        select: true,
+        select: {style: 'multi'},
         language: {
           "sEmptyTable":      "Keine Daten in der Tabelle vorhanden",
           "sInfo":            "_START_ bis _END_ von _TOTAL_ Einträgen",
