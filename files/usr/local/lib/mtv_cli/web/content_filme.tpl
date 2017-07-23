@@ -16,6 +16,9 @@
   $(document).ready(function() {
       $("#film_liste").DataTable( {
         select: {style: 'multi'},
+        createdRow: function ( row, data, index ) {
+            $("td:nth-child(5)", row).attr("title", data.BESCHREIBUNG);
+        },
         language: {
           "sEmptyTable":      "Keine Daten in der Tabelle vorhanden",
           "sInfo":            "_START_ bis _END_ von _TOTAL_ Einträgen",
