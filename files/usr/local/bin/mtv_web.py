@@ -52,7 +52,7 @@ def css_pages(filepath):
     return bottle.static_file(filepath, root=get_webpath('css'))
   
 @route('/js/<filepath:path>')
-def css_pages(filepath):
+def js_pages(filepath):
     return bottle.static_file(filepath, root=get_webpath('js'))
 
 # --- Hauptseite   ----------------------------------------------------------
