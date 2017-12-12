@@ -18,6 +18,11 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
+### Version 3 / 12.12.17 ###
+
+  - Beschreibung der Sendung (Tooltip Mouse-over beim Titel). Funktioniert
+    leider nicht bei mobilen Browsern.
+
 ### Version 2 / 02.07.17 ###
 
   - Die Bearbeitung der Vormerkliste funktioniert jetzt auch.
