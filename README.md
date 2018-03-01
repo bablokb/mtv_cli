@@ -196,7 +196,7 @@ werden. Ohne Angabe von Operatoren werden generische Suchbegriffe mit
 Konfiguration
 -------------
 
-In der Datei `/et/mtv_cli.conf` gibt es im Abschnitt `[CONFIG]`
+In der Datei `/etc/mtv_cli.conf` gibt es im Abschnitt `[CONFIG]`
 eine Reihe von Konfigurationsvariablen:
 
   - `DATE_CUTOFF`: Filme die älter sind, landen bei der Aktualisierung nicht
