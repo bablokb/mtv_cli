@@ -89,11 +89,11 @@ def status():
 def suche():
   # Auslesen Request-Parameter
   such_args = []
-  token = bottle.request.forms.get('global')
+  token = bottle.request.forms.getunicode("global")
   if token:
     such_args.append(token)
   for arg in ['sender','thema','datum','titel','bechreibung']:
-    token = bottle.request.forms.get(arg)
+    token = bottle.request.forms.getunicode(arg)
     if token:
       such_args.append(arg+':'+token)
   Msg.msg("DEBUG","Suchbegriffe: " + str(such_args))
