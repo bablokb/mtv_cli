@@ -244,6 +244,10 @@ if __name__ == '__main__':
   else:
     Msg.level = config["MSG_LEVEL"]
 
+  # Verzeichnis HOME/.mediathek3 anlegen
+  if not os.path.exists(MTV_CLI_HOME):
+    os.mkdir(MTV_CLI_HOME)
+
   # Globale Objekte anlegen
   options.upd_src = "auto"
   options.config = config
