@@ -37,11 +37,15 @@ def download_film(options,film):
   film.thema = film.thema.replace('/','_')
   film.titel = film.titel.replace('/','_')
   ext        = url.split(".")[-1]
-  ziel = options.config["ZIEL_DOWNLOADS"].format(ext=ext,
-                                                 **film.asDict())
+
+  # Kommando bei Playlisten anpassen. Die Extension der gespeicherten Datei
+  # wird auf mp4 geändert
   cmd = options.config["CMD_DOWNLOADS"]
   if ext == 'm3u':
-    cmd.replace('{url}','-i {url}')
+    cmd.replace("'{url}'","-i '{url}'")
+    ext == 'mp4'
+
+  ziel = options.config["ZIEL_DOWNLOADS"].format(ext=ext, **film.asDict())
   cmd = cmd.format(ziel=ziel,url=url)
 
   # Zielverzeichnis erstellen
