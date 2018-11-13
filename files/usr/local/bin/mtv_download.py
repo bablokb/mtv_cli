@@ -36,9 +36,13 @@ def download_film(options,film):
   size,url = film.get_url(options.config["QUALITAET"])
   film.thema = film.thema.replace('/','_')
   film.titel = film.titel.replace('/','_')
-  ziel = options.config["ZIEL_DOWNLOADS"].format(ext=url.split(".")[-1],
+  ext        = url.split(".")[-1]
+  ziel = options.config["ZIEL_DOWNLOADS"].format(ext=ext,
                                                  **film.asDict())
-  cmd = options.config["CMD_DOWNLOADS"].format(ziel=ziel,url=url)
+  cmd = options.config["CMD_DOWNLOADS"]
+  if ext == 'm3u':
+    cmd.replace('{url}','-i {url}')
+  cmd = cmd.format(ziel=ziel,url=url)
 
   # Zielverzeichnis erstellen
   ziel_dir = os.path.dirname(ziel)
