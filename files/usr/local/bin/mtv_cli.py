@@ -118,6 +118,8 @@ def do_update(options):
     else:
       fpin = open(src,"r",encoding='utf-8')
     split_content(fpin,options.filmDB)
+  except Exception as e:
+    Msg.msg("ERROR","Update der Filmliste gescheitert. Fehler: %s" % e)
   finally:
     fpin.close()
 
