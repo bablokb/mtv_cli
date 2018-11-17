@@ -36,13 +36,13 @@ def download_film(options,film):
   size,url = film.get_url(options.config["QUALITAET"])
   film.thema = film.thema.replace('/','_')
   film.titel = film.titel.replace('/','_')
-  ext        = url.split(".")[-1]
+  ext        = url.split(".")[-1].lower()
 
   # Kommando bei Playlisten anpassen. Die Extension der gespeicherten Datei
   # wird auf mp4 geändert
-  if ext == 'm3u8':
-    cmd = options.config["CMD_DOWNLOADS_M3U"]
-    ext = 'mp4'
+  if ext.startswith('m3u'):
+    cmd   = options.config["CMD_DOWNLOADS_M3U"]
+    ext   = 'mp4'
     isM3U = True
   else:
     cmd = options.config["CMD_DOWNLOADS"]
