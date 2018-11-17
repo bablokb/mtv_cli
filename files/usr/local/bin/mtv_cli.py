@@ -375,6 +375,7 @@ def get_config(parser):
     "NUM_DOWNLOADS":     parser.getint('CONFIG',"NUM_DOWNLOADS"),
     "ZIEL_DOWNLOADS":    parser.get('CONFIG',"ZIEL_DOWNLOADS"),
     "CMD_DOWNLOADS":     parser.get('CONFIG',"CMD_DOWNLOADS"),
+    "CMD_DOWNLOADS_M3U": parser.get('CONFIG',"CMD_DOWNLOADS_M3U"),
     "QUALITAET":         parser.get('CONFIG',"QUALITAET")
     }
 
@@ -384,7 +385,12 @@ if __name__ == '__main__':
 
   config_parser = configparser.RawConfigParser()
   config_parser.read('/etc/mtv_cli.conf')
-  config = get_config(config_parser)
+  try:
+    config = get_config(config_parser)
+  except Exception as e:
+    print("Konfiguration fehlerhaft!")
+    print("Fehler: %s" % e.message)
+    sys.exit(3)
 
   opt_parser = get_parser()
   options = opt_parser.parse_args(namespace=Options)
