@@ -40,10 +40,13 @@ def download_film(options,film):
 
   # Kommando bei Playlisten anpassen. Die Extension der gespeicherten Datei
   # wird auf mp4 geändert
-  cmd = options.config["CMD_DOWNLOADS"]
-  if ext == 'm3u':
-    cmd.replace("'{url}'","-i '{url}'")
-    ext == 'mp4'
+  if ext == 'm3u8':
+    cmd = options.config["CMD_DOWNLOADS_M3U"]
+    ext = 'mp4'
+    isM3U = True
+  else:
+    cmd = options.config["CMD_DOWNLOADS"]
+    isM3U = False
 
   ziel = options.config["ZIEL_DOWNLOADS"].format(ext=ext, **film.asDict())
   cmd = cmd.format(ziel=ziel,url=url)
@@ -56,7 +59,12 @@ def download_film(options,film):
   # Download ausführen
   options.filmDB.update_downloads(_id,'A')
   Msg.msg("INFO","Start Download (%s) %s" % (size,film.titel[0:50]))
-  p = subprocess.Popen(shlex.split(cmd),stdout=DEVNULL, stderr=STDOUT)
+  if isM3U:
+    Msg.msg("DEBUG","Kommando: %s" % cmd)
+    p = subprocess.Popen(cmd,shell=True,stdout=DEVNULL, stderr=STDOUT)
+  else:
+    Msg.msg("DEBUG","Kommando: %r" % shlex.split(cmd))
+    p = subprocess.Popen(shlex.split(cmd),stdout=DEVNULL, stderr=STDOUT)
   p.wait()
   rc = p.returncode
   Msg.msg("INFO",
