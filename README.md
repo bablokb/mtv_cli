@@ -18,6 +18,16 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
+### Version 4 / 18.11.18 ###
+
+  - Unterstützung von m3u-Links (Playlisten). Manche Sender bieten keine
+    kompletten mp4-Dateien mehr zum Download an, sondern nur ein Playliste
+    mit einer Liste von Fragmenten. Diese werden jetzt auf einmal
+    heruntergeladen und zusammengesetzt. **Nach dem Update mit
+    `sudo tools/install-mtv_cli` muss noch die eigene `/etc/mtv_cli.conf`
+    angepasst werden (Variable `CMD_DOWNLOADS_M3U` von der
+    `/etc/mtv_cli.conf.neu` übernehmen).**
+
 ### Version 3 / 12.12.17 ###
 
   - Beschreibung der Sendung (Tooltip Mouse-over beim Titel). Funktioniert
