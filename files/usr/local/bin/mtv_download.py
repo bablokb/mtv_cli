@@ -71,6 +71,7 @@ def download_film(options,film):
       "Ende  Download (%s) %s (Return-Code: %d)" % (size,film.titel[0:50],rc))
   if rc==0:
     options.filmDB.update_downloads(_id,'K')
+    options.filmDB.save_recs(_id,ziel)
   else:
     options.filmDB.update_downloads(_id,'F')
 
