@@ -17,6 +17,7 @@ showPart=function(id) {
            "#content_suche",
            "#content_filme",
            "#content_liste",
+           "#content_files",
            "#content_status"
            ];
   parts.forEach(function(part) {
@@ -112,6 +113,25 @@ sucheDownloads=function() {
     success: function(data){
       showPart("#content_liste");
       var table = $('#vormerk_liste').DataTable();
+      table.clear();
+      table.rows.add(data).draw();
+    }
+  });
+   return false;
+};
+
+/**
+  Dateiliste anzeigen
+*/
+
+showFiles=function() {
+  $.ajax({
+    type: "POST",
+    cache: false,
+    url: "/aufnahmeliste",
+    success: function(data){
+      showPart("#content_files");
+      var table = $('#aufnahme_liste').DataTable();
       table.clear();
       table.rows.add(data).draw();
     }
