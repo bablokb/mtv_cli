@@ -29,6 +29,9 @@
               <a onclick="sucheDownloads()"
                 class="pure-menu-link">Vormerkliste</a></li>
             <li class="pure-menu-item">
+              <a onclick="showFiles()"
+                class="pure-menu-link">Aufnahmeliste</a></li>
+            <li class="pure-menu-item">
               <a onclick="showStatus()"
                 class="pure-menu-link">Status</a></li>
           </ul>
