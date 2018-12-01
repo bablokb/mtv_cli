@@ -470,8 +470,9 @@ class FilmDB(object):
   # ------------------------------------------------------------------------
 
   def delete_recs(self,rows):
-    """ Aufnahme löschen"""
-    DEL_STMT = "DELETE FROM recordings where _id=?"
+    """ Aufnahme löschen.
+        rows ist Array von Tuplen: [(name,),(name,), ...]"""
+    DEL_STMT = "DELETE FROM recordings where Dateiname=?"
 
     Msg.msg("DEBUG","rows: " + str(rows))
 
