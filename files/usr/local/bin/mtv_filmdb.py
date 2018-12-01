@@ -413,3 +413,92 @@ class FilmDB(object):
     finally:
       self.lock.release()
       return rows
+
+  # ------------------------------------------------------------------------
+
+  def save_recs(self,id,Dateiname):
+    """Aufnahme sichern."""
+
+    Msg.msg("INFO","Sichere Aufnahmen: %s,%s" % (id,Dateiname))
+    CREATE_STMT = """CREATE TABLE IF NOT EXISTS recordings (
+                     Sender       text,
+                     Titel        text,
+                     DatumFilm    date,
+                     Dateiname    text primary key,
+                     DatumDatei   date)"""
+    INSERT_STMT = """INSERT OR IGNORE INTO recordings Values (?,?,?,?,?)"""
+    SEL_STMT    = """SELECT sender,
+                            titel,
+                            datum
+                      FROM filme
+                        WHERE _id = ?"""
+
+    # ausgewählte Felder aus Film-DB lesen
+    cursor = self.open()
+    try:
+      Msg.msg("DEBUG","SQL-Query: %s" % SEL_STMT)
+      cursor.execute(SEL_STMT,(id,))
+      row = cursor.fetchone()
+    except sqlite3.OperationalError as e:
+      Msg.msg("DEBUG","SQL-Fehler: %s" % e)
+      row = None
+
+    for r in row:
+      Msg.msg("INFO","row: %r" % r)
+    if not row:
+      self.close()
+      return
+
+    # Tabelle bei Bedarf erstellen
+    Msg.msg("DEBUG","SQL-Create: %s" % CREATE_STMT)
+    cursor.execute(CREATE_STMT)
+    self.commit()
+
+    # ohne Lock, da Insert mit neuem Schlüssel
+    try:
+      self.lock.acquire()
+      Msg.msg("DEBUG","SQL-Insert: %s" % INSERT_STMT)
+      cursor.execute(INSERT_STMT,
+                   (row[0],row[1],row[2],Dateiname,datetime.date.today()))
+      self.commit()
+    except sqlite3.OperationalError as e:
+      Msg.msg("DEBUG","SQL-Fehler: %s" % e)
+    finally:
+      self.lock.release()
+    self.close()
+
+  # ------------------------------------------------------------------------
+
+  def delete_recs(self,rows):
+    """ Aufnahme löschen"""
+    DEL_STMT = "DELETE FROM recordings where _id=?"
+
+    Msg.msg("DEBUG","rows: " + str(rows))
+
+    # Ein Lock ist hier nicht nötig, da Downloads immer in
+    # einem eigene Aufruf von mtv_cli stattfinden
+
+    cursor = self.open()
+    cursor.executemany(DEL_STMT,rows)
+    changes = self.db.total_changes
+    self.commit()
+    self.close()
+    return changes
+
+  # ------------------------------------------------------------------------
+
+  def read_recs(self):
+    """Aufnahmen auslesen. """
+
+    SEL_STMT = "SELECT * from recordings"
+
+    Msg.msg("DEBUG","SQL-Query: %s" % SEL_STMT)
+    cursor = self.open()
+    try:
+      cursor.execute(SEL_STMT)
+      rows = cursor.fetchall()
+    except sqlite3.OperationalError as e:
+      Msg.msg("DEBUG","SQL-Fehler: %s" % e)
+      rows = None
+    self.close()
+    return rows
