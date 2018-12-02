@@ -423,12 +423,14 @@ class FilmDB(object):
     CREATE_STMT = """CREATE TABLE IF NOT EXISTS recordings (
                      Sender       text,
                      Titel        text,
+                     Beschreibung text,
                      DatumFilm    date,
                      Dateiname    text primary key,
                      DatumDatei   date)"""
-    INSERT_STMT = """INSERT OR IGNORE INTO recordings Values (?,?,?,?,?)"""
+    INSERT_STMT = """INSERT OR IGNORE INTO recordings Values (?,?,?,?,?,?)"""
     SEL_STMT    = """SELECT sender,
                             titel,
+                            beschreibung,
                             datum
                       FROM filme
                         WHERE _id = ?"""
@@ -459,7 +461,8 @@ class FilmDB(object):
       self.lock.acquire()
       Msg.msg("DEBUG","SQL-Insert: %s" % INSERT_STMT)
       cursor.execute(INSERT_STMT,
-                   (row[0],row[1],row[2],Dateiname,datetime.date.today()))
+                     tuple(row[i] for i in range(len(row))) +
+                                   (Dateiname,datetime.date.today()))
       self.commit()
     except sqlite3.OperationalError as e:
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
