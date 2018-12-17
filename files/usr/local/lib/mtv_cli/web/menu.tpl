@@ -30,7 +30,7 @@
                 class="pure-menu-link">Vormerkliste</a></li>
             <li class="pure-menu-item">
               <a onclick="showFiles()"
-                class="pure-menu-link">Aufnahmeliste</a></li>
+                class="pure-menu-link">Dateien</a></li>
             <li class="pure-menu-item">
               <a onclick="showStatus()"
                 class="pure-menu-link">Status</a></li>
