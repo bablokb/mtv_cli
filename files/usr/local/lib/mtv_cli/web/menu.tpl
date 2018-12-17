@@ -29,7 +29,7 @@
               <a onclick="sucheDownloads()"
                 class="pure-menu-link">Vormerkliste</a></li>
             <li class="pure-menu-item">
-              <a onclick="showFiles()"
+              <a onclick="showDateien()"
                 class="pure-menu-link">Dateien</a></li>
             <li class="pure-menu-item">
               <a onclick="showStatus()"
