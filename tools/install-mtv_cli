@@ -13,7 +13,7 @@
 
 # --- defaults used during installation   ----------------------------------
 
-MTV_CLI_USER="pi"
+MTV_CLI_USER="${1:-pi}"
 
 # --- basic packages   ------------------------------------------------------
 
