@@ -17,7 +17,7 @@ showPart=function(id) {
            "#content_suche",
            "#content_filme",
            "#content_liste",
-           "#content_files",
+           "#content_dateien",
            "#content_status"
            ];
   parts.forEach(function(part) {
@@ -124,14 +124,14 @@ sucheDownloads=function() {
   Dateiliste anzeigen
 */
 
-showFiles=function() {
+showDateien=function() {
   $.ajax({
     type: "POST",
     cache: false,
-    url: "/aufnahmeliste",
+    url: "/dateien",
     success: function(data){
-      showPart("#content_files");
-      var table = $('#aufnahme_liste').DataTable();
+      showPart("#content_dateien");
+      var table = $('#datei_liste').DataTable();
       table.clear();
       table.rows.add(data).draw();
     }
