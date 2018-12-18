@@ -29,7 +29,8 @@
       $("#datei_liste").DataTable( {
         select: {style: 'multi'},
         createdRow: function ( row, data, index ) {
-            $("td:nth-child(5)", row).attr("title", data.BESCHREIBUNG);
+            $("td:nth-child(3)", row).attr("title", "Erstellt: " + data.DATUMDATEI);
+            $("td:nth-child(6)", row).attr("title", data.BESCHREIBUNG);
         },
         language: {
           "sEmptyTable":      "Keine Daten in der Tabelle vorhanden",
