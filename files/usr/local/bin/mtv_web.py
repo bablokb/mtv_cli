@@ -156,6 +156,10 @@ def dateien():
   # Liste aufbereiten
   result = []
   for row in rows:
+    if not os.path.exists(row['DATEINAME']):
+      Msg.msg("WARN","Datei %s existiert nicht" % row['DATEINAME'])
+      continue
+      
     item = {}
     item['DATUMFILM']   = row['DATUMFILM'].strftime("%d.%m.%y")
     item['DATUMDATEI']  = row['DATUMDATEI'].strftime("%d.%m.%y")
