@@ -14,7 +14,7 @@
 
 # --- System-Imports   ------------------------------------------------------
 
-import sys, os, json
+import sys, os, json, urllib
 from argparse import ArgumentParser
 from multiprocessing import Process
 import configparser
@@ -143,7 +143,7 @@ def downloads():
   bottle.response.content_type = 'application/json'
   return json.dumps(result)
 
-# --- Downloads   -----------------------------------------------------------
+# --- Dateien   -------------------------------------------------------------
 
 @route('/dateien',method='POST')
 def dateien():
@@ -161,6 +161,7 @@ def dateien():
       continue
       
     item = {}
+    item['DATEI']       = os.path.basename(row['DATEINAME'])
     item['DATUMFILM']   = row['DATUMFILM'].strftime("%d.%m.%y")
     item['DATUMDATEI']  = row['DATUMDATEI'].strftime("%d.%m.%y")
     for key in ['SENDER','TITEL','BESCHREIBUNG','DATEINAME']:
@@ -170,6 +171,76 @@ def dateien():
   Msg.msg("DEBUG","Anzahl Einträge in Dateilisteliste: %d" % len(result))
   bottle.response.content_type = 'application/json'
   return json.dumps(result)
+
+# --- Datei löschen   -------------------------------------------------------
+
+@route('/del_datei',method='POST')
+def del_datei():
+  """ Datei löschen """
+
+  # get name-parameter
+  dateiname = bottle.request.forms.get('name')
+  Msg.msg("DEBUG", "Löschanforderung (Dateiname: %s)" % dateiname)
+
+  bottle.response.content_type = 'application/json'
+
+  if dateiname is None:
+    msg = '"kein Dateiname angegeben"'
+    bottle.response.status       = 400                 # bad request
+    return '{"msg": ' + msg +'}'
+
+  # Datei in der Aufname-DB suchen und dann löschen
+  # TODO: implementieren
+  if os.path.exists(dateiname):
+    #os.unlink(dateiname)
+    msg = '"Datei erfolgreich gelöscht"'
+    bottle.response.status = 200                 # OK
+    Msg.msg("INFO", "Dateiname %s gelöscht" % dateiname)
+  else:
+    msg = '"Datei existiert nicht"'
+    bottle.response.status = 400                 # bad request
+    Msg.msg("WARN", "Dateiname %s existiert nicht" % dateiname)
+
+  return '{"msg": ' + msg +'}'
+
+# --- Datei herunterladen   -------------------------------------------------
+
+@route('/get_datei',method='GET')
+def get_datei():
+  """ Datei herunterladen """
+
+  # get name-parameter
+  dateiname = bottle.request.query.get('name')
+  Msg.msg("DEBUG", "Downloadanforderung (Dateiname: %s)" % dateiname)
+
+  bottle.response.content_type = 'application/json'
+
+  if dateiname is None:
+    msg = '"kein Dateiname angegeben"'
+    bottle.response.status       = 400                 # bad request
+    return '{"msg": ' + msg +'}'
+
+  # Überprüfen, ob Dateiname in Film-DB existiert
+  # TODO: implementieren
+  # datei_ok = ...
+  datei_ok = True
+  if not datei_ok:
+    Msg.msg("DEBUG", "Dateiname %s nicht in Film-DB" % dateiname)
+    msg = '"Ungültiger Dateiname"'
+    bottle.response.status       = 400                 # bad request
+    return '{"msg": ' + msg +'}'
+
+  if not os.path.exists(dateiname):
+    msg = '"Dateiname existiert nicht"'
+    bottle.response.status       = 404                # not found
+    return '{"msg": ' + msg +'}'
+
+  # Datei roh herunterladen
+  bottle.response.content_type = 'application/mp4'
+  f = urllib.request.pathname2url(os.path.basename(dateiname))
+  #f = os.path.basename(dateiname)
+  bottle.response.set_header('Content-Disposition','attachment; filename=%s' % f)
+  return subprocess.check_output(['cat',dateiname])
 
 # --- Vormerken   -----------------------------------------------------------
 
