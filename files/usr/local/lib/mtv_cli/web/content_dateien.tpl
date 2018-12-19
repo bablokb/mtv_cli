@@ -14,13 +14,13 @@
 
 <script  type="text/javascript">
   getDelButton = function(name) {
-    var head =  '<img class = "w3-border" src="images/trash.png" alt="delete" onClick="doDelete(\'';
+    var head =  '<img class = "w3-border" src="images/trash.png" alt="delete" onClick="doDelDatei(\'';
     var end  =  '\')">';
     return head + name + end;
   };
 
   getDldButton = function(name) {
-    var head =  '<img class = "w3-border" src="images/download.png" alt="download" onClick="doDownload(\'';
+    var head =  '<img class = "w3-border" src="images/download.png" alt="download" onClick="doGetDatei(\'';
     var end  =  '\')">';
     return head + name + end;
   };
@@ -59,16 +59,16 @@
             { data: null,    title: "",
               className: "dt-right",
               render: function(data,type,raw,meta) {
-                   return getDelButton(data.name);
+                   return getDelButton(data.DATEINAME);
               }
              },
             { data: null,    title: "",
               className: "dt-right",
               render: function(data,type,raw,meta) {
-                   return getDldButton(data.name);
+                   return getDldButton(data.DATEINAME);
               }
              },
-            { data: "DATEINAME",  title: "Dateiname" },
+            { data: "DATEI",  title: "Dateiname" },
             { data: "SENDER", title: "Sender" },
             { data: "DATUMFILM", title: "Datum" },
             { data: "TITEL", title: "Titel" }
