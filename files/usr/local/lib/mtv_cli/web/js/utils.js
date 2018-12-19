@@ -140,6 +140,35 @@ showDateien=function() {
 };
 
 /**
+  Datei auf dem Server löschen
+*/
+
+doDelDatei=function(name) {
+  $.ajax({
+    type: "POST",
+        data : {name: name},
+    cache: false,
+    url: "/del_datei",
+    success: function(data){
+      showMsg(data.msg,3000);
+      var table = $('#datei_liste').DataTable();
+      // Zeile entfernen table.rows.add(data).draw();
+    },
+    error: function(data){
+      showMsg(data.msg,3000);
+  },
+  });
+};
+
+/**
+  Datei vom Server herunterladen
+*/
+
+doGetDatei=function(name) {
+  window.location="/get_datei?name="+name;
+};
+
+/**
   Filme sofort herunterladen
 */
 
