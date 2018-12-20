@@ -197,6 +197,7 @@ def del_datei():
     bottle.response.status = 400                 # bad request
   elif os.path.exists(dateiname):
     #os.unlink(dateiname)
+    options.filmDB.delete_recs([(dateiname,)])
     msg = '"Datei erfolgreich gelöscht"'
     bottle.response.status = 200                 # OK
     Msg.msg("INFO", "Dateiname %s gelöscht" % dateiname)
