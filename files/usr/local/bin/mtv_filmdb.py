@@ -491,10 +491,13 @@ class FilmDB(object):
 
   # ------------------------------------------------------------------------
 
-  def read_recs(self):
+  def read_recs(self,Dateiname=None):
     """Aufnahmen auslesen. """
 
-    SEL_STMT = "SELECT * from recordings"
+    if Dateiname:
+      SEL_STMT = "SELECT * from recordings where Dateiname='%s'" % Dateiname
+    else:
+      SEL_STMT = "SELECT * from recordings"
 
     Msg.msg("DEBUG","SQL-Query: %s" % SEL_STMT)
     cursor = self.open()
