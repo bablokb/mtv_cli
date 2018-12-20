@@ -190,8 +190,12 @@ def del_datei():
     return '{"msg": ' + msg +'}'
 
   # Datei in der Aufname-DB suchen und dann löschen
-  # TODO: implementieren
-  if os.path.exists(dateiname):
+  rows = options.filmDB.read_recs(dateiname)
+  if not rows:
+    Msg.msg("WARN", "Dateiname %s nicht in Film-DB" % dateiname)
+    msg = '"Ungültiger Dateiname"'
+    bottle.response.status = 400                 # bad request
+  elif os.path.exists(dateiname):
     #os.unlink(dateiname)
     msg = '"Datei erfolgreich gelöscht"'
     bottle.response.status = 200                 # OK
@@ -221,11 +225,9 @@ def get_datei():
     return '{"msg": ' + msg +'}'
 
   # Überprüfen, ob Dateiname in Film-DB existiert
-  # TODO: implementieren
-  # datei_ok = ...
-  datei_ok = True
-  if not datei_ok:
-    Msg.msg("DEBUG", "Dateiname %s nicht in Film-DB" % dateiname)
+  rows = options.filmDB.read_recs(dateiname)
+  if not rows:
+    Msg.msg("WARN", "Dateiname %s nicht in Film-DB" % dateiname)
     msg = '"Ungültiger Dateiname"'
     bottle.response.status       = 400                 # bad request
     return '{"msg": ' + msg +'}'
