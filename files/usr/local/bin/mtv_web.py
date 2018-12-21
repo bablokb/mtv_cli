@@ -151,23 +151,32 @@ def dateien():
   rows = options.filmDB.read_recs()
   if not rows:
     Msg.msg("DEBUG","Keine Dateien gefunden")
-    return "{}"
+    return "{[]}"
 
   # Liste aufbereiten
   result = []
+  deleted = []
   for row in rows:
-    if not os.path.exists(row['DATEINAME']):
-      Msg.msg("WARN","Datei %s existiert nicht" % row['DATEINAME'])
+    dateiname = row['DATEINAME']
+    if not os.path.exists(dateiname):
+      Msg.msg("WARN","Datei %s existiert nicht" % dateiname)
+      deleted.append((dateiname,))
       continue
       
     item = {}
-    item['DATEI']       = os.path.basename(row['DATEINAME'])
+    item['DATEI']       = os.path.basename(dateiname)
     item['DATUMFILM']   = row['DATUMFILM'].strftime("%d.%m.%y")
     item['DATUMDATEI']  = row['DATUMDATEI'].strftime("%d.%m.%y")
     for key in ['SENDER','TITEL','BESCHREIBUNG','DATEINAME']:
       item[key] = row[key]
     result.append(item)
 
+  # Löschen nicht mehr vorhandener Dateien
+  if deleted:
+    Msg.msg("DEBUG","Lösche %d Einträge in Aufnahmelisteliste" % len(deleted))
+    options.filmDB.delete_recs(deleted)
+
+  # Ergebnis ausliefern
   Msg.msg("DEBUG","Anzahl Einträge in Dateilisteliste: %d" % len(result))
   bottle.response.content_type = 'application/json'
   return json.dumps(result)
