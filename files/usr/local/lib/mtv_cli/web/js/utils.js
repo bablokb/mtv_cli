@@ -143,7 +143,7 @@ showDateien=function() {
   Datei auf dem Server löschen
 */
 
-doDelDatei=function(name) {
+doDelDatei=function(name,thisRow) {
   $.ajax({
     type: "POST",
         data : {name: name},
@@ -152,7 +152,7 @@ doDelDatei=function(name) {
     success: function(data){
       showMsg(data.msg,3000);
       var table = $('#datei_liste').DataTable();
-      // Zeile entfernen table.rows.add(data).draw();
+      table.row(thisRow.parents('tr')).remove().draw();
     },
     error: function(data){
       showMsg(data.msg,3000);

@@ -15,7 +15,7 @@
 <script  type="text/javascript">
   getDelButton = function(name) {
     var head =  '<img class = "w3-border" src="images/trash.png" alt="delete" onClick="doDelDatei(\'';
-    var end  =  '\')">';
+    var end  =  '\',$(this))">';
     return head + name + end;
   };
 
