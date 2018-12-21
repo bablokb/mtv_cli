@@ -14,7 +14,7 @@
 
 # --- System-Imports   ------------------------------------------------------
 
-import sys, os, json, urllib
+import sys, os, json
 from argparse import ArgumentParser
 from multiprocessing import Process
 import configparser
@@ -188,7 +188,7 @@ def del_datei():
   """ Datei löschen """
 
   # get name-parameter
-  dateiname = bottle.request.forms.get('name')
+  dateiname = bottle.request.forms.getunicode('name')
   Msg.msg("DEBUG", "Löschanforderung (Dateiname: %s)" % dateiname)
 
   bottle.response.content_type = 'application/json'
@@ -224,7 +224,7 @@ def get_datei():
   """ Datei herunterladen """
 
   # get name-parameter
-  dateiname = bottle.request.query.get('name')
+  dateiname = bottle.request.query.getunicode('name')
   Msg.msg("DEBUG", "Downloadanforderung (Dateiname: %s)" % dateiname)
 
   bottle.response.content_type = 'application/json'
@@ -249,8 +249,7 @@ def get_datei():
 
   # Datei roh herunterladen
   bottle.response.content_type = 'application/mp4'
-  f = urllib.request.pathname2url(os.path.basename(dateiname))
-  #f = os.path.basename(dateiname)
+  f = '"'+os.path.basename(dateiname)+'"'
   bottle.response.set_header('Content-Disposition','attachment; filename=%s' % f)
   return subprocess.check_output(['cat',dateiname])
 
