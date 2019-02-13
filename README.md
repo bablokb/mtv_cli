@@ -18,6 +18,13 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
+### Version 5 / 13.02.19 ###
+
+  - Neuer Hauptmenüpunkt "Dateien". Filmdateien auf dem Server können
+    heruntergeladen oder gelöscht werden. Alte Aufnahmen sind in der
+    Dateiliste nicht sichtbar, sondern nur Filme, die seit dem Update
+    heruntergeladen wurden.
+
 ### Version 4 / 18.11.18 ###
 
   - Unterstützung von m3u-Links (Playlisten). Manche Sender bieten keine
