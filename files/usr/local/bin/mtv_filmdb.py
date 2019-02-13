@@ -495,14 +495,17 @@ class FilmDB(object):
     """Aufnahmen auslesen. """
 
     if Dateiname:
-      SEL_STMT = "SELECT * from recordings where Dateiname='%s'" % Dateiname
+      SEL_STMT = "SELECT * from recordings where Dateiname=?"
     else:
       SEL_STMT = "SELECT * from recordings"
 
     Msg.msg("DEBUG","SQL-Query: %s" % SEL_STMT)
     cursor = self.open()
     try:
-      cursor.execute(SEL_STMT)
+      if Dateiname:
+        cursor.execute(SEL_STMT,(Dateiname,))
+      else:
+        cursor.execute(SEL_STMT)
       rows = cursor.fetchall()
     except sqlite3.OperationalError as e:
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
