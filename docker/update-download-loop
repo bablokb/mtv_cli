@@ -1,0 +1,9 @@
+#!/bin/bash
+while true ; do
+  if [[ `find /data/db/ -type f -mmin '+59' | wc -l` -gt 0 ]] ; then
+    /usr/local/bin/mtv_cli.py -A
+  fi
+  sleep 1h
+  /usr/local/bin/mtv_cli.py -D
+  sleep 23h
+done
