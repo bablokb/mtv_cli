@@ -1,0 +1,5 @@
+#!/bin/bash
+/update-download-loop &
+LOOP_PID=$!
+/usr/local/bin/mtv_web.py
+kill $LOOP_ID
