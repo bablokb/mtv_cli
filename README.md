@@ -18,6 +18,10 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
+### Version 6 / 30.03.20 ###
+
+  - Support für Docker (implementiert von Skyr)
+
 ### Version 5 / 13.02.19 ###
 
   - Neuer Hauptmenüpunkt "Dateien". Filmdateien auf dem Server können
