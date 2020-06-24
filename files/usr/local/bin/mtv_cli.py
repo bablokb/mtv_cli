@@ -112,6 +112,7 @@ def do_update(options):
     src = options.upd_src
 
   Msg.msg("INFO","Erzeuge %s aus %s" % (options.dbfile,src))
+  fpin = None
   try:
     if src.startswith("http"):
       fpin = get_lzma_fp(get_url_fp(src))
@@ -121,7 +122,8 @@ def do_update(options):
   except Exception as e:
     Msg.msg("ERROR","Update der Filmliste gescheitert. Fehler: %s" % e)
   finally:
-    fpin.close()
+    if fpin:
+      fpin.close()
 
 # --- Interaktiv Suchbegriffe festlegen   -----------------------------------
 
