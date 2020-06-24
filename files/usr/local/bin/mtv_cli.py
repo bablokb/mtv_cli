@@ -15,6 +15,7 @@
 from argparse import ArgumentParser
 import sys, os, re, lzma, datetime, random, fcntl
 import urllib.request as request
+import ssl
 import configparser
 
 from pick import pick
@@ -35,8 +36,7 @@ class Options(object):
 
 def get_url_fp(url):
   """ URL öffnen und Filepointer zurückgeben"""
-  # TODO: Austausch, da request.urlopen keine Server-SSLs überprüft
-  return request.urlopen(url)
+  return request.urlopen(url,context=ssl.SSLContext())
 
 # --- Stream des LZMA-Entpackers   ------------------------------------------
 
