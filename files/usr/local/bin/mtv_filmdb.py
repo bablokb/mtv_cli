@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
-# Class FilmDB, MtvDB: Alles rund im Datenbanken
+# Class FilmDB, MtvDB: Alles rund um Datenbanken
 #
 # Author: Bernhard Bablok
 # License: GPL3

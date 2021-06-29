@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
-# Methoden rund um den Downlaod
+# Methoden rund um den Download
 #
 # Author: Bernhard Bablok
 # License: GPL3

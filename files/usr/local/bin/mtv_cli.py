@@ -41,7 +41,7 @@ def get_url_fp(url):
 # --- Stream des LZMA-Entpackers   ------------------------------------------
 
 def get_lzma_fp(url_fp):
-  """ Fileponter des LZMA-Entpackers. Argument ist der FP der URL"""
+  """ Filepointer des LZMA-Entpackers. Argument ist der FP der URL"""
   return lzma.open(url_fp,"rt",encoding='utf-8')
 
 # --- Split der Datei   -----------------------------------------------------
@@ -222,7 +222,7 @@ def do_now(options):
     changes = save_selected(options.filmDB,rows,selected,"S")
     Msg.msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
 
-    # Anstoß Downlaod
+    # Anstoß Download
     if changes > 0:
       do_download(options)
   else:
