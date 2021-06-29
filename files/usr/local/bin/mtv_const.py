@@ -31,7 +31,7 @@ MTV_CLI_HOME=os.path.join(os.path.expanduser("~"),".mediathek3")
 FILME_SQLITE=os.path.join(MTV_CLI_HOME,"filme.sqlite")
 MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
 
-# --- Downlaod-URLs   --------------------------------------------------------
+# --- Download-URLs   --------------------------------------------------------
 
 URL_FILMLISTE=[
   "https://verteiler1.mediathekview.de/Filmliste-akt.xz"
