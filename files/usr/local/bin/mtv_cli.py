@@ -121,7 +121,8 @@ def do_update(options):
   except Exception as e:
     Msg.msg("ERROR","Update der Filmliste gescheitert. Fehler: %s" % e)
   finally:
-    fpin.close()
+    if "fpin" in vars():
+      fpin.close()
 
 # --- Interaktiv Suchbegriffe festlegen   -----------------------------------
 
