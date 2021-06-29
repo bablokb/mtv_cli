@@ -48,7 +48,7 @@ def get_lzma_fp(url_fp):
 
 def split_content(fpin,filmDB):
   """Inhalt aufteilen"""
-  
+
   have_header=False
   last_rec = ""
 
@@ -77,7 +77,7 @@ def split_content(fpin,filmDB):
     records = regex.split(last_rec+str(buffer))
     Msg.msg("DEBUG","Anzahl Sätze: %d" % len(records))
 
-    # Sätze ausgeben. Der letzte Satz ist entweder leer, 
+    # Sätze ausgeben. Der letzte Satz ist entweder leer,
     # oder er ist eigentlich ein Satzanfang und wird aufgehoben
     last_rec = records[-1]
     for record in records[0:-1]:
@@ -97,7 +97,7 @@ def split_content(fpin,filmDB):
   Msg.msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
   Msg.msg("INFO","Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
 
-    
+
 # --- Update verarbeiten   --------------------------------------------------
 
 def do_update(options):
@@ -195,7 +195,7 @@ def save_selected(filmDB,rows,selected,status):
     row = rows[sel_index]
     inserts.append((row['_ID'],row['DATUM'],status))
   return filmDB.save_downloads(inserts)
-  
+
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
 def do_later(options):
@@ -321,7 +321,7 @@ def get_parser():
   parser.add_argument('-E', '--edit', action='store_true',
     dest='doEdit',
     help='Downloadliste bearbeiten')
-  
+
   parser.add_argument('-D', '--download', action='store_true',
     dest='doDownload',
     help='Vorgemerkte Filme herunterladen')
