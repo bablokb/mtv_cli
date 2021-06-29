@@ -50,7 +50,7 @@ def get_webpath(path):
 def css_pages(filepath):
     print(filepath)
     return bottle.static_file(filepath, root=get_webpath('css'))
-  
+
 @route('/js/<filepath:path>')
 def js_pages(filepath):
     return bottle.static_file(filepath, root=get_webpath('js'))
@@ -162,7 +162,7 @@ def dateien():
       Msg.msg("WARN","Datei %s existiert nicht" % dateiname)
       deleted.append((dateiname,))
       continue
-      
+
     item = {}
     item['DATEI']       = os.path.basename(dateiname)
     item['DATUMFILM']   = row['DATUMFILM'].strftime("%d.%m.%y")

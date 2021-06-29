@@ -28,7 +28,7 @@ class Msg(object):
   level = "INFO"    # beim Initialisieren überschreiben
 
   # --- Ausgabe einer Meldung   ---------------------------------------------
-  
+
   def msg(msg_level,text,nl=True):
     """Ausgabe einer Meldung"""
     if Msg.MSG_LEVELS[msg_level] >= Msg.MSG_LEVELS[Msg.level]:

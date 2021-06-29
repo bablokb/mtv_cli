@@ -25,7 +25,7 @@ class FilmDB(object):
   """Datenbank aller Filme"""
 
   # ------------------------------------------------------------------------
-  
+
   def __init__(self,options):
     """Constructor"""
     self.config = options.config
@@ -136,19 +136,19 @@ class FilmDB(object):
     if film_info:
       self.total += 1
       self.cursor.execute(INSERT_STMT,film_info.asTuple())
-  
+
   # ------------------------------------------------------------------------
 
   def commit(self):
     """Commit durchführen"""
     self.db.commit()
-    
+
   # ------------------------------------------------------------------------
 
   def get_count(self):
     """Anzahl der schon eingefügten Sätze zurückgeben"""
     return self.total
-  
+
   # ------------------------------------------------------------------------
 
   def save_filmtable(self):
@@ -170,7 +170,7 @@ class FilmDB(object):
            parts[2] + "-" + parts[1] + "-" + parts[0]
 
   # ------------------------------------------------------------------------
-  
+
   def get_query(self,suche):
     """Aus Suchbegriff eine SQL-Query erzeugen"""
     #Basisausdruck
@@ -236,7 +236,7 @@ class FilmDB(object):
     return select_clause + where_clause
 
   # ------------------------------------------------------------------------
-  
+
   def execute_query(self,statement):
     """Suche ausführen"""
     cursor = self.open()

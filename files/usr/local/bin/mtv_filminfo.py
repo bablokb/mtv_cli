@@ -18,7 +18,7 @@ class FilmInfo(object):
   """Info über einen einzelnen Film"""
 
     # ------------------------------------------------------------------------
-  
+
   def __init__(self,sender,thema,titel,datum,zeit,dauer,
                groesse,beschreibung,url,website,url_untertitel,url_rtmp,
                url_klein,url_rtmp_klein,url_hd,url_rtmp_hd,datumL,
