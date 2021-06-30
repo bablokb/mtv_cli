@@ -91,7 +91,6 @@ def download_filme(options,status="'V','F','A'"):
       download_film(options,film)
   else:
     with ThreadPool(options.config["NUM_DOWNLOADS"]) as pool:
-      results = []
       for film in filme:
         pool.apply_async(download_film,(options,film))
       pool.close()

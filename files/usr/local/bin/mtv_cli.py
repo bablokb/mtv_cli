@@ -141,7 +141,6 @@ def get_suche():
   suche_titel = "Auswahl Suchdetails"
   suche_opts  = ['Weiter','Global []', 'Sender []','Datum []','Thema []',
                  'Titel []', 'Beschreibung []']
-  suche_werte = {}
   while True:
     # suche_opts anzeigen
     # mit readline Suchebegriff abfragen, speichern in suche_wert
