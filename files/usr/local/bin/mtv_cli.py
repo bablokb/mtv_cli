@@ -39,7 +39,7 @@ from mtv_msg      import Msg as Msg
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
-class Options(object):
+class Options:
   pass
 
 # --- Stream der Filmliste   ------------------------------------------------

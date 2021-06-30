@@ -14,7 +14,7 @@
 
 import datetime, sys
 
-class Msg(object):
+class Msg:
   """Simple Klasse für Meldungen"""
 
   MSG_LEVELS={

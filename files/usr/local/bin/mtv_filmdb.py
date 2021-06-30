@@ -20,7 +20,7 @@ from mtv_msg      import Msg as Msg
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
 
-class FilmDB(object):
+class FilmDB:
   """Datenbank aller Filme"""
 
   # ------------------------------------------------------------------------
