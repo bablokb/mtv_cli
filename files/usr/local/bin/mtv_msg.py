@@ -16,7 +16,7 @@ import datetime
 import sys
 
 
-class Msg(object):
+class Msg:
     """Simple Klasse für Meldungen"""
 
     MSG_LEVELS = {"TRACE": 0, "DEBUG": 1, "INFO": 2, "WARN": 3, "ERROR": 4}

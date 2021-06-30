@@ -32,7 +32,7 @@ import mtv_cli
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
 
-class Options(object):
+class Options:
     pass
 
 

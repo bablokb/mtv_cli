@@ -41,7 +41,7 @@ from pick import pick
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
 
-class Options(object):
+class Options:
     pass
 
 

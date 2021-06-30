@@ -16,7 +16,7 @@ import datetime
 import hashlib
 
 
-class FilmInfo(object):
+class FilmInfo:
     """Info über einen einzelnen Film"""
 
     # ------------------------------------------------------------------------
