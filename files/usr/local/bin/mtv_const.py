@@ -33,12 +33,6 @@ MTV_CLI_SQLITE=os.path.join(MTV_CLI_HOME,"mtv_cli.sqlite")
 
 # --- Download-URLs   --------------------------------------------------------
 
-URL_FILMLISTE=[
-  "http://verteiler4.mediathekview.de/Filmliste-akt.xz",
-  "http://verteiler5.mediathekview.de/Filmliste-akt.xz",
-  "http://verteiler6.mediathekview.de/Filmliste-akt.xz",
-  "http://verteiler1.mediathekview.de/Filmliste-akt.xz",
-  "http://verteiler2.mediathekview.de/Filmliste-akt.xz",
-  "http://verteiler3.mediathekview.de/Filmliste-akt.xz"
-  ]
-
+URL_FILMLISTE = [
+    "https://liste.mediathekview.de/Filmliste-akt.xz",
+]
