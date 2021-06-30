@@ -14,7 +14,7 @@
 
 # --- System-Imports   -----------------------------------------------------
 
-import multiprocessing, os
+import os
 import subprocess
 import shlex
 from subprocess import DEVNULL,STDOUT
@@ -22,8 +22,6 @@ from multiprocessing.pool import ThreadPool
 
 # --- eigene Imports   ------------------------------------------------------
 
-from mtv_const  import *
-from mtv_filmdb import FilmDB as FilmDB
 from mtv_msg    import Msg as Msg
 
 # --- Download eines Films   -----------------------------------------------

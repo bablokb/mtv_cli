@@ -13,7 +13,7 @@
 # --- System-Imports   -----------------------------------------------------
 
 from argparse import ArgumentParser
-import sys, os, re, lzma, datetime, random, fcntl
+import sys, os, re, lzma, random, fcntl
 import urllib.request as request
 import ssl
 import configparser
@@ -22,8 +22,18 @@ from pick import pick
 
 # --- eigene Imports   ------------------------------------------------------
 
-from mtv_const    import *
-from mtv_download import *
+from mtv_const    import (
+    BUFSIZE,
+    DLL_FORMAT,
+    DLL_TITEL,
+    FILME_SQLITE,
+    MTV_CLI_HOME,
+    SEL_FORMAT,
+    SEL_TITEL,
+    URL_FILMLISTE,
+    VERSION,
+)
+from mtv_download import download_filme
 from mtv_filmdb   import FilmDB as FilmDB
 from mtv_msg      import Msg as Msg
 

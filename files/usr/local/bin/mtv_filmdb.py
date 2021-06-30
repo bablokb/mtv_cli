@@ -12,11 +12,10 @@
 #
 # --------------------------------------------------------------------------
 
-import os, sqlite3, json
+import sqlite3, json, datetime
 from multiprocessing import Lock
 
-from mtv_const    import *
-from mtv_filminfo import *
+from mtv_filminfo import FilmInfo
 from mtv_msg      import Msg as Msg
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
