@@ -54,16 +54,17 @@ def download_film(options, film):
 
     # Download ausführen
     options.filmDB.update_downloads(_id, "A")
-    Msg.msg("INFO", "Start Download (%s) %s" % (size, film.titel[0:50]))
+    logger = Msg()
+    logger.msg("INFO", "Start Download (%s) %s" % (size, film.titel[0:50]))
     if isM3U:
-        Msg.msg("DEBUG", "Kommando: %s" % cmd)
+        logger.msg("DEBUG", "Kommando: %s" % cmd)
         p = subprocess.Popen(cmd, shell=True, stdout=DEVNULL, stderr=STDOUT)
     else:
-        Msg.msg("DEBUG", "Kommando: %r" % shlex.split(cmd))
+        logger.msg("DEBUG", "Kommando: %r" % shlex.split(cmd))
         p = subprocess.Popen(shlex.split(cmd), stdout=DEVNULL, stderr=STDOUT)
     p.wait()
     rc = p.returncode
-    Msg.msg(
+    logger.msg(
         "INFO",
         "Ende  Download (%s) %s (Return-Code: %d)" % (size, film.titel[0:50], rc),
     )
@@ -83,8 +84,9 @@ def download_filme(options, status="'V','F','A'"):
     # Filme lesen
     filme = options.filmDB.read_downloads(ui=False, status=status)
 
+    logger = Msg()
     if not filme:
-        Msg.msg("INFO", "Keine vorgemerkten Filme vorhanden")
+        logger.msg("INFO", "Keine vorgemerkten Filme vorhanden")
         return
 
     if options.config["NUM_DOWNLOADS"] == 1:

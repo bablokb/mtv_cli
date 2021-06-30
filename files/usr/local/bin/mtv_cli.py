@@ -66,6 +66,7 @@ def get_lzma_fp(url_fp):
 
 def split_content(fpin, filmDB):
     """Inhalt aufteilen"""
+    logger = Msg()
 
     have_header = False
     last_rec = ""
@@ -82,7 +83,7 @@ def split_content(fpin, filmDB):
         buffer = fpin.read(BUFSIZE)
         buf_count = buf_count + 1
         if not buf_count % 100:
-            Msg.msg("INFO", ".", False)
+            logger.msg("INFO", ".", False)
 
         # Verarbeitung Dateiende (verbliebenen Satz schreiben)
         if len(buffer) == 0:
@@ -93,13 +94,13 @@ def split_content(fpin, filmDB):
 
         # Sätze aufspalten
         records = regex.split(last_rec + str(buffer))
-        Msg.msg("DEBUG", "Anzahl Sätze: %d" % len(records))
+        logger.msg("DEBUG", "Anzahl Sätze: %d" % len(records))
 
         # Sätze ausgeben. Der letzte Satz ist entweder leer,
         # oder er ist eigentlich ein Satzanfang und wird aufgehoben
         last_rec = records[-1]
         for record in records[0:-1]:
-            Msg.msg("TRACE", record)
+            logger.msg("TRACE", record)
             if not have_header:
                 have_header = True
                 continue
@@ -110,10 +111,10 @@ def split_content(fpin, filmDB):
     filmDB.commit()
     filmDB.save_filmtable()
 
-    Msg.msg("INFO", "\n", False)
-    Msg.msg("INFO", "Anzahl Buffer:              %d" % buf_count)
-    Msg.msg("INFO", "Anzahl Sätze (gesamt):      %d" % total)
-    Msg.msg("INFO", "Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
+    logger.msg("INFO", "\n", False)
+    logger.msg("INFO", "Anzahl Buffer:              %d" % buf_count)
+    logger.msg("INFO", "Anzahl Sätze (gesamt):      %d" % total)
+    logger.msg("INFO", "Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
 
 
 # --- Update verarbeiten   --------------------------------------------------
@@ -121,6 +122,7 @@ def split_content(fpin, filmDB):
 
 def do_update(options):
     """Update der Filmliste"""
+    logger = Msg()
 
     if options.upd_src == "auto":
         src = random.choice(URL_FILMLISTE)
@@ -130,7 +132,7 @@ def do_update(options):
     else:
         src = options.upd_src
 
-    Msg.msg("INFO", "Erzeuge %s aus %s" % (options.dbfile, src))
+    logger.msg("INFO", "Erzeuge %s aus %s" % (options.dbfile, src))
     fpin = None
     try:
         if src.startswith("http"):
@@ -139,7 +141,7 @@ def do_update(options):
             fpin = open(src, "r", encoding="utf-8")
         split_content(fpin, options.filmDB)
     except Exception as e:
-        Msg.msg("ERROR", "Update der Filmliste gescheitert. Fehler: %s" % e)
+        logger.msg("ERROR", "Update der Filmliste gescheitert. Fehler: %s" % e)
     finally:
         if fpin is not None:
             fpin.close()
@@ -237,6 +239,7 @@ def save_selected(filmDB, rows, selected, status):
 
 def do_later(options):
     """Filmliste anzeigen, Auswahl für späteren Download speichern"""
+    logger = Msg()
     rows = filme_suchen(options)
     if rows:
         if options.doBatch:
@@ -244,12 +247,12 @@ def do_later(options):
         else:
             selected = zeige_liste(rows)
         changes = save_selected(options.filmDB, rows, selected, "V")
-        Msg.msg(
+        logger.msg(
             "INFO",
             "%d von %d Filme vorgemerkt für den Download" % (changes, len(selected)),
         )
     else:
-        Msg.msg("INFO", "Keine Suchtreffer")
+        logger.msg("INFO", "Keine Suchtreffer")
 
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
@@ -257,6 +260,7 @@ def do_later(options):
 
 def do_now(options):
     """Filmliste anzeigen, sofortiger Download nach Auswahl"""
+    logger = Msg()
     rows = filme_suchen(options)
     if rows:
         if options.doBatch:
@@ -264,7 +268,7 @@ def do_now(options):
         else:
             selected = zeige_liste(rows)
         changes = save_selected(options.filmDB, rows, selected, "S")
-        Msg.msg(
+        logger.msg(
             "INFO",
             "%d von %d Filme vorgemerkt für Sofort-Download" % (changes, len(selected)),
         )
@@ -273,7 +277,7 @@ def do_now(options):
         if changes > 0:
             do_download(options)
     else:
-        Msg.msg("INFO", "Keine Suchtreffer")
+        logger.msg("INFO", "Keine Suchtreffer")
 
 
 # --- Download vorgemerkter Filme   -----------------------------------------
@@ -320,11 +324,12 @@ def do_search(options):
 
 def do_edit(options):
     """Downloadliste anzeigen und editieren"""
+    logger = Msg()
 
     # Liste lesen
     rows = options.filmDB.read_downloads()
     if not rows:
-        Msg.msg("INFO", "Keine vorgemerkten Filme vorhanden")
+        logger.msg("INFO", "Keine vorgemerkten Filme vorhanden")
         return
 
     # Liste aufbereiten
@@ -352,7 +357,7 @@ def do_edit(options):
         changes = options.filmDB.delete_downloads(deletes)
     else:
         changes = 0
-    Msg.msg("INFO", "%d vorgemerkte Filme gelöscht" % changes)
+    logger.msg("INFO", "%d vorgemerkte Filme gelöscht" % changes)
 
 
 # --- Kommandozeilenparser   ------------------------------------------------
@@ -502,23 +507,20 @@ if __name__ == "__main__":
         print("Version: %s" % VERSION)
         sys.exit(0)
 
-    # Message-Klasse konfigurieren
-    if options.level:
-        Msg.level = options.level
-    else:
-        Msg.level = config["MSG_LEVEL"]
+    # Message-Klasse initialisieren
+    logger = Msg(options.level if options.level else config["MSG_LEVEL"])
 
     # Verzeichnis HOME/.mediathek3 anlegen
     if not os.path.exists(MTV_CLI_HOME):
         os.mkdir(MTV_CLI_HOME)
 
     if not options.upd_src and not os.path.isfile(options.dbfile):
-        Msg.msg("ERROR", "Datenbank %s existiert nicht!" % options.dbfile)
+        logger.msg("ERROR", "Datenbank %s existiert nicht!" % options.dbfile)
         sys.exit(3)
 
     # Lock anfordern
     if not get_lock(options.dbfile):
-        Msg.msg("ERROR", "Datenbank %s ist gesperrt" % options.dbfile)
+        logger.msg("ERROR", "Datenbank %s ist gesperrt" % options.dbfile)
         sys.exit(3)
 
     # Globale Objekte anlegen

@@ -82,6 +82,7 @@ def main_page():
 @route("/status")
 def status():
     result = {"_akt": "00.00.0000", "_anzahl": "0"}
+    logger = Msg()
     try:
         rows = options.filmDB.read_status(["_akt", "_anzahl"])
         for row in rows:
@@ -94,7 +95,7 @@ def status():
                 result[key] = text
     except:
         pass
-    Msg.msg("DEBUG", "Status: " + str(result))
+    logger.msg("DEBUG", "Status: " + str(result))
     bottle.response.content_type = "application/json"
     return json.dumps(result)
 
@@ -105,6 +106,7 @@ def status():
 @route("/suche", method="POST")
 def suche():
     # Auslesen Request-Parameter
+    logger = Msg()
     such_args = []
     token = bottle.request.forms.getunicode("global")
     if token:
@@ -113,7 +115,7 @@ def suche():
         token = bottle.request.forms.getunicode(arg)
         if token:
             such_args.append(arg + ":" + token)
-    Msg.msg("DEBUG", "Suchbegriffe: " + str(such_args))
+    logger.msg("DEBUG", "Suchbegriffe: " + str(such_args))
 
     # Film-DB abfragen
     statement = options.filmDB.get_query(such_args)
@@ -128,7 +130,7 @@ def suche():
             item[key] = row[key]
         result.append(item)
 
-    Msg.msg("DEBUG", "Anzahl Treffer: %d" % len(result))
+    logger.msg("DEBUG", "Anzahl Treffer: %d" % len(result))
     bottle.response.content_type = "application/json"
     return json.dumps(result)
 
@@ -140,8 +142,9 @@ def suche():
 def downloads():
     # Film-DB abfragen
     rows = options.filmDB.read_downloads()
+    logger = Msg()
     if not rows:
-        Msg.msg("DEBUG", "Keine vorgemerkten Filme vorhanden")
+        logger.msg("DEBUG", "Keine vorgemerkten Filme vorhanden")
         return "{}"
 
     # Liste aufbereiten
@@ -154,7 +157,7 @@ def downloads():
             item[key] = row[key]
         result.append(item)
 
-    Msg.msg("DEBUG", "Anzahl Einträge in Downloadliste: %d" % len(result))
+    logger.msg("DEBUG", "Anzahl Einträge in Downloadliste: %d" % len(result))
     bottle.response.content_type = "application/json"
     return json.dumps(result)
 
@@ -164,10 +167,11 @@ def downloads():
 
 @route("/dateien", method="POST")
 def dateien():
+    logger = Msg()
     # Film-DB abfragen
     rows = options.filmDB.read_recs()
     if not rows:
-        Msg.msg("DEBUG", "Keine Dateien gefunden")
+        logger.msg("DEBUG", "Keine Dateien gefunden")
         return "{[]}"
 
     # Liste aufbereiten
@@ -176,7 +180,7 @@ def dateien():
     for row in rows:
         dateiname = row["DATEINAME"]
         if not os.path.exists(dateiname):
-            Msg.msg("WARN", "Datei %s existiert nicht" % dateiname)
+            logger.msg("WARN", "Datei %s existiert nicht" % dateiname)
             deleted.append((dateiname,))
             continue
 
@@ -190,11 +194,11 @@ def dateien():
 
     # Löschen nicht mehr vorhandener Dateien
     if deleted:
-        Msg.msg("DEBUG", "Lösche %d Einträge in Aufnahmelisteliste" % len(deleted))
+        logger.msg("DEBUG", "Lösche %d Einträge in Aufnahmelisteliste" % len(deleted))
         options.filmDB.delete_recs(deleted)
 
     # Ergebnis ausliefern
-    Msg.msg("DEBUG", "Anzahl Einträge in Dateilisteliste: %d" % len(result))
+    logger.msg("DEBUG", "Anzahl Einträge in Dateilisteliste: %d" % len(result))
     bottle.response.content_type = "application/json"
     return json.dumps(result)
 
@@ -205,10 +209,11 @@ def dateien():
 @route("/del_datei", method="POST")
 def del_datei():
     """Datei löschen"""
+    logger = Msg()
 
     # get name-parameter
     dateiname = bottle.request.forms.getunicode("name")
-    Msg.msg("DEBUG", "Löschanforderung (Dateiname: %s)" % dateiname)
+    logger.msg("DEBUG", "Löschanforderung (Dateiname: %s)" % dateiname)
 
     bottle.response.content_type = "application/json"
 
@@ -220,7 +225,7 @@ def del_datei():
     # Datei in der Aufname-DB suchen und dann löschen
     rows = options.filmDB.read_recs(dateiname)
     if not rows:
-        Msg.msg("WARN", "Dateiname %s nicht in Film-DB" % dateiname)
+        logger.msg("WARN", "Dateiname %s nicht in Film-DB" % dateiname)
         msg = '"Ungültiger Dateiname"'
         bottle.response.status = 400  # bad request
     elif os.path.exists(dateiname):
@@ -228,11 +233,11 @@ def del_datei():
         options.filmDB.delete_recs([(dateiname,)])
         msg = '"Datei erfolgreich gelöscht"'
         bottle.response.status = 200  # OK
-        Msg.msg("INFO", "Dateiname %s gelöscht" % dateiname)
+        logger.msg("INFO", "Dateiname %s gelöscht" % dateiname)
     else:
         msg = '"Datei existiert nicht"'
         bottle.response.status = 400  # bad request
-        Msg.msg("WARN", "Dateiname %s existiert nicht" % dateiname)
+        logger.msg("WARN", "Dateiname %s existiert nicht" % dateiname)
 
     return '{"msg": ' + msg + "}"
 
@@ -244,9 +249,10 @@ def del_datei():
 def get_datei():
     """Datei herunterladen"""
 
+    logger = Msg()
     # get name-parameter
     dateiname = bottle.request.query.getunicode("name")
-    Msg.msg("DEBUG", "Downloadanforderung (Dateiname: %s)" % dateiname)
+    logger.msg("DEBUG", "Downloadanforderung (Dateiname: %s)" % dateiname)
 
     bottle.response.content_type = "application/json"
 
@@ -258,7 +264,7 @@ def get_datei():
     # Überprüfen, ob Dateiname in Film-DB existiert
     rows = options.filmDB.read_recs(dateiname)
     if not rows:
-        Msg.msg("WARN", "Dateiname %s nicht in Film-DB" % dateiname)
+        logger.msg("WARN", "Dateiname %s nicht in Film-DB" % dateiname)
         msg = '"Ungültiger Dateiname"'
         bottle.response.status = 400  # bad request
         return '{"msg": ' + msg + "}"
@@ -280,20 +286,21 @@ def get_datei():
 
 @route("/vormerken", method="POST")
 def vormerken():
+    logger = Msg()
     # Auslesen Request-Parameter
     ids = bottle.request.forms.get("ids").split(" ")
     dates = bottle.request.forms.get("dates").split(" ")
-    Msg.msg("DEBUG", "IDs: " + str(ids))
-    Msg.msg("DEBUG", "Datum: " + str(dates))
+    logger.msg("DEBUG", "IDs: " + str(ids))
+    logger.msg("DEBUG", "Datum: " + str(dates))
 
     inserts = []
     i = 0
     for id in ids:
         inserts.append((id, dates[i], "V"))
         i += 1
-    Msg.msg("DEBUG", "inserts: " + str(inserts))
+    logger.msg("DEBUG", "inserts: " + str(inserts))
     changes = options.filmDB.save_downloads(inserts)
-    Msg.msg("DEBUG", "changes: " + str(changes))
+    logger.msg("DEBUG", "changes: " + str(changes))
 
     bottle.response.content_type = "application/json"
     msg = '"%d von %d Filme vorgemerkt für den Download"' % (changes, len(ids))
@@ -327,16 +334,17 @@ def download():
 
 @route("/loeschen", method="POST")
 def loeschen():
+    logger = Msg()
     # Auslesen Request-Parameter
     ids = bottle.request.forms.get("ids").split(" ")
-    Msg.msg("DEBUG", "IDs: " + str(ids))
+    logger.msg("DEBUG", "IDs: " + str(ids))
 
     if len(ids):
         # delete_downloads braucht Array von Tuplen
         changes = options.filmDB.delete_downloads([(id,) for id in ids])
     else:
         changes = 0
-    Msg.msg("INFO", "%d vorgemerkte Filme gelöscht" % changes)
+    logger.msg("INFO", "%d vorgemerkte Filme gelöscht" % changes)
 
     bottle.response.content_type = "application/json"
     msg = '"%d vorgemerkte Filme gelöscht"' % changes
@@ -398,10 +406,7 @@ if __name__ == "__main__":
     options = opt_parser.parse_args(namespace=Options)
 
     # Message-Klasse konfigurieren
-    if options.level:
-        Msg.level = options.level
-    else:
-        Msg.level = config["MSG_LEVEL"]
+    logger = Msg(options.level if options.level else config["MSG_LEVEL"])
 
     # Verzeichnis HOME/.mediathek3 anlegen
     if not os.path.exists(MTV_CLI_HOME):
@@ -414,9 +419,9 @@ if __name__ == "__main__":
 
     # Server starten
     WEB_ROOT = get_webroot(__file__)
-    Msg.msg("DEBUG", "Web-Root Verzeichnis: %s" % WEB_ROOT)
-    if Msg.level == "DEBUG":
-        Msg.msg("DEBUG", "Starte den Webserver im Debug-Modus")
+    logger.msg("DEBUG", "Web-Root Verzeichnis: %s" % WEB_ROOT)
+    if logger.level == "DEBUG":
+        logger.msg("DEBUG", "Starte den Webserver im Debug-Modus")
         bottle.run(host="localhost", port=config["PORT"], debug=True, reloader=True)
     else:
         bottle.run(
