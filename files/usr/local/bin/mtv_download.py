@@ -52,7 +52,7 @@ def download_film(options,film):
   # Zielverzeichnis erstellen
   ziel_dir = os.path.dirname(ziel)
   if not os.path.exists(ziel_dir):
-    os.mkdirs(ziel_dir)
+    os.mkdir(ziel_dir)
 
   # Download ausführen
   options.filmDB.update_downloads(_id,'A')
