@@ -12,23 +12,22 @@
 #
 # ---------------------------------------------------------------------------
 
-# --- System-Imports   ------------------------------------------------------
 
-import os, json, subprocess
+import configparser
+import json
+import os
+import subprocess
 from argparse import ArgumentParser
 from multiprocessing import Process
-import configparser
 
 import bottle
 from bottle import route
-
-# --- eigene Imports   ------------------------------------------------------
-
-import mtv_cli
 from mtv_const import FILME_SQLITE, MTV_CLI_HOME
+from mtv_download import download_filme
 from mtv_filmdb import FilmDB as FilmDB
 from mtv_msg import Msg as Msg
-from mtv_download import download_filme
+
+import mtv_cli
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 

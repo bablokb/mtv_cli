@@ -12,7 +12,8 @@
 #
 # --------------------------------------------------------------------------
 
-import datetime, sys
+import datetime
+import sys
 
 
 class Msg(object):

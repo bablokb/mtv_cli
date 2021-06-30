@@ -10,17 +10,17 @@
 #
 # --------------------------------------------------------------------------
 
-# --- System-Imports   -----------------------------------------------------
 
-from argparse import ArgumentParser
-import sys, os, re, lzma, random, fcntl
-import urllib.request as request
-import ssl
 import configparser
-
-from pick import pick
-
-# --- eigene Imports   ------------------------------------------------------
+import fcntl
+import lzma
+import os
+import random
+import re
+import ssl
+import sys
+import urllib.request as request
+from argparse import ArgumentParser
 
 from mtv_const import (
     BUFSIZE,
@@ -36,6 +36,7 @@ from mtv_const import (
 from mtv_download import download_filme
 from mtv_filmdb import FilmDB as FilmDB
 from mtv_msg import Msg as Msg
+from pick import pick
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 

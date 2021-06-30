@@ -12,15 +12,12 @@
 #
 # --------------------------------------------------------------------------
 
-# --- System-Imports   -----------------------------------------------------
 
 import os
-import subprocess
 import shlex
-from subprocess import DEVNULL, STDOUT
+import subprocess
 from multiprocessing.pool import ThreadPool
-
-# --- eigene Imports   ------------------------------------------------------
+from subprocess import DEVNULL, STDOUT
 
 from mtv_msg import Msg as Msg
 

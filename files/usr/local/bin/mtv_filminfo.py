@@ -12,7 +12,8 @@
 #
 # --------------------------------------------------------------------------
 
-import datetime, hashlib
+import datetime
+import hashlib
 
 
 class FilmInfo(object):

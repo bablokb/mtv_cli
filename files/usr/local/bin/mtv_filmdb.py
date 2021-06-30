@@ -12,7 +12,9 @@
 #
 # --------------------------------------------------------------------------
 
-import sqlite3, json, datetime
+import datetime
+import json
+import sqlite3
 from multiprocessing import Lock
 
 from mtv_filminfo import FilmInfo
