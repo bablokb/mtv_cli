@@ -155,11 +155,11 @@ def get_suche():
 
   # Ergebnis extrahieren
   if len(suche_opts[1]) > len('Global []'):
-    return [re.split("\[|\]",suche_opts[1])[1]]
+    return [re.split(r"\[|\]",suche_opts[1])[1]]
   else:
     result = []
     for opt in suche_opts[2:]:
-      token  = re.split("\[|\]",opt)
+      token  = re.split(r"\[|\]",opt)
       if len(token[1]) > 0:
         result.append(token[0].strip()+":"+token[1])
     return result
