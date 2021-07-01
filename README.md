@@ -18,6 +18,11 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
+### Version 7 / xx.07.21 ###
+
+  - Codebereinigungen und Fixe (implementiert von MaxG87)
+  - Anpassungen Verteilerliste (implementiert von MaxG87)
+
 ### Version 6 / 30.03.20 ###
 
   - Support für Docker (implementiert von Skyr)
