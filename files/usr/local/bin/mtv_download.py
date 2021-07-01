@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
-# Methoden rund um den Downlaod
+# Methoden rund um den Download
 #
 # Author: Bernhard Bablok
 # License: GPL3
@@ -14,7 +14,7 @@
 
 # --- System-Imports   -----------------------------------------------------
 
-import multiprocessing, os
+import os
 import subprocess
 import shlex
 from subprocess import DEVNULL,STDOUT
@@ -22,8 +22,6 @@ from multiprocessing.pool import ThreadPool
 
 # --- eigene Imports   ------------------------------------------------------
 
-from mtv_const  import *
-from mtv_filmdb import FilmDB as FilmDB
 from mtv_msg    import Msg as Msg
 
 # --- Download eines Films   -----------------------------------------------
@@ -54,7 +52,7 @@ def download_film(options,film):
   # Zielverzeichnis erstellen
   ziel_dir = os.path.dirname(ziel)
   if not os.path.exists(ziel_dir):
-    os.mkdirs(ziel_dir)
+    os.mkdir(ziel_dir)
 
   # Download ausführen
   options.filmDB.update_downloads(_id,'A')
@@ -93,7 +91,6 @@ def download_filme(options,status="'V','F','A'"):
       download_film(options,film)
   else:
     with ThreadPool(options.config["NUM_DOWNLOADS"]) as pool:
-      results = []
       for film in filme:
         pool.apply_async(download_film,(options,film))
       pool.close()

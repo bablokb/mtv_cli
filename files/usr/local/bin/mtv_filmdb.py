@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
-# Class FilmDB, MtvDB: Alles rund im Datenbanken
+# Class FilmDB, MtvDB: Alles rund um Datenbanken
 #
 # Author: Bernhard Bablok
 # License: GPL3
@@ -12,11 +12,10 @@
 #
 # --------------------------------------------------------------------------
 
-import os, sqlite3, json
+import sqlite3, json, datetime
 from multiprocessing import Lock
 
-from mtv_const    import *
-from mtv_filminfo import *
+from mtv_filminfo import FilmInfo
 from mtv_msg      import Msg as Msg
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
@@ -25,7 +24,7 @@ class FilmDB(object):
   """Datenbank aller Filme"""
 
   # ------------------------------------------------------------------------
-  
+
   def __init__(self,options):
     """Constructor"""
     self.config = options.config
@@ -136,19 +135,19 @@ class FilmDB(object):
     if film_info:
       self.total += 1
       self.cursor.execute(INSERT_STMT,film_info.asTuple())
-  
+
   # ------------------------------------------------------------------------
 
   def commit(self):
     """Commit durchführen"""
     self.db.commit()
-    
+
   # ------------------------------------------------------------------------
 
   def get_count(self):
     """Anzahl der schon eingefügten Sätze zurückgeben"""
     return self.total
-  
+
   # ------------------------------------------------------------------------
 
   def save_filmtable(self):
@@ -170,7 +169,7 @@ class FilmDB(object):
            parts[2] + "-" + parts[1] + "-" + parts[0]
 
   # ------------------------------------------------------------------------
-  
+
   def get_query(self,suche):
     """Aus Suchbegriff eine SQL-Query erzeugen"""
     #Basisausdruck
@@ -236,7 +235,7 @@ class FilmDB(object):
     return select_clause + where_clause
 
   # ------------------------------------------------------------------------
-  
+
   def execute_query(self,statement):
     """Suche ausführen"""
     cursor = self.open()

@@ -13,7 +13,7 @@
 # --- System-Imports   -----------------------------------------------------
 
 from argparse import ArgumentParser
-import sys, os, re, lzma, datetime, random, fcntl
+import sys, os, re, lzma, random, fcntl
 import urllib.request as request
 import ssl
 import configparser
@@ -22,8 +22,18 @@ from pick import pick
 
 # --- eigene Imports   ------------------------------------------------------
 
-from mtv_const    import *
-from mtv_download import *
+from mtv_const    import (
+    BUFSIZE,
+    DLL_FORMAT,
+    DLL_TITEL,
+    FILME_SQLITE,
+    MTV_CLI_HOME,
+    SEL_FORMAT,
+    SEL_TITEL,
+    URL_FILMLISTE,
+    VERSION,
+)
+from mtv_download import download_filme
 from mtv_filmdb   import FilmDB as FilmDB
 from mtv_msg      import Msg as Msg
 
@@ -41,14 +51,14 @@ def get_url_fp(url):
 # --- Stream des LZMA-Entpackers   ------------------------------------------
 
 def get_lzma_fp(url_fp):
-  """ Fileponter des LZMA-Entpackers. Argument ist der FP der URL"""
+  """ Filepointer des LZMA-Entpackers. Argument ist der FP der URL"""
   return lzma.open(url_fp,"rt",encoding='utf-8')
 
 # --- Split der Datei   -----------------------------------------------------
 
 def split_content(fpin,filmDB):
   """Inhalt aufteilen"""
-  
+
   have_header=False
   last_rec = ""
 
@@ -77,7 +87,7 @@ def split_content(fpin,filmDB):
     records = regex.split(last_rec+str(buffer))
     Msg.msg("DEBUG","Anzahl Sätze: %d" % len(records))
 
-    # Sätze ausgeben. Der letzte Satz ist entweder leer, 
+    # Sätze ausgeben. Der letzte Satz ist entweder leer,
     # oder er ist eigentlich ein Satzanfang und wird aufgehoben
     last_rec = records[-1]
     for record in records[0:-1]:
@@ -97,7 +107,7 @@ def split_content(fpin,filmDB):
   Msg.msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
   Msg.msg("INFO","Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
 
-    
+
 # --- Update verarbeiten   --------------------------------------------------
 
 def do_update(options):
@@ -122,7 +132,7 @@ def do_update(options):
   except Exception as e:
     Msg.msg("ERROR","Update der Filmliste gescheitert. Fehler: %s" % e)
   finally:
-    if fpin:
+    if fpin is not None:
       fpin.close()
 
 # --- Interaktiv Suchbegriffe festlegen   -----------------------------------
@@ -131,7 +141,6 @@ def get_suche():
   suche_titel = "Auswahl Suchdetails"
   suche_opts  = ['Weiter','Global []', 'Sender []','Datum []','Thema []',
                  'Titel []', 'Beschreibung []']
-  suche_werte = {}
   while True:
     # suche_opts anzeigen
     # mit readline Suchebegriff abfragen, speichern in suche_wert
@@ -146,11 +155,11 @@ def get_suche():
 
   # Ergebnis extrahieren
   if len(suche_opts[1]) > len('Global []'):
-    return [re.split("\[|\]",suche_opts[1])[1]]
+    return [re.split(r"\[|\]",suche_opts[1])[1]]
   else:
     result = []
     for opt in suche_opts[2:]:
-      token  = re.split("\[|\]",opt)
+      token  = re.split(r"\[|\]",opt)
       if len(token[1]) > 0:
         result.append(token[0].strip()+":"+token[1])
     return result
@@ -195,7 +204,7 @@ def save_selected(filmDB,rows,selected,status):
     row = rows[sel_index]
     inserts.append((row['_ID'],row['DATUM'],status))
   return filmDB.save_downloads(inserts)
-  
+
 # --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
 
 def do_later(options):
@@ -224,7 +233,7 @@ def do_now(options):
     changes = save_selected(options.filmDB,rows,selected,"S")
     Msg.msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
 
-    # Anstoß Downlaod
+    # Anstoß Download
     if changes > 0:
       do_download(options)
   else:
@@ -321,7 +330,7 @@ def get_parser():
   parser.add_argument('-E', '--edit', action='store_true',
     dest='doEdit',
     help='Downloadliste bearbeiten')
-  
+
   parser.add_argument('-D', '--download', action='store_true',
     dest='doDownload',
     help='Vorgemerkte Filme herunterladen')
