@@ -274,8 +274,8 @@ class FilmDB:
 
     # Aktuelles Datum an Werte anfügen
     today = datetime.date.today()
-    for i in range(len(rows)):
-      rows[i] = rows[i] + (today,)
+    for val_list in rows:
+      val_list.append(today)
 
     # Tabelle bei Bedarf erstellen
     cursor = self.open()
