@@ -448,16 +448,14 @@ class FilmDB:
 
     # ohne Lock, da Insert mit neuem Schlüssel
     try:
-      self.lock.acquire()
-      Msg.msg("DEBUG","SQL-Insert: %s" % INSERT_STMT)
-      cursor.execute(INSERT_STMT,
-                     tuple(row[i] for i in range(len(row))) +
-                                   (Dateiname,datetime.date.today()))
-      self.commit()
+      with self.lock:
+        Msg.msg("DEBUG","SQL-Insert: %s" % INSERT_STMT)
+        cursor.execute(INSERT_STMT,
+                       tuple(row[i] for i in range(len(row))) +
+                                     (Dateiname,datetime.date.today()))
+        self.commit()
     except sqlite3.OperationalError as e:
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
-    finally:
-      self.lock.release()
     self.close()
 
   # ------------------------------------------------------------------------
