@@ -435,11 +435,11 @@ class FilmDB:
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
       row = None
 
-    for r in row:
-      Msg.msg("INFO","row: %r" % r)
     if not row:
       self.close()
       return
+    for r in row:
+      Msg.msg("INFO","row: %r" % r)
 
     # Tabelle bei Bedarf erstellen
     Msg.msg("DEBUG","SQL-Create: %s" % CREATE_STMT)
