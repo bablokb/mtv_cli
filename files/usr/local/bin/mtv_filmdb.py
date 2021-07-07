@@ -273,8 +273,9 @@ class FilmDB:
     INSERT_STMT = """INSERT OR IGNORE INTO downloads Values (?,?,?,?)"""
 
     # Aktuelles Datum an Werte anfügen
+    today = datetime.date.today()
     for i in range(len(rows)):
-      rows[i] = rows[i] +(datetime.date.today(),)
+      rows[i] = rows[i] + (today,)
 
     # Tabelle bei Bedarf erstellen
     cursor = self.open()
