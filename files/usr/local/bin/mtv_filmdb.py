@@ -379,16 +379,13 @@ class FilmDB:
     now = datetime.datetime.now()
 
     # Tabelle bei Bedarf erstellen
-    try:
-      self.lock.acquire()
+    with self.lock:
       cursor = self.open()
       cursor.execute(CREATE_STMT)
       self.commit()
       cursor.execute(INSERT_STMT,(key,now,text))
       self.commit()
       self.close()
-    finally:
-      self.lock.release()
 
   # ------------------------------------------------------------------------
 
