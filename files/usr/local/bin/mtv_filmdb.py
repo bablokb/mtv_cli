@@ -450,9 +450,9 @@ class FilmDB:
     try:
       with self.lock:
         Msg.msg("DEBUG","SQL-Insert: %s" % INSERT_STMT)
-        cursor.execute(INSERT_STMT,
-                       tuple(row[i] for i in range(len(row))) +
-                                     (Dateiname,datetime.date.today()))
+        cursor.execute(
+          INSERT_STMT, tuple(row) + (Dateiname,datetime.date.today())
+        )
         self.commit()
     except sqlite3.OperationalError as e:
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
