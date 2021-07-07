@@ -101,29 +101,29 @@ class FilmDB:
 
     try:
       liste = json.loads(record)
-      if self.last_liste:
-        # ersetzen leerer Werte durch Werte aus dem Satz davor (Sender, Thema)
-        for i in range(2):
-          if not liste[i]:
-            liste[i] = self.last_liste[i]
-
-      # Liste für nächsten Durchgang speichern
-      self.last_liste = liste
-
-      if liste[3]:
-        film_info = FilmInfo(*liste)
-      else:
-        # Filme ohne Datum aussortieren (Livestreams)
-        return None
-
-      # Sätze per blacklist aussortieren (def in mtv_cfg)
-      if self.blacklist(film_info):
-        return None
-      else:
-        return film_info
-    except:
-      print(record)
+    except json.JSONDecodeError:
+      Msg.msg("ERROR", "JSONDecodeError beim parsen von %s" % (record,))
       raise
+    if self.last_liste:
+      # ersetzen leerer Werte durch Werte aus dem Satz davor (Sender, Thema)
+      for i in range(2):
+        if not liste[i]:
+          liste[i] = self.last_liste[i]
+
+    # Liste für nächsten Durchgang speichern
+    self.last_liste = liste
+
+    if liste[3]:
+      film_info = FilmInfo(*liste)
+    else:
+      # Filme ohne Datum aussortieren (Livestreams)
+      return None
+
+    # Sätze per blacklist aussortieren (def in mtv_cfg)
+    if self.blacklist(film_info):
+      return None
+    else:
+      return film_info
 
   # ------------------------------------------------------------------------
 
