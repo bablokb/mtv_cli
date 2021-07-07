@@ -282,7 +282,7 @@ class FilmDB:
     self.commit()
 
     # Ein Lock ist hier nicht nötig, da Downloads bei -V immer in
-    # einem eigene Aufruf von mtv_cli stattfinden und bei -S immer
+    # einem eigenen Aufruf von mtv_cli stattfinden und bei -S immer
     # nach save_downloads
 
     cursor.executemany(INSERT_STMT,rows)
