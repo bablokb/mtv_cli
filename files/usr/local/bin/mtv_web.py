@@ -32,7 +32,7 @@ from mtv_download import download_filme
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
-class Options(object):
+class Options:
   pass
 
 # --- Webroot dynamisch bestimmen   -----------------------------------------

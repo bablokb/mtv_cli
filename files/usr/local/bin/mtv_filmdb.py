@@ -20,7 +20,7 @@ from mtv_msg      import Msg as Msg
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
 
-class FilmDB(object):
+class FilmDB:
   """Datenbank aller Filme"""
 
   # ------------------------------------------------------------------------
@@ -101,29 +101,29 @@ class FilmDB(object):
 
     try:
       liste = json.loads(record)
-      if self.last_liste:
-        # ersetzen leerer Werte durch Werte aus dem Satz davor (Sender, Thema)
-        for i in range(2):
-          if not liste[i]:
-            liste[i] = self.last_liste[i]
-
-      # Liste für nächsten Durchgang speichern
-      self.last_liste = liste
-
-      if liste[3]:
-        film_info = FilmInfo(*liste)
-      else:
-        # Filme ohne Datum aussortieren (Livestreams)
-        return None
-
-      # Sätze per blacklist aussortieren (def in mtv_cfg)
-      if self.blacklist(film_info):
-        return None
-      else:
-        return film_info
-    except:
-      print(record)
+    except json.JSONDecodeError:
+      Msg.msg("ERROR", "JSONDecodeError beim parsen von %s" % (record,))
       raise
+    if self.last_liste:
+      # ersetzen leerer Werte durch Werte aus dem Satz davor (Sender, Thema)
+      for i in range(2):
+        if not liste[i]:
+          liste[i] = self.last_liste[i]
+
+    # Liste für nächsten Durchgang speichern
+    self.last_liste = liste
+
+    if liste[3]:
+      film_info = FilmInfo(*liste)
+    else:
+      # Filme ohne Datum aussortieren (Livestreams)
+      return None
+
+    # Sätze per blacklist aussortieren (def in mtv_cfg)
+    if self.blacklist(film_info):
+      return None
+    else:
+      return film_info
 
   # ------------------------------------------------------------------------
 
@@ -273,8 +273,9 @@ class FilmDB(object):
     INSERT_STMT = """INSERT OR IGNORE INTO downloads Values (?,?,?,?)"""
 
     # Aktuelles Datum an Werte anfügen
-    for i in range(len(rows)):
-      rows[i] = rows[i] +(datetime.date.today(),)
+    today = datetime.date.today()
+    for val_list in rows:
+      val_list.append(today)
 
     # Tabelle bei Bedarf erstellen
     cursor = self.open()
@@ -282,7 +283,7 @@ class FilmDB(object):
     self.commit()
 
     # Ein Lock ist hier nicht nötig, da Downloads bei -V immer in
-    # einem eigene Aufruf von mtv_cli stattfinden und bei -S immer
+    # einem eigenen Aufruf von mtv_cli stattfinden und bei -S immer
     # nach save_downloads
 
     cursor.executemany(INSERT_STMT,rows)
@@ -314,14 +315,11 @@ class FilmDB(object):
   def update_downloads(self,_id,status):
     """Status eines Satzes ändern"""
     UPD_STMT = "UPDATE downloads SET status=?,DatumStatus=? where _id=?"
-    try:
-      self.lock.acquire()
+    with self.lock:
       cursor = self.open()
       cursor.execute(UPD_STMT,(status,datetime.date.today(),_id))
       self.commit()
       self.close()
-    finally:
-      self.lock.release()
 
   # ------------------------------------------------------------------------
 
@@ -382,16 +380,13 @@ class FilmDB(object):
     now = datetime.datetime.now()
 
     # Tabelle bei Bedarf erstellen
-    try:
-      self.lock.acquire()
+    with self.lock:
       cursor = self.open()
       cursor.execute(CREATE_STMT)
       self.commit()
       cursor.execute(INSERT_STMT,(key,now,text))
       self.commit()
       self.close()
-    finally:
-      self.lock.release()
 
   # ------------------------------------------------------------------------
 
@@ -401,17 +396,14 @@ class FilmDB(object):
     SEL_STMT = "SELECT * FROM status WHERE key in %s" % str(tuple(keys))
     rows = None
     try:
-      self.lock.acquire()
-      cursor = self.open()
-      cursor.execute(SEL_STMT)
-      rows = cursor.fetchall()
-      self.close()
+      with self.lock():
+        cursor = self.open()
+        cursor.execute(SEL_STMT)
+        rows = cursor.fetchall()
+        self.close()
     except sqlite3.OperationalError as e:
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
-      rows = None
-    finally:
-      self.lock.release()
-      return rows
+    return rows
 
   # ------------------------------------------------------------------------
 
@@ -444,11 +436,11 @@ class FilmDB(object):
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
       row = None
 
-    for r in row:
-      Msg.msg("INFO","row: %r" % r)
     if not row:
       self.close()
       return
+    for r in row:
+      Msg.msg("INFO","row: %r" % r)
 
     # Tabelle bei Bedarf erstellen
     Msg.msg("DEBUG","SQL-Create: %s" % CREATE_STMT)
@@ -457,16 +449,14 @@ class FilmDB(object):
 
     # ohne Lock, da Insert mit neuem Schlüssel
     try:
-      self.lock.acquire()
-      Msg.msg("DEBUG","SQL-Insert: %s" % INSERT_STMT)
-      cursor.execute(INSERT_STMT,
-                     tuple(row[i] for i in range(len(row))) +
-                                   (Dateiname,datetime.date.today()))
-      self.commit()
+      with self.lock:
+        Msg.msg("DEBUG","SQL-Insert: %s" % INSERT_STMT)
+        cursor.execute(
+          INSERT_STMT, tuple(row) + (Dateiname,datetime.date.today())
+        )
+        self.commit()
     except sqlite3.OperationalError as e:
       Msg.msg("DEBUG","SQL-Fehler: %s" % e)
-    finally:
-      self.lock.release()
     self.close()
 
   # ------------------------------------------------------------------------

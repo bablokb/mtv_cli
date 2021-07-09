@@ -39,7 +39,7 @@ from mtv_msg      import Msg as Msg
 
 # --- Hilfsklasse für Optionen   --------------------------------------------
 
-class Options(object):
+class Options:
   pass
 
 # --- Stream der Filmliste   ------------------------------------------------
@@ -209,35 +209,35 @@ def save_selected(filmDB,rows,selected,status):
 
 def do_later(options):
   """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-  rows = filme_suchen(options)
-  if rows:
-    if options.doBatch:
-      selected = [('dummy',i) for i in range(len(rows))]
-    else:
-      selected = zeige_liste(rows)
-    changes = save_selected(options.filmDB,rows,selected,"V")
-    Msg.msg("INFO","%d von %d Filme vorgemerkt für den Download" % (changes,len(selected)))
-  else:
-    Msg.msg("INFO","Keine Suchtreffer")
+  _do_now_later_common_body(options, do_now=False)
 
 # --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
 def do_now(options):
   """Filmliste anzeigen, sofortiger Download nach Auswahl"""
-  rows = filme_suchen(options)
-  if rows:
-    if options.doBatch:
-      selected = [('dummy',i) for i in range(len(rows))]
-    else:
-      selected = zeige_liste(rows)
-    changes = save_selected(options.filmDB,rows,selected,"S")
-    Msg.msg("INFO","%d von %d Filme vorgemerkt für Sofort-Download" % (changes,len(selected)))
 
-    # Anstoß Download
-    if changes > 0:
-      do_download(options)
-  else:
+  num_changes = _do_now_later_common_body(options, do_now=True)
+  if num_changes > 0:
+    do_download(options)
+
+
+def _do_now_later_common_body(options, do_now):
+  save_selected_status, when_download_wording = (
+    ("S", "Sofort-") if do_now else ("V", "Download")
+  )
+  rows = filme_suchen(options)
+  if not rows:
     Msg.msg("INFO","Keine Suchtreffer")
+    return 0
+
+  if options.doBatch:
+    selected = [('dummy',i) for i in range(len(rows))]
+  else:
+    selected = zeige_liste(rows)
+  num_changes = save_selected(options.filmDB,rows,selected,save_selected_status)
+  Msg.msg("INFO","%d von %d Filme vorgemerkt für %sDownload" % (num_changes,len(selected),when_download_wording))
+  return num_changes
+
 
 # --- Download vorgemerkter Filme   -----------------------------------------
 
