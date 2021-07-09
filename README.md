@@ -18,7 +18,7 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
-### Version 7 / xx.07.21 ###
+### Version 7 / 09.07.21 ###
 
   - Codebereinigungen und Fixe (implementiert von MaxG87)
   - Anpassungen Verteilerliste (implementiert von MaxG87)
