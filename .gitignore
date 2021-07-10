@@ -2,3 +2,8 @@ work
 .gitignore
 TODO
 *.pyc
+debian/mtvclient
+debian/files
+debian/*debhelper*
+debian/*.substvars
+debian/*.user.service

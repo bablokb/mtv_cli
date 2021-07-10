@@ -1,0 +1,8 @@
+[Unit]
+Description=Download der Medithekview Filmliste
+After=mtvupdate.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mtvclient -D
+

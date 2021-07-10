@@ -1,0 +1,6 @@
+mtvclient: embedded-javascript-library usr/lib/mtvclient/lib/mtv_cli/web/js/jquery-min.js please use libjs-jquery
+mtvclient: script-not-executable usr/lib/mtvclient/bin/mtv_download.py
+mtvclient: script-not-executable usr/lib/mtvclient/bin/mtv_filmdb.py
+mtvclient: script-not-executable usr/lib/mtvclient/bin/mtv_filminfo.py
+mtvclient: script-not-executable usr/lib/mtvclient/bin/mtv_msg.py
+
