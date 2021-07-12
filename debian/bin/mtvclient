@@ -1,0 +1,15 @@
+#!/bin/bash
+# vim:ft=sh:ai:et:si:sts=4:sw=4
+#
+# Kunzol
+#
+
+if [[ -f "/usr/lib/mtvclient/bin/activate" ]] && [[ -x "/usr/lib/mtvclient/bin/mtv_cli.py" ]]; then
+# activate virtualenv
+    . "/usr/lib/mtvclient/bin/activate"
+# replace this process with mtv_cli.py
+    exec "/usr/lib/mtvclient/bin/mtv_cli.py" "$@"
+else
+    echo "mtv_cli.py not found in virtualenv." >&2
+    exit 1
+fi

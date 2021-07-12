@@ -1,0 +1,40 @@
+mtvclient Paket für Debian/Ubuntu
+=================================
+
+Mediathekview für die Commandline mit Python Scripts.
+
+Es wird ein Bash Script als Wrapper um das zentrale Python
+Script "mtv_cli.py" installiert.
+
+Der Service für das Starten des Web-Interface ist vorbereitet
+wird aber nicht gestarte, da dieser im User Kontext laufen soll.
+Der entsprechende User kann das Webinterface in den User Kontext
+von Systemd starten: 
+
+systemctl --user start mtvclient
+
+Um den service automatisch beim Einloggen zu starten kann dieser
+beim User installiert werden:
+
+systemctl --user enable mtvclient
+
+Dazu gibt es noch ein Timer, welcher täglich die Filmliste herunterlädt
+und die automatischen Downloads aktiviert.
+
+systemctl --user enable mtvupdate.timer
+systemctl --user start mtvupdate.timer
+
+Damit wird ein Timer installiert, welche den Service für den 
+Update (mtvupdate.service) und anschliessend den Service für
+den Download (mtvdownload.service) aktiviert.
+Diese Services können auch manuell direkt benutzt werden: 
+
+systemctl --user start mtvupdate.service
+systemctl --user start mtvdownload.service
+
+Des weiteren ist ein "mtv_sendinfo" Script in den Examples 
+zu finden: 
+/usr/share/doc/mtvclient/examples
+
+Siehe auch: 
+https://github.com/bablokb/mtv_cli/

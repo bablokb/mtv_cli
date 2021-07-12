@@ -1,0 +1,14 @@
+[Unit]
+Description=Startet den Download 
+After=mtvupdate.service
+BindsTo=mtvupdate.service
+
+[Timer]
+OnActiveSec=60sec
+AccuracySec=60sec
+Persistent=true
+Unit=mtvdownload.service
+
+[Install]
+WantedBy=mtvupdate.service
+

@@ -1,0 +1,48 @@
+Template: mtvclient/msg_level
+Type: select
+Choices: TRACE, DEBUG, INFO, WARN, ERROR
+Default: INFO
+Description: Verbositaet der Ausgabe:
+
+Template: mtvclient/date_cutoff
+Type: select
+Choices: 10, 30, 60, 90, 120
+Default: 30
+Description: Maximale Tage in Filter:
+
+Template: mtvclient/dauer_cutoff
+Type: select
+Choices: 5, 20, 30, 50, 60, 80, 90, 120
+Default: 5
+Description: Mindestlaenge des Videos in Minuten:
+
+Template: mtvclient/num_downloads
+Type: select
+Choices: 1, 2, 3, 5, 10
+Default: 2
+Description: Zahl der parallelen Downloads:
+
+Template: mtvclient/ziel_downloads
+Type: string
+Default: /data/videos/{Sender}_{Datum}_{Thema}_{Titel}.{ext}
+Description: Pfad fuer das Speichern der Downloads:
+ {Sender}_{Datum}_{Thema}_{Titel}.{ext}
+
+Template: mtvclient/qualitaet
+Type: select
+Choices: LOW, SD, HD
+Default: LOW
+Description: Qualitaetssufe des Downloads:
+
+Template: mtvclient/port
+Type: string
+Default: 8026
+Description: Port der Webanwendung:
+
+Template: mtvclient/host
+Type: select
+Choices: 0.0.0.0, 127.0.0.1
+Default: 0.0.0.0
+Description: Host fuer die Webanwendung:
+ 127.0.0.1 nur localhost
+

@@ -1,0 +1,10 @@
+# put executables in bin
+files/usr/local/bin usr/lib/mtvclient
+# libs in lib
+files/usr/local/lib/mtv_cli usr/lib/mtvclient/lib
+# config template
+files/etc/mtv_cli.conf usr/share/mtvclient/
+# systemd user files and timers
+debian/user usr/lib/systemd
+# wrapper scripts
+debian/bin usr

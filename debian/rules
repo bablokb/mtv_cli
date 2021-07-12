@@ -1,0 +1,41 @@
+#!/usr/bin/make -f
+# vim:ft=make:noet:sts=0
+#
+#
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#DH_VERBOSE = 1
+
+# see EXAMPLES in dpkg-buildflags(1) and read /usr/share/dpkg/*
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+#PKGVERSION := $(shell dpkg-parsechangelog -SVersion | cut -d+ -f1)
+PKGNAME = mtvclient
+
+%:
+	dh $@
+
+override_dh_clean:
+	@rm -f -- "debian/mtvclient.service"
+	@rm -f -- "debian/mtvclient.user.service"
+	@dh_clean
+
+override_dh_prep:
+	@sed -e "/User=pi/d" \
+	    -e "s#^ExecStart=.*#ExecStart=/usr/bin/mtvweb#" \
+	    -e "s#^WantedBy=.*#WantedBy=default.target#" \
+	    "files/etc/systemd/system/mtv_web.service" > "debian/mtvclient.user.service"
+	@dh_prep
+
+override_dh_install:
+	@dh_install -Xmtv_sendinfo
+
+override_dh_installsystemduser:
+	@dh_installsystemduser --no-enable 
+
+# UCF add "--debconf-ok" to debhelper
+override_dh_ucf:
+	@dh_ucf
+	@sed -i -e "s/\bucf\b/ucf --debconf-ok/g" "debian/$(PKGNAME).postinst.debhelper" || true
+
