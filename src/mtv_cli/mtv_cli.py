@@ -37,7 +37,7 @@ from mtv_const import (
 from mtv_download import download_filme
 from mtv_filmdb import FilmDB as FilmDB
 from mtv_msg import Msg as Msg
-from pick import pick
+from pick import pick  # type: ignore[import]
 
 # --- eigene Imports   ------------------------------------------------------
 
