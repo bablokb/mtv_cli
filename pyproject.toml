@@ -8,6 +8,7 @@ license = "GPL-3.0-only"
 [tool.poetry.dependencies]
 python = "^3.7.3"
 pick = "^1.0.0"
+loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.29.0"

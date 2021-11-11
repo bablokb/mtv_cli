@@ -22,6 +22,7 @@ import sys
 import urllib.request as request
 from argparse import ArgumentParser
 
+from loguru import logger
 from mtv_const import (
     BUFSIZE,
     DLL_FORMAT,
@@ -35,7 +36,6 @@ from mtv_const import (
 )
 from mtv_download import download_filme
 from mtv_filmdb import FilmDB as FilmDB
-from mtv_msg import Msg as Msg
 from pick import pick  # type: ignore[import]
 
 # --- eigene Imports   ------------------------------------------------------
@@ -80,12 +80,11 @@ def split_content(fpin, filmDB):
     total = 0
     buf_count = 0
     regex = re.compile(',\n? *"X" ?: ?')
+    logger.info("Entpacke Filmliste. Das kann etwas dauern.")
     while True:
         # Buffer neu lesen
         buffer = fpin.read(BUFSIZE)
         buf_count += 1
-        if not buf_count % 100:
-            Msg.msg("INFO", ".", False)
 
         # Verarbeitung Dateiende (verbliebenen Satz schreiben)
         if len(buffer) == 0:
@@ -96,13 +95,13 @@ def split_content(fpin, filmDB):
 
         # Sätze aufspalten
         records = regex.split(last_rec + str(buffer))
-        Msg.msg("DEBUG", "Anzahl Sätze: %d" % len(records))
+        logger.debug("Anzahl Sätze: %d" % len(records))
 
         # Sätze ausgeben. Der letzte Satz ist entweder leer,
         # oder er ist eigentlich ein Satzanfang und wird aufgehoben
         last_rec = records[-1]
         for record in records[0:-1]:
-            Msg.msg("TRACE", record)
+            logger.trace(record)
             if not have_header:
                 have_header = True
                 continue
@@ -113,10 +112,9 @@ def split_content(fpin, filmDB):
     filmDB.commit()
     filmDB.save_filmtable()
 
-    Msg.msg("INFO", "\n", False)
-    Msg.msg("INFO", "Anzahl Buffer:              %d" % buf_count)
-    Msg.msg("INFO", "Anzahl Sätze (gesamt):      %d" % total)
-    Msg.msg("INFO", "Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
+    logger.info("Anzahl Buffer:              %d" % buf_count)
+    logger.info("Anzahl Sätze (gesamt):      %d" % total)
+    logger.info("Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
 
 
 # --- Update verarbeiten   --------------------------------------------------
@@ -133,7 +131,7 @@ def do_update(options):
     else:
         src = options.upd_src
 
-    Msg.msg("INFO", "Erzeuge %s aus %s" % (options.dbfile, src))
+    logger.info("Erzeuge %s aus %s" % (options.dbfile, src))
     fpin = None
     try:
         if src.startswith("http"):
@@ -142,7 +140,7 @@ def do_update(options):
             fpin = open(src, "r", encoding="utf-8")
         split_content(fpin, options.filmDB)
     except Exception as e:
-        Msg.msg("ERROR", "Update der Filmliste gescheitert. Fehler: %s" % e)
+        logger.error("Update der Filmliste gescheitert. Fehler: %s" % e)
     finally:
         if fpin is not None:
             fpin.close()
@@ -260,7 +258,7 @@ def _do_now_later_common_body(options, do_now):
     )
     rows = filme_suchen(options)
     if not rows:
-        Msg.msg("INFO", "Keine Suchtreffer")
+        logger.info("Keine Suchtreffer")
         return 0
 
     if options.doBatch:
@@ -268,8 +266,7 @@ def _do_now_later_common_body(options, do_now):
     else:
         selected = zeige_liste(rows)
     num_changes = save_selected(options.filmDB, rows, selected, save_selected_status)
-    Msg.msg(
-        "INFO",
+    logger.info(
         "%d von %d Filme vorgemerkt für %sDownload"
         % (num_changes, len(selected), when_download_wording),
     )
@@ -324,7 +321,7 @@ def do_edit(options):
     # Liste lesen
     rows = options.filmDB.read_downloads()
     if not rows:
-        Msg.msg("INFO", "Keine vorgemerkten Filme vorhanden")
+        logger.info("Keine vorgemerkten Filme vorhanden")
         return
 
     # Liste aufbereiten
@@ -352,7 +349,7 @@ def do_edit(options):
         changes = options.filmDB.delete_downloads(deletes)
     else:
         changes = 0
-    Msg.msg("INFO", "%d vorgemerkte Filme gelöscht" % changes)
+    logger.info("%d vorgemerkte Filme gelöscht" % changes)
 
 
 # --- Kommandozeilenparser   ------------------------------------------------
@@ -492,8 +489,7 @@ if __name__ == "__main__":
     try:
         config = get_config(config_parser)
     except Exception as e:
-        print("Konfiguration fehlerhaft!")
-        print("Fehler: %s" % e.message)
+        logger.error(f"Konfiguration fehlerhaft! Fehler: {e}")
         sys.exit(3)
 
     opt_parser = get_parser()
@@ -502,23 +498,19 @@ if __name__ == "__main__":
         print("Version: %s" % VERSION)
         sys.exit(0)
 
-    # Message-Klasse konfigurieren
-    if options.level:
-        Msg.level = options.level
-    else:
-        Msg.level = config["MSG_LEVEL"]
+    logger.level(options.level if options.level else config["MSG_LEVEL"])
 
     # Verzeichnis HOME/.mediathek3 anlegen
     if not os.path.exists(MTV_CLI_HOME):
         os.mkdir(MTV_CLI_HOME)
 
     if not options.upd_src and not os.path.isfile(options.dbfile):
-        Msg.msg("ERROR", "Datenbank %s existiert nicht!" % options.dbfile)
+        logger.error("Datenbank %s existiert nicht!" % options.dbfile)
         sys.exit(3)
 
     # Lock anfordern
     if not get_lock(options.dbfile):
-        Msg.msg("ERROR", "Datenbank %s ist gesperrt" % options.dbfile)
+        logger.error("Datenbank %s ist gesperrt" % options.dbfile)
         sys.exit(3)
 
     # Globale Objekte anlegen

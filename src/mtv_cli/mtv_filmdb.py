@@ -15,8 +15,8 @@ import json
 import sqlite3
 from multiprocessing import Lock
 
+from loguru import logger
 from mtv_filminfo import FilmInfo
-from mtv_msg import Msg as Msg
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
 
@@ -106,7 +106,7 @@ class FilmDB:
         try:
             liste = json.loads(record)
         except json.JSONDecodeError:
-            Msg.msg("ERROR", "JSONDecodeError beim parsen von %s" % (record,))
+            logger.error("JSONDecodeError beim parsen von %s" % (record,))
             raise
         if self.last_liste:
             # ersetzen leerer Werte durch Werte aus dem Satz davor (Sender, Thema)
@@ -255,7 +255,7 @@ class FilmDB:
         # falls noch ein Operator übrig ist:
         if op:
             where_clause = where_clause + op
-        Msg.msg("DEBUG", "SQL-Where: %s" % where_clause)
+        logger.debug("SQL-Where: %s" % where_clause)
         return select_clause + where_clause
 
     # ------------------------------------------------------------------------
@@ -322,7 +322,7 @@ class FilmDB:
         """Downloads löschen"""
         DEL_STMT = "DELETE FROM downloads where _id=?"
 
-        Msg.msg("DEBUG", "rows: " + str(rows))
+        logger.debug("rows: " + str(rows))
 
         # Ein Lock ist hier nicht nötig, da Downloads immer in
         # einem eigene Aufruf von mtv_cli stattfinden
@@ -381,13 +381,13 @@ class FilmDB:
                 % status
             )
 
-        Msg.msg("DEBUG", "SQL-Query: %s" % SEL_STMT)
+        logger.debug("SQL-Query: %s" % SEL_STMT)
         cursor = self.open()
         try:
             cursor.execute(SEL_STMT)
             rows = cursor.fetchall()
         except sqlite3.OperationalError as e:
-            Msg.msg("DEBUG", "SQL-Fehler: %s" % e)
+            logger.debug("SQL-Fehler: %s" % e)
             rows = None
         self.close()
         if ui:
@@ -432,7 +432,7 @@ class FilmDB:
                 rows = cursor.fetchall()
                 self.close()
         except sqlite3.OperationalError as e:
-            Msg.msg("DEBUG", "SQL-Fehler: %s" % e)
+            logger.debug("SQL-Fehler: %s" % e)
         return rows
 
     # ------------------------------------------------------------------------
@@ -440,7 +440,7 @@ class FilmDB:
     def save_recs(self, id, Dateiname):
         """Aufnahme sichern."""
 
-        Msg.msg("INFO", "Sichere Aufnahmen: %s,%s" % (id, Dateiname))
+        logger.info("Sichere Aufnahmen: %s,%s" % (id, Dateiname))
         CREATE_STMT = """CREATE TABLE IF NOT EXISTS recordings (
                      Sender       text,
                      Titel        text,
@@ -459,34 +459,34 @@ class FilmDB:
         # ausgewählte Felder aus Film-DB lesen
         cursor = self.open()
         try:
-            Msg.msg("DEBUG", "SQL-Query: %s" % SEL_STMT)
+            logger.debug("SQL-Query: %s" % SEL_STMT)
             cursor.execute(SEL_STMT, (id,))
             row = cursor.fetchone()
         except sqlite3.OperationalError as e:
-            Msg.msg("DEBUG", "SQL-Fehler: %s" % e)
+            logger.debug("SQL-Fehler: %s" % e)
             row = None
 
         if not row:
             self.close()
             return
         for r in row:
-            Msg.msg("INFO", "row: %r" % r)
+            logger.info("row: %r" % r)
 
         # Tabelle bei Bedarf erstellen
-        Msg.msg("DEBUG", "SQL-Create: %s" % CREATE_STMT)
+        logger.debug("SQL-Create: %s" % CREATE_STMT)
         cursor.execute(CREATE_STMT)
         self.commit()
 
         # ohne Lock, da Insert mit neuem Schlüssel
         try:
             with self.lock:
-                Msg.msg("DEBUG", "SQL-Insert: %s" % INSERT_STMT)
+                logger.debug("SQL-Insert: %s" % INSERT_STMT)
                 cursor.execute(
                     INSERT_STMT, tuple(row) + (Dateiname, datetime.date.today())
                 )
                 self.commit()
         except sqlite3.OperationalError as e:
-            Msg.msg("DEBUG", "SQL-Fehler: %s" % e)
+            logger.debug("SQL-Fehler: %s" % e)
         self.close()
 
     # ------------------------------------------------------------------------
@@ -496,7 +496,7 @@ class FilmDB:
         rows ist Array von Tuplen: [(name,),(name,), ...]"""
         DEL_STMT = "DELETE FROM recordings where Dateiname=?"
 
-        Msg.msg("DEBUG", "rows: " + str(rows))
+        logger.debug("rows: " + str(rows))
 
         # Ein Lock ist hier nicht nötig, da Downloads immer in
         # einem eigene Aufruf von mtv_cli stattfinden
@@ -518,7 +518,7 @@ class FilmDB:
         else:
             SEL_STMT = "SELECT * from recordings"
 
-        Msg.msg("DEBUG", "SQL-Query: %s" % SEL_STMT)
+        logger.debug("SQL-Query: %s" % SEL_STMT)
         cursor = self.open()
         try:
             if Dateiname:
@@ -527,7 +527,7 @@ class FilmDB:
                 cursor.execute(SEL_STMT)
             rows = cursor.fetchall()
         except sqlite3.OperationalError as e:
-            Msg.msg("DEBUG", "SQL-Fehler: %s" % e)
+            logger.debug("SQL-Fehler: %s" % e)
             rows = None
         self.close()
         return rows
