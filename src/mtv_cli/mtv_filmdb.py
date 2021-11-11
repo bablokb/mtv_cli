@@ -3,7 +3,7 @@
 #
 # Class FilmDB, MtvDB: Alles rund um Datenbanken
 #
-# Author: Bernhard Bablok
+# Author: Bernhard Bablok, Max Görner
 # License: GPL3
 #
 # Website: https://github.com/bablokb/mtv_cli

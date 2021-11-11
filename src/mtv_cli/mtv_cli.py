@@ -2,7 +2,7 @@
 # --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
-# Author: Bernhard Bablok
+# Author: Bernhard Bablok, Max Görner
 # License: GPL3
 #
 # Website: https://github.com/bablokb/mtv_cli
