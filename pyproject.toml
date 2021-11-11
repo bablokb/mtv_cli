@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "mtv-cli"
+version = "0.1.0"
+description = "MediathekView für die Kommandozeile"
+authors = ["Max Görner <5477952+MaxG87@users.noreply.github.com>"]
+license = "GPL-3.0-only"
+
+[tool.poetry.dependencies]
+python = "^3.7.3"
+pick = "^1.0.0"
+
+[tool.poetry.dev-dependencies]
+ipython = "^7.29.0"
+mypy = "^0.910"
+black = "^21.10b0"
+isort = "^5.10.1"
+flake8 = "^4.0.1"
+pynvim = "^0.4.3"
+pdbpp = "^0.10.3"
+jedi = "^0.18.0"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+hypothesis = "^6.24.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
