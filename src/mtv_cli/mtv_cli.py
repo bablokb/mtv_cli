@@ -10,7 +10,7 @@ import re
 import sys
 import urllib.request as request
 from argparse import ArgumentParser
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from io import TextIOBase
 from typing import Iterable, Optional
 
@@ -145,13 +145,21 @@ def extract_entries_from_filmliste(fh: TextIOBase) -> Iterable[FilmlistenEintrag
     start_item = ("X", "start_array", None)
     end_item = ("X", "end_array", None)
     entry_has_started = False
+    last_entry: Optional[FilmlistenEintrag] = None
     for cur_item in stream:
         if cur_item == start_item:
             raw_entry: list[str] = []
             entry_has_started = True
         elif cur_item == end_item:
             entry_has_started = False
-            yield FilmlistenEintrag.from_item_list(raw_entry)
+            cur_entry = FilmlistenEintrag.from_item_list(raw_entry)
+            if last_entry is not None:
+                for attr in "sender", "thema":
+                    if not getattr(cur_entry, attr):
+                        new_attr = getattr(last_entry, attr)
+                        cur_entry = replace(cur_entry, attr=new_attr)
+            last_entry = cur_entry
+            yield cur_entry
         elif entry_has_started:
             raw_entry.append(cur_item[-1])
 
