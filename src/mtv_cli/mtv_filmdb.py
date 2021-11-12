@@ -117,12 +117,6 @@ class FilmDB:
 
     # ------------------------------------------------------------------------
 
-    def get_count(self):
-        """Anzahl der schon eingefügten Sätze zurückgeben"""
-        return self.total
-
-    # ------------------------------------------------------------------------
-
     def save_filmtable(self):
         """Filme speichern und Index erstellen"""
         self.db.commit()
@@ -236,21 +230,6 @@ class FilmDB:
         result = cursor.fetchall()
         self.close()
         return result
-
-    # ------------------------------------------------------------------------
-
-    def read_filme(self, index_liste):
-        """Alle Filme lesen, deren _id in index_liste ist"""
-
-        # Zeilen lesen
-        cursor = self.open()
-        statement = "select * from Filme where _id in %s" % str(tuple(index_liste))
-        cursor.execute(statement)
-        rows = cursor.fetchall()
-        self.close()
-
-        # Zeilen als Liste von FilmInfo-Objekten zurückgeben
-        return [FilmInfo(*row) for row in rows]
 
     # ------------------------------------------------------------------------
 
