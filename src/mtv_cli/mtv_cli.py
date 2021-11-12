@@ -16,7 +16,6 @@ import fcntl
 import lzma
 import os
 import re
-import ssl
 import sys
 import urllib.request as request
 from argparse import ArgumentParser
@@ -52,7 +51,7 @@ class Options:
 
 def get_url_fp(url):
     """URL öffnen und Filepointer zurückgeben"""
-    return request.urlopen(url, context=ssl.SSLContext())
+    return request.urlopen(url)
 
 
 # --- Stream des LZMA-Entpackers   ------------------------------------------
