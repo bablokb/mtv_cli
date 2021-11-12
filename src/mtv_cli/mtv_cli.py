@@ -113,6 +113,22 @@ class FilmlistenEintrag:
             neu=raw_entry[19] == "true",
         )
 
+    def update(self, entry: Optional[FilmlistenEintrag]) -> FilmlistenEintrag:
+        """
+        Übernimm die Felder Sender und Thema, falls nötig
+
+        Falls eines der genannten Felder leer ist, wird es von `eintrag`
+        übernommen.
+        """
+        if entry is None:
+            return self
+        new = self
+        for attr in "sender", "thema":
+            if not getattr(new, attr):
+                new_attr = getattr(entry, attr)
+                new = replace(self, attr=new_attr)
+        return new
+
 
 # --- Stream der Filmliste   ------------------------------------------------
 
@@ -152,12 +168,7 @@ def extract_entries_from_filmliste(fh: TextIOBase) -> Iterable[FilmlistenEintrag
             entry_has_started = True
         elif cur_item == end_item:
             entry_has_started = False
-            cur_entry = FilmlistenEintrag.from_item_list(raw_entry)
-            if last_entry is not None:
-                for attr in "sender", "thema":
-                    if not getattr(cur_entry, attr):
-                        new_attr = getattr(last_entry, attr)
-                        cur_entry = replace(cur_entry, attr=new_attr)
+            cur_entry = FilmlistenEintrag.from_item_list(raw_entry).update(last_entry)
             last_entry = cur_entry
             yield cur_entry
         elif entry_has_started:
