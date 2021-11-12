@@ -1,4 +1,3 @@
-# --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
 # Methoden rund um den Download
@@ -8,9 +7,7 @@
 #
 # Website: https://github.com/bablokb/mtv_cli
 #
-# --------------------------------------------------------------------------
 
-# --- System-Imports   -----------------------------------------------------
 
 import os
 import shlex
@@ -19,11 +16,6 @@ from multiprocessing.pool import ThreadPool
 from subprocess import DEVNULL, STDOUT
 
 from loguru import logger
-
-# --- eigene Imports   ------------------------------------------------------
-
-
-# --- Download eines Films   -----------------------------------------------
 
 
 def download_film(options, film):
@@ -75,9 +67,6 @@ def download_film(options, film):
         options.filmDB.update_downloads(_id, "F")
 
     return rc
-
-
-# --- Download aller Filme   -----------------------------------------------
 
 
 def download_filme(options, status="'V','F','A'"):

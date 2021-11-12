@@ -1,4 +1,3 @@
-# --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
 # Class FilmDB, MtvDB: Alles rund um Datenbanken
@@ -8,7 +7,6 @@
 #
 # Website: https://github.com/bablokb/mtv_cli
 #
-# --------------------------------------------------------------------------
 
 import datetime
 import sqlite3
@@ -18,13 +16,9 @@ from multiprocessing import Lock
 from loguru import logger
 from mtv_filminfo import FilmInfo, FilmlistenEintrag
 
-# --- FilmDB: Datenbank aller Filme   --------------------------------------
-
 
 class FilmDB:
     """Datenbank aller Filme"""
-
-    # ------------------------------------------------------------------------
 
     def __init__(self, options):
         """Constructor"""
@@ -37,8 +31,6 @@ class FilmDB:
             days=self.config["DATE_CUTOFF"]
         )
 
-    # ------------------------------------------------------------------------
-
     def open(self):
         """Datenbank öffnen und Cursor zurückgeben"""
         self.db = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES)
@@ -46,13 +38,9 @@ class FilmDB:
         self.cursor = self.db.cursor()
         return self.cursor
 
-    # ------------------------------------------------------------------------
-
     def close(self):
         """Datenbank schließen"""
         self.db.close()
-
-    # ------------------------------------------------------------------------
 
     def create_filmtable(self):
         """Tabelle Filme löschen und neu erzeugen"""
@@ -85,8 +73,6 @@ class FilmDB:
       _id text primary key )"""
         )
 
-    # ------------------------------------------------------------------------
-
     def is_on_ignorelist(self, eintrag: FilmlistenEintrag) -> bool:
         """Gibt True zurück für Filme, die ausgeschlossen werden sollen
 
@@ -115,8 +101,6 @@ class FilmDB:
         """Commit durchführen"""
         self.db.commit()
 
-    # ------------------------------------------------------------------------
-
     def save_filmtable(self):
         """Filme speichern und Index erstellen"""
         self.db.commit()
@@ -126,8 +110,6 @@ class FilmDB:
         self.db.close()
         self.save_status("_akt")
         self.save_status("_anzahl", str(self.total))
-
-    # ------------------------------------------------------------------------
 
     def iso_date(self, datum):
         """Deutsches Datum in ISO-Datum umwandeln"""
@@ -140,8 +122,6 @@ class FilmDB:
             + "-"
             + parts[0]
         )
-
-    # ------------------------------------------------------------------------
 
     def get_query(self, suche):
         """Aus Suchbegriff eine SQL-Query erzeugen"""
@@ -221,8 +201,6 @@ class FilmDB:
         logger.debug("SQL-Where: %s" % where_clause)
         return select_clause + where_clause
 
-    # ------------------------------------------------------------------------
-
     def execute_query(self, statement):
         """Suche ausführen"""
         cursor = self.open()
@@ -230,8 +208,6 @@ class FilmDB:
         result = cursor.fetchall()
         self.close()
         return result
-
-    # ------------------------------------------------------------------------
 
     def save_downloads(self, rows):
         """Downloads, sichern.
@@ -264,8 +240,6 @@ class FilmDB:
         self.close()
         return changes
 
-    # ------------------------------------------------------------------------
-
     def delete_downloads(self, rows):
         """Downloads löschen"""
         DEL_STMT = "DELETE FROM downloads where _id=?"
@@ -282,8 +256,6 @@ class FilmDB:
         self.close()
         return changes
 
-    # ------------------------------------------------------------------------
-
     def update_downloads(self, _id, status):
         """Status eines Satzes ändern"""
         UPD_STMT = "UPDATE downloads SET status=?,DatumStatus=? where _id=?"
@@ -292,8 +264,6 @@ class FilmDB:
             cursor.execute(UPD_STMT, (status, datetime.date.today(), _id))
             self.commit()
             self.close()
-
-    # ------------------------------------------------------------------------
 
     def read_downloads(self, ui=True, status="'V','S','A','F','K'"):
         """Downloads auslesen. Falls ui=True, Subset für Anzeige.
@@ -343,8 +313,6 @@ class FilmDB:
         else:
             return [FilmInfo(*row) for row in rows]
 
-    # ------------------------------------------------------------------------
-
     def save_status(self, key, text=None):
         """Status in Status-Tabelle speichern"""
 
@@ -366,8 +334,6 @@ class FilmDB:
             self.commit()
             self.close()
 
-    # ------------------------------------------------------------------------
-
     def read_status(self, keys):
         """Status aus Status-Tabelle auslesen"""
 
@@ -382,8 +348,6 @@ class FilmDB:
         except sqlite3.OperationalError as e:
             logger.debug("SQL-Fehler: %s" % e)
         return rows
-
-    # ------------------------------------------------------------------------
 
     def save_recs(self, id, Dateiname):
         """Aufnahme sichern."""
@@ -437,8 +401,6 @@ class FilmDB:
             logger.debug("SQL-Fehler: %s" % e)
         self.close()
 
-    # ------------------------------------------------------------------------
-
     def delete_recs(self, rows):
         """Aufnahme löschen.
         rows ist Array von Tuplen: [(name,),(name,), ...]"""
@@ -455,8 +417,6 @@ class FilmDB:
         self.commit()
         self.close()
         return changes
-
-    # ------------------------------------------------------------------------
 
     def read_recs(self, Dateiname=None):
         """Aufnahmen auslesen."""

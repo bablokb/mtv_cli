@@ -6,7 +6,6 @@ import hashlib
 from dataclasses import dataclass, replace
 from typing import Optional
 
-# --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
 # Class FilmInfo: Einzelsatz Info
@@ -16,13 +15,10 @@ from typing import Optional
 #
 # Website: https://github.com/bablokb/mtv_cli
 #
-# --------------------------------------------------------------------------
 
 
 class FilmInfo:
     """Info über einen einzelnen Film"""
-
-    # ------------------------------------------------------------------------
 
     def __init__(
         self,
@@ -77,8 +73,6 @@ class FilmInfo:
         else:
             self._id = _id
 
-    # ------------------------------------------------------------------------
-
     def to_date(self, datum):
         """Datumsstring in ein Date-Objekt umwandeln"""
         if isinstance(datum, datetime.date):
@@ -88,8 +82,6 @@ class FilmInfo:
         else:
             # schon im ISO-Format
             return datetime.datetime.strptime(datum, "%Y-%m-%d").date()
-
-    # ------------------------------------------------------------------------
 
     def dauer_as_minutes(self):
         """Dauer HH:MM:SS in Minuten (Integer) umwandeln"""
@@ -104,8 +96,6 @@ class FilmInfo:
             return minutes
         else:
             return 999
-
-    # ------------------------------------------------------------------------
 
     def asTuple(self):
         """Objekt-Felder als Tuple zurückgeben"""
@@ -133,8 +123,6 @@ class FilmInfo:
             self._id,
         )
 
-    # ------------------------------------------------------------------------
-
     def asDict(self):
         """Objekt-Felder als Dict zurückgeben"""
         return {
@@ -160,8 +148,6 @@ class FilmInfo:
             "neu": self.neu,
             "_id": self._id,
         }
-
-    # ------------------------------------------------------------------------
 
     def get_url(self, qualitaet):
         """Bevorzugte URL zurückgeben

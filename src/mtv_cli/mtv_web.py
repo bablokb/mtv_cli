@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# ---------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile (Webinterface)
 #
 # Einfaches Webinterface auf Basis von Bottle
@@ -9,9 +8,7 @@
 #
 # Website: https://github.com/bablokb/mtv_cli
 #
-# ---------------------------------------------------------------------------
 
-# --- System-Imports   ------------------------------------------------------
 
 import configparser
 import json
@@ -29,17 +26,9 @@ from mtv_filmdb import FilmDB as FilmDB
 
 import mtv_cli
 
-# --- eigene Imports   ------------------------------------------------------
-
-
-# --- Hilfsklasse für Optionen   --------------------------------------------
-
 
 class Options:
     pass
-
-
-# --- Webroot dynamisch bestimmen   -----------------------------------------
 
 
 def get_webroot(pgm):
@@ -49,9 +38,6 @@ def get_webroot(pgm):
 
 def get_webpath(path):
     return os.path.join(WEB_ROOT, path)
-
-
-# --- Statische Routen   ----------------------------------------------------
 
 
 @route("/css/<filepath:path>")
@@ -70,16 +56,10 @@ def images(filepath):
     return bottle.static_file(filepath, root=get_webpath("images"))
 
 
-# --- Hauptseite   ----------------------------------------------------------
-
-
 @route("/")
 def main_page():
     tpl = bottle.SimpleTemplate(name="index.html", lookup=[WEB_ROOT])
     return tpl.render()
-
-
-# --- Status   --------------------------------------------------------------
 
 
 @route("/status")
@@ -100,9 +80,6 @@ def status():
     logger.debug("Status: " + str(result))
     bottle.response.content_type = "application/json"
     return json.dumps(result)
-
-
-# --- Suche   ---------------------------------------------------------------
 
 
 @route("/suche", method="POST")
@@ -136,9 +113,6 @@ def suche():
     return json.dumps(result)
 
 
-# --- Downloads   -----------------------------------------------------------
-
-
 @route("/downloads", method="POST")
 def downloads():
     # Film-DB abfragen
@@ -160,9 +134,6 @@ def downloads():
     logger.debug("Anzahl Einträge in Downloadliste: %d" % len(result))
     bottle.response.content_type = "application/json"
     return json.dumps(result)
-
-
-# --- Dateien   -------------------------------------------------------------
 
 
 @route("/dateien", method="POST")
@@ -202,9 +173,6 @@ def dateien():
     return json.dumps(result)
 
 
-# --- Datei löschen   -------------------------------------------------------
-
-
 @route("/del_datei", method="POST")
 def del_datei():
     """Datei löschen"""
@@ -238,9 +206,6 @@ def del_datei():
         logger.warning("Dateiname %s existiert nicht" % dateiname)
 
     return '{"msg": ' + msg + "}"
-
-
-# --- Datei herunterladen   -------------------------------------------------
 
 
 @route("/get_datei", method="GET")
@@ -278,9 +243,6 @@ def get_datei():
     return subprocess.check_output(["cat", dateiname])
 
 
-# --- Vormerken   -----------------------------------------------------------
-
-
 @route("/vormerken", method="POST")
 def vormerken():
     # Auslesen Request-Parameter
@@ -303,9 +265,6 @@ def vormerken():
     return '{"msg": ' + msg + "}"
 
 
-# --- Aktualisieren   -------------------------------------------------------
-
-
 @route("/aktualisieren", method="GET")
 def aktualisieren():
     p = Process(target=mtv_cli.do_update, args=(options,))
@@ -314,18 +273,12 @@ def aktualisieren():
     return '{"msg": "Aktualisierung angestoßen"}'
 
 
-# --- Download   ------------------------------------------------------------
-
-
 @route("/download", method="GET")
 def download():
     p = Process(target=download_filme, args=(options,))
     p.start()
     bottle.response.content_type = "application/json"
     return '{"msg": "Download angestoßen"}'
-
-
-# --- Vorgemerkte Downloads löschen   ---------------------------------------
 
 
 @route("/loeschen", method="POST")
@@ -344,9 +297,6 @@ def loeschen():
     bottle.response.content_type = "application/json"
     msg = '"%d vorgemerkte Filme gelöscht"' % changes
     return '{"msg": ' + msg + "}"
-
-
-# --- Kommandozeilenparser   ------------------------------------------------
 
 
 def get_parser():
@@ -375,9 +325,6 @@ def get_parser():
     return parser
 
 
-# --- Konfiguration auslesen (mtv_web spezifisch)   -------------------------
-
-
 def get_config(parser, config):
     if parser.has_section("WEB"):
         config["PORT"] = parser.getint("WEB", "PORT")
@@ -386,8 +333,6 @@ def get_config(parser, config):
         config["PORT"] = 8026
         config["HOST"] = "0.0.0.0"
 
-
-# --- Hauptprogramm   -------------------------------------------------------
 
 if __name__ == "__main__":
     # Konfiguration lesen

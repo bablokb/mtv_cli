@@ -28,7 +28,6 @@ from mtv_filmdb import FilmDB
 from mtv_filminfo import FilmlistenEintrag
 from pick import pick
 
-# --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
 #
 # Author: Bernhard Bablok, Max Görner
@@ -36,16 +35,10 @@ from pick import pick
 #
 # Website: https://github.com/bablokb/mtv_cli
 #
-# --------------------------------------------------------------------------
-
-# --- System-Imports   -----------------------------------------------------
 
 
 class Options:
     pass
-
-
-# --- Stream der Filmliste   ------------------------------------------------
 
 
 def get_url_fp(url):
@@ -53,16 +46,10 @@ def get_url_fp(url):
     return request.urlopen(url)
 
 
-# --- Stream des LZMA-Entpackers   ------------------------------------------
-
-
 def get_lzma_fp(url_fp) -> TextIO:
     """Filepointer des LZMA-Entpackers. Argument ist der FP der URL"""
     ret: TextIO = lzma.open(url_fp, "rt", encoding="utf-8")
     return ret
-
-
-# --- Split der Datei   -----------------------------------------------------
 
 
 def extract_entries_from_filmliste(fh: TextIO) -> Iterable[FilmlistenEintrag]:
@@ -125,9 +112,6 @@ def get_update_source_file_handle(update_source: str) -> TextIO:
         return open(src, "r", encoding="utf-8")
 
 
-# --- Interaktiv Suchbegriffe festlegen   -----------------------------------
-
-
 def get_suche():
     suche_titel = "Auswahl Suchdetails"
     suche_opts = [
@@ -163,9 +147,6 @@ def get_suche():
         return result
 
 
-# --- Auswahlliste formatieren   --------------------------------------------
-
-
 def get_select(rows):
     select_liste = []
     for row in rows:
@@ -178,9 +159,6 @@ def get_select(rows):
     return select_liste
 
 
-# --- Filme suchen   --------------------------------------------------------
-
-
 def filme_suchen(options):
     """Filme gemäß Vorgabe suchen"""
     if not options.suche:
@@ -190,15 +168,9 @@ def filme_suchen(options):
     return options.filmDB.execute_query(statement)
 
 
-# --- Filme zur Auswahl anzeigen   ------------------------------------------
-
-
 def zeige_liste(rows):
     """Filmliste anzeigen, Auswahl zurückgeben"""
     return pick(get_select(rows), "  " + SEL_TITEL, multi_select=True)
-
-
-# --- Ergebnisse für späteren Download speichern   --------------------------
 
 
 def save_selected(filmDB, rows, selected, status):
@@ -212,15 +184,9 @@ def save_selected(filmDB, rows, selected, status):
     return filmDB.save_downloads(inserts)
 
 
-# --- Filmliste anzeigen, Auswahl für späteren Download speichern    --------
-
-
 def do_later(options):
     """Filmliste anzeigen, Auswahl für späteren Download speichern"""
     _do_now_later_common_body(options, do_now=False)
-
-
-# --- Filmliste anzeigen, sofortiger Download nach Auswahl   ----------------
 
 
 def do_now(options):
@@ -252,9 +218,6 @@ def _do_now_later_common_body(options, do_now):
     return num_changes
 
 
-# --- Download vorgemerkter Filme   -----------------------------------------
-
-
 def do_download(options):
     """Download vorgemerkter Filme"""
     if options.doNow:
@@ -262,9 +225,6 @@ def do_download(options):
         download_filme(options, status="'S'")
     else:
         download_filme(options)
-
-
-# --- Suche ohne Download   -------------------------------------------------
 
 
 def do_search(options):
@@ -289,9 +249,6 @@ def do_search(options):
         return True
     else:
         return False
-
-
-# --- Downloadliste anzeigen und editieren   --------------------------------
 
 
 def do_edit(options):
@@ -329,9 +286,6 @@ def do_edit(options):
     else:
         changes = 0
     logger.info("%d vorgemerkte Filme gelöscht" % changes)
-
-
-# --- Kommandozeilenparser   ------------------------------------------------
 
 
 def get_parser():
@@ -426,9 +380,6 @@ def get_parser():
     return parser
 
 
-# --- Lock anfordern  -------------------------------------------------------
-
-
 def get_lock(datei):
     global fd_datei
 
@@ -443,9 +394,6 @@ def get_lock(datei):
         return False
 
 
-# --- Konfigurationsobjekt erzeugen   ---------------------------------------
-
-
 def get_config(parser):
     return {
         "MSG_LEVEL": parser.get("CONFIG", "MSG_LEVEL"),
@@ -458,8 +406,6 @@ def get_config(parser):
         "QUALITAET": parser.get("CONFIG", "QUALITAET"),
     }
 
-
-# --- Hauptprogramm   -------------------------------------------------------
 
 if __name__ == "__main__":
 
