@@ -83,14 +83,14 @@ def split_content(fpin, filmDB):
     while True:
         # Buffer neu lesen
         buffer = fpin.read(BUFSIZE)
-        buf_count = buf_count + 1
+        buf_count += 1
         if not buf_count % 100:
             Msg.msg("INFO", ".", False)
 
         # Verarbeitung Dateiende (verbliebenen Satz schreiben)
         if len(buffer) == 0:
             if len(last_rec):
-                total = total + 1
+                total += 1
                 filmDB.insert_film(last_rec[0:-1])
                 break
 
