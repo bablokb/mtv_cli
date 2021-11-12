@@ -14,8 +14,6 @@ import os
 
 VERSION = 2  # Erhöhung nur bei inkompatiblen Änderungen
 
-BUFSIZE = 8192
-
 # --- Titel   ---------------------------------------------------------------
 
 SEL_FORMAT = "{:7.7}|{:15.15}|{:8.8}|{:8.8}|{:52.52}"

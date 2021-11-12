@@ -263,3 +263,12 @@ class FilmlistenEintrag:
                 new_attr = getattr(entry, attr)
                 new = replace(self, attr=new_attr)
         return new
+
+    def dauer_as_minutes(self) -> int:
+        if self.dauer is None:
+            # Die Dauer des Eintrages ist unbekannt. Es wird daher ein
+            # Maximalwert zurückgegeben, damit der Film nicht als zu kurz
+            # aussortiert wird.
+            minutes_in_day = 24 * 60 * 60
+            return minutes_in_day
+        return self.dauer.seconds // 60

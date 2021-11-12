@@ -11,12 +11,12 @@
 # --------------------------------------------------------------------------
 
 import datetime
-import json
 import sqlite3
+from dataclasses import astuple
 from multiprocessing import Lock
 
 from loguru import logger
-from mtv_filminfo import FilmInfo
+from mtv_filminfo import FilmInfo, FilmlistenEintrag
 
 # --- FilmDB: Datenbank aller Filme   --------------------------------------
 
@@ -87,60 +87,29 @@ class FilmDB:
 
     # ------------------------------------------------------------------------
 
-    def blacklist(self, film_info):
-        """Gibt True zurück für Filme, die eingeschlossen werden sollen"""
-        return (
-            film_info.datum < self.date_cutoff
-            or film_info.dauer_as_minutes() < self.config["DAUER_CUTOFF"]
-        )
+    def is_on_ignorelist(self, eintrag: FilmlistenEintrag) -> bool:
+        """Gibt True zurück für Filme, die ausgeschlossen werden sollen
 
-    # ------------------------------------------------------------------------
+        Momentan werden Filme wegen einem von drei Gründen ausgeschlossen:
 
-    def rec2FilmInfo(self, record):
-        """Ein Record in ein FilmInfo-Objekt umwandeln.
-        Dazu erzeugt der JSON-Parser erste eine Liste,
-        die anschließend an den Constructor übergeben wird. Damit die
-        Datenbank nicht zu groß wird, werden nur Sätze der letzten x Tage
-        zurückgegeben."""
+            * Es fehlt ein Datum (Livestreams)
+            * zu alt
+            * zu kurz
+        """
 
-        try:
-            liste = json.loads(record)
-        except json.JSONDecodeError:
-            logger.error("JSONDecodeError beim parsen von %s" % (record,))
-            raise
-        if self.last_liste:
-            # ersetzen leerer Werte durch Werte aus dem Satz davor (Sender, Thema)
-            for i in range(2):
-                if not liste[i]:
-                    liste[i] = self.last_liste[i]
+        if eintrag.datum is None:
+            return True
+        if eintrag.datum < self.date_cutoff:
+            return True
+        if eintrag.dauer_as_minutes() < self.config["DAUER_CUTOFF"]:
+            return True
+        return False
 
-        # Liste für nächsten Durchgang speichern
-        self.last_liste = liste
-
-        if liste[3]:
-            film_info = FilmInfo(*liste)
-        else:
-            # Filme ohne Datum aussortieren (Livestreams)
-            return None
-
-        # Sätze per blacklist aussortieren (def in mtv_cfg)
-        if self.blacklist(film_info):
-            return None
-        else:
-            return film_info
-
-    # ------------------------------------------------------------------------
-
-    def insert_film(self, record):
+    def insert_film(self, eintrag: FilmlistenEintrag) -> None:
         """Satz zur Datenbank hinzufügen"""
         INSERT_STMT = "INSERT INTO filme VALUES (" + 20 * "?," + "?)"
-
-        film_info = self.rec2FilmInfo(record)
-        if film_info:
-            self.total += 1
-            self.cursor.execute(INSERT_STMT, film_info.asTuple())
-
-    # ------------------------------------------------------------------------
+        self.total += 1
+        self.cursor.execute(INSERT_STMT, astuple(eintrag))
 
     def commit(self):
         """Commit durchführen"""

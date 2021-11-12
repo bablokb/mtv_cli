@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 import configparser
 import fcntl
@@ -8,13 +9,11 @@ import re
 import sys
 import urllib.request as request
 from argparse import ArgumentParser
-from io import TextIOBase
-from typing import Iterable, Optional
+from typing import Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
 from loguru import logger
 from mtv_const import (
-    BUFSIZE,
     DLL_FORMAT,
     DLL_TITEL,
     FILME_SQLITE,
@@ -25,9 +24,9 @@ from mtv_const import (
     VERSION,
 )
 from mtv_download import download_filme
-from mtv_filmdb import FilmDB as FilmDB
+from mtv_filmdb import FilmDB
 from mtv_filminfo import FilmlistenEintrag
-from pick import pick  # type: ignore[import]
+from pick import pick
 
 # --------------------------------------------------------------------------
 # Mediathekview auf der Kommandozeile
@@ -57,15 +56,16 @@ def get_url_fp(url):
 # --- Stream des LZMA-Entpackers   ------------------------------------------
 
 
-def get_lzma_fp(url_fp):
+def get_lzma_fp(url_fp) -> TextIO:
     """Filepointer des LZMA-Entpackers. Argument ist der FP der URL"""
-    return lzma.open(url_fp, "rt", encoding="utf-8")
+    ret: TextIO = lzma.open(url_fp, "rt", encoding="utf-8")
+    return ret
 
 
 # --- Split der Datei   -----------------------------------------------------
 
 
-def extract_entries_from_filmliste(fh: TextIOBase) -> Iterable[FilmlistenEintrag]:
+def extract_entries_from_filmliste(fh: TextIO) -> Iterable[FilmlistenEintrag]:
     """
     Extrahiere einzelne Einträge aus MediathekViews Filmliste
 
@@ -91,83 +91,38 @@ def extract_entries_from_filmliste(fh: TextIOBase) -> Iterable[FilmlistenEintrag
             raw_entry.append(cur_item[-1])
 
 
-def split_content(fpin, filmDB):
-    """Inhalt aufteilen"""
+def do_update(options) -> None:
+    """Update der Filmliste"""
+    # TODO: Führe UpdateSource als ContextManager ein
+    fh = get_update_source_file_handle(options.upd_src)
+    entry_candidates = extract_entries_from_filmliste(fh)
 
-    have_header = False
-    last_rec = ""
-
+    filmDB: FilmDB = options.filmDB
     filmDB.create_filmtable()
-    filmDB.isolation_level = None
     filmDB.cursor.execute("BEGIN;")
-
-    total = 0
-    buf_count = 0
-    regex = re.compile(',\n? *"X" ?: ?')
-    logger.info("Entpacke Filmliste. Das kann etwas dauern.")
-    while True:
-        # Buffer neu lesen
-        buffer = fpin.read(BUFSIZE)
-        buf_count += 1
-
-        # Verarbeitung Dateiende (verbliebenen Satz schreiben)
-        if len(buffer) == 0:
-            if len(last_rec):
-                total += 1
-                filmDB.insert_film(last_rec[0:-1])
-                break
-
-        # Sätze aufspalten
-        records = regex.split(last_rec + str(buffer))
-        logger.debug("Anzahl Sätze: %d" % len(records))
-
-        # Sätze ausgeben. Der letzte Satz ist entweder leer,
-        # oder er ist eigentlich ein Satzanfang und wird aufgehoben
-        last_rec = records[-1]
-        for record in records[0:-1]:
-            logger.trace(record)
-            if not have_header:
-                have_header = True
-                continue
-            total = total + 1
-            filmDB.insert_film(record)
-
-    # Datensätze speichern und Datenbank schließen
+    for entry in entry_candidates:
+        if filmDB.is_on_ignorelist(entry):
+            continue
+        filmDB.insert_film(entry)
     filmDB.commit()
     filmDB.save_filmtable()
 
-    logger.info("Anzahl Buffer:              %d" % buf_count)
-    logger.info("Anzahl Sätze (gesamt):      %d" % total)
-    logger.info("Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
+    fh.close()
 
 
-# --- Update verarbeiten   --------------------------------------------------
-
-
-def do_update(options):
-    """Update der Filmliste"""
-
-    if options.upd_src == "auto":
+def get_update_source_file_handle(update_source: str) -> TextIO:
+    if update_source == "auto":
         src = URL_FILMLISTE
-    elif options.upd_src == "json":
+    elif update_source == "json":
         # existierende Filmliste verwenden
         src = os.path.join(MTV_CLI_HOME, "filme.json")
     else:
-        src = options.upd_src
+        src = update_source
 
-    logger.info("Erzeuge %s aus %s" % (options.dbfile, src))
-    fpin = None
-    try:
-        if src.startswith("http"):
-            fpin = get_lzma_fp(get_url_fp(src))
-        else:
-            fpin = open(src, "r", encoding="utf-8")
-        split_content(fpin, options.filmDB)
-    except Exception as e:
-        logger.error("Update der Filmliste gescheitert. Fehler: %s" % e)
-    finally:
-        if fpin is not None:
-            fpin.close()
+    if src.startswith("http"):
+        return get_lzma_fp(get_url_fp(src))
+    else:
+        return open(src, "r", encoding="utf-8")
 
 
 # --- Interaktiv Suchbegriffe festlegen   -----------------------------------
