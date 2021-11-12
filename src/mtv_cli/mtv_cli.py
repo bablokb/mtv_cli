@@ -9,6 +9,7 @@ import re
 import sys
 import urllib.request as request
 from argparse import ArgumentParser
+from dataclasses import asdict
 from typing import Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
@@ -24,7 +25,7 @@ from mtv_const import (
     VERSION,
 )
 from mtv_download import download_filme
-from mtv_filmdb import FilmDB
+from mtv_filmdb import DownloadStatus, FilmDB
 from mtv_filminfo import FilmlistenEintrag
 from pick import pick
 
@@ -112,7 +113,7 @@ def get_update_source_file_handle(update_source: str) -> TextIO:
         return open(src, "r", encoding="utf-8")
 
 
-def get_suche():
+def get_suche() -> Iterable[str]:
     suche_titel = "Auswahl Suchdetails"
     suche_opts = [
         "Weiter",
@@ -136,53 +137,42 @@ def get_suche():
             suche_opts[index] = option[0:pos] + " [" + begriff + "]"
 
     # Ergebnis extrahieren
+    square_brackets_split = re.compile(r"\[|\]")
     if len(suche_opts[1]) > len("Global []"):
-        return [re.split(r"\[|\]", suche_opts[1])[1]]
+        yield square_brackets_split.split(suche_opts[1])[1]
     else:
-        result = []
         for opt in suche_opts[2:]:
-            token = re.split(r"\[|\]", opt)
+            token = square_brackets_split.split(opt)
             if len(token[1]) > 0:
-                result.append(token[0].strip() + ":" + token[1])
-        return result
+                yield token[0].strip() + ":" + token[1]
 
 
-def get_select(rows):
-    select_liste = []
-    for row in rows:
-        sender = row["SENDER"]
-        thema = row["THEMA"]
-        titel = row["TITEL"]
-        datum = row["DATUM"].strftime("%d.%m.%y")
-        dauer = row["DAUER"]
-        select_liste.append(SEL_FORMAT.format(sender, thema, datum, dauer, titel))
-    return select_liste
+def get_select(filme: list[FilmlistenEintrag]) -> Iterable[str]:
+    for film in filme:
+        sender = film.sender
+        thema = film.thema
+        titel = film.titel
+        datum = "" if film.datum is None else film.datum.isoformat()
+        dauer = film.dauer
+        yield SEL_FORMAT.format(sender, thema, datum, dauer, titel)
 
 
-def filme_suchen(options):
+def filme_suchen(options) -> Iterable[FilmlistenEintrag]:
     """Filme gemäß Vorgabe suchen"""
     if not options.suche:
-        options.suche = get_suche()
+        options.suche = list(get_suche())
 
+    criteria: list[str] = options.suche
     filmDB: FilmDB = options.filmDB
-    statement = filmDB.get_query(options.suche)
-    return filmDB.execute_query(statement)
+    return filmDB.finde_filme(criteria)
 
 
-def zeige_liste(rows):
+def zeige_liste(filme: list[FilmlistenEintrag]) -> list[tuple[str, int]]:
     """Filmliste anzeigen, Auswahl zurückgeben"""
-    return pick(get_select(rows), "  " + SEL_TITEL, multi_select=True)
-
-
-def save_selected(filmDB, rows, selected, status):
-    """Auswahl speichern"""
-
-    # Datenstruktuer erstellen
-    inserts = []
-    for sel_text, sel_index in selected:
-        row = rows[sel_index]
-        inserts.append((row["_ID"], row["DATUM"], status))
-    return filmDB.save_downloads(inserts)
+    title = f"  {SEL_TITEL}"
+    preselection = list(get_select(filme))
+    selection: list[tuple[str, int]] = pick(preselection, title, multi_select=True)
+    return selection
 
 
 def do_later(options):
@@ -198,34 +188,34 @@ def do_now(options):
         do_download(options)
 
 
-def _do_now_later_common_body(options, do_now):
-    save_selected_status, when_download_wording = (
-        ("S", "Sofort-") if do_now else ("V", "Download")
-    )
-    rows = filme_suchen(options)
-    if not rows:
+def _do_now_later_common_body(options, do_now: bool) -> int:
+    save_selected_status: DownloadStatus = "S" if do_now else "V"
+    when_download_wording = "Sofort-" if do_now else "Download"
+    filme = list(filme_suchen(options))
+    if len(filme) == 0:
         logger.info("Keine Suchtreffer")
         return 0
 
     if options.doBatch:
-        selected = [("dummy", i) for i in range(len(rows))]
+        selection_ids = set(range(len(filme)))
     else:
-        selected = zeige_liste(rows)
+        selection_ids = {idx for (_, idx) in zeige_liste(filme)}
+    selected_filme = [film for (n, film) in enumerate(filme) if n in selection_ids]
 
     filmDB: FilmDB = options.filmDB
-    num_changes = save_selected(filmDB, rows, selected, save_selected_status)
+    num_changes = filmDB.save_downloads(selected_filme, status=save_selected_status)
     logger.info(
         "%d von %d Filme vorgemerkt für %sDownload"
-        % (num_changes, len(selected), when_download_wording),
+        % (num_changes, len(selected_filme), when_download_wording),
     )
     return num_changes
 
 
-def do_download(options):
+def do_download(options) -> None:
     """Download vorgemerkter Filme"""
     if options.doNow:
         # Aufruf aus do_now
-        download_filme(options, status="'S'")
+        download_filme(options, status=["S"])
     else:
         download_filme(options)
 
@@ -233,25 +223,21 @@ def do_download(options):
 def do_search(options):
     """Suche ohne Download"""
 
-    rows = filme_suchen(options)
-    if rows:
-        if options.doBatch:
-            print("[")
-            for row in rows:
-                rdict = dict(row)
-                if "Datum" in rdict:
-                    rdict["Datum"] = rdict["Datum"].strftime("%d.%m.%y")
-                print(rdict, end="")
-                print(",")
-            print("]")
-        else:
-            print(SEL_TITEL)
-            print(len(SEL_TITEL) * "_")
-            for row in get_select(rows):
-                print(row)
-        return True
-    else:
+    filme = list(filme_suchen(options))
+    if len(filme) == 0:
         return False
+
+    if options.doBatch:
+        print("[")
+        for film in filme:
+            print(asdict(film), end=",")
+        print("]")
+    else:
+        print(SEL_TITEL)
+        print(len(SEL_TITEL) * "_")
+        for line in get_select(filme):
+            print(line)
+    return True
 
 
 def do_edit(options):
@@ -457,8 +443,5 @@ if __name__ == "__main__":
     elif options.doDownload:
         do_download(options)
     elif options.doSearch:
-        if do_search(options):
-            sys.exit(0)
-        else:
-            sys.exit(1)
-    sys.exit(0)
+        sucess = do_search(options)
+        sys.exit(0 if sucess else 1)

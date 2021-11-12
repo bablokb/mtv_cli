@@ -12,45 +12,44 @@
 import os
 import shlex
 import subprocess
+from dataclasses import asdict, replace
 from multiprocessing.pool import ThreadPool
 from subprocess import DEVNULL, STDOUT
 
 from loguru import logger
-from mtv_filmdb import FilmDB
+from mtv_filmdb import DownloadStatus, FilmDB
+from mtv_filminfo import FilmlistenEintrag
 
 
-def download_film(options, film):
+def download_film(options, film: FilmlistenEintrag) -> int:
     """Download eines einzelnen Films"""
 
     filmDB: FilmDB = options.filmDB
 
     # Infos zusammensuchen
-    _id = film._id
     size, url = film.get_url(options.config["QUALITAET"])
-    film.thema = film.thema.replace("/", "_")
-    film.titel = film.titel.replace("/", "_")
+    sanitised_film = replace(
+        film, thema=film.thema.replace("/", "_"), titel=film.titel.replace("/", "_")
+    )
     ext = url.split(".")[-1].lower()
 
     # Kommando bei Playlisten anpassen. Die Extension der gespeicherten Datei
     # wird auf mp4 geändert
-    if ext.startswith("m3u"):
+    isM3U = ext.startswith("m3u")
+    if isM3U:
         cmd = options.config["CMD_DOWNLOADS_M3U"]
         ext = "mp4"
-        isM3U = True
     else:
         cmd = options.config["CMD_DOWNLOADS"]
-        isM3U = False
 
-    ziel = options.config["ZIEL_DOWNLOADS"].format(ext=ext, **film.asDict())
+    ziel = options.config["ZIEL_DOWNLOADS"].format(ext=ext, **asdict(sanitised_film))
     cmd = cmd.format(ziel=ziel, url=url)
 
     # Zielverzeichnis erstellen
-    ziel_dir = os.path.dirname(ziel)
-    if not os.path.exists(ziel_dir):
-        os.mkdir(ziel_dir)
+    os.makedirs(os.path.dirname(ziel), exist_ok=True)
 
     # Download ausführen
-    filmDB.update_downloads(_id, "A")
+    filmDB.update_downloads(film, "A")
     logger.info("Start Download (%s) %s" % (size, film.titel[0:50]))
     if isM3U:
         logger.debug("Kommando: %s" % cmd)
@@ -64,18 +63,18 @@ def download_film(options, film):
         "Ende  Download (%s) %s (Return-Code: %d)" % (size, film.titel[0:50], rc),
     )
     if rc == 0:
-        filmDB.update_downloads(_id, "K")
-        filmDB.save_recs(_id, ziel)
+        filmDB.update_downloads(film, "K")
+        filmDB.save_recs(film, ziel)
     else:
-        filmDB.update_downloads(_id, "F")
+        filmDB.update_downloads(film, "F")
 
     return rc
 
 
-def download_filme(options, status="'V','F','A'"):
+def download_filme(options, status: list[DownloadStatus] = ["V", "F", "A"]):
     # Filme lesen
     filmDB: FilmDB = options.filmDB
-    filme = filmDB.read_downloads(ui=False, status=status)
+    filme = filmDB.read_downloads(status=status)
 
     if not filme:
         logger.info("Keine vorgemerkten Filme vorhanden")

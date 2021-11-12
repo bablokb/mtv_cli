@@ -15,6 +15,7 @@ import json
 import os
 import subprocess
 from argparse import ArgumentParser
+from dataclasses import asdict
 from multiprocessing import Process
 
 import bottle
@@ -96,21 +97,12 @@ def suche():
     logger.debug("Suchbegriffe: " + str(such_args))
 
     # Film-DB abfragen
-    statement = options.filmDB.get_query(such_args)
-    rows = options.filmDB.execute_query(statement)
-
-    # Ergebnis aufbereiten
-    result = []
-    for row in rows:
-        item = {}
-        item["DATUM"] = row["DATUM"].strftime("%d.%m.%y")
-        for key in ["SENDER", "THEMA", "TITEL", "DAUER", "BESCHREIBUNG", "_ID"]:
-            item[key] = row[key]
-        result.append(item)
-
-    logger.debug("Anzahl Treffer: %d" % len(result))
+    filmDB: FilmDB = options.filmDB
+    filme = list(filmDB.finde_filme(such_args))
+    response = [asdict(film) for film in filme]
+    logger.debug("Anzahl Treffer: %d" % len(filme))
     bottle.response.content_type = "application/json"
-    return json.dumps(result)
+    return json.dumps(response)
 
 
 @route("/downloads", method="POST")
@@ -127,7 +119,7 @@ def downloads():
         item = {}
         item["DATUM"] = row["DATUM"].strftime("%d.%m.%y")
         item["DATUMSTATUS"] = row["DATUMSTATUS"].strftime("%d.%m.%y")
-        for key in ["STATUS", "SENDER", "THEMA", "TITEL", "DAUER", "_ID"]:
+        for key in ["STATUS", "SENDER", "THEMA", "TITEL", "DAUER"]:
             item[key] = row[key]
         result.append(item)
 

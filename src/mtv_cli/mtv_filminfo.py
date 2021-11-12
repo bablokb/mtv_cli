@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import datetime
 import datetime as dt
-import hashlib
 from dataclasses import dataclass, replace
-from typing import Optional
+from typing import Literal, Optional, Union
 
 # Mediathekview auf der Kommandozeile
 #
@@ -15,6 +14,8 @@ from typing import Optional
 #
 # Website: https://github.com/bablokb/mtv_cli
 #
+
+FILM_QUALITAET = Union[Literal["HD"], Literal["SD"], Literal["LOW"]]
 
 
 class FilmInfo:
@@ -42,7 +43,6 @@ class FilmInfo:
         url_history,
         geo,
         neu,
-        _id=None,
     ):
         """FilmInfo-Objekt erzeugen"""
 
@@ -66,12 +66,6 @@ class FilmInfo:
         self.url_history = url_history
         self.geo = geo
         self.neu = neu
-        if not _id:
-            self._id = hashlib.md5(
-                (sender + thema + titel + datum + zeit + url).encode("utf-8")
-            ).hexdigest()
-        else:
-            self._id = _id
 
     def to_date(self, datum):
         """Datumsstring in ein Date-Objekt umwandeln"""
@@ -120,7 +114,6 @@ class FilmInfo:
             self.url_history,
             self.geo,
             self.neu,
-            self._id,
         )
 
     def asDict(self):
@@ -146,7 +139,6 @@ class FilmInfo:
             "Url_History": self.url_history,
             "geo": self.geo,
             "neu": self.neu,
-            "_id": self._id,
         }
 
     def get_url(self, qualitaet):
@@ -258,3 +250,23 @@ class FilmlistenEintrag:
             minutes_in_day = 24 * 60 * 60
             return minutes_in_day
         return self.dauer.seconds // 60
+
+    def get_url(self, qualitaet: FILM_QUALITAET) -> tuple[FILM_QUALITAET, str]:
+        """Bevorzugte URL zurückgeben
+
+        Ergebnis ist (Qualität,URL)
+        """
+        if qualitaet == "SD" or not self.url_hd:
+            return "SD", self.url
+
+        size: FILM_QUALITAET
+        if qualitaet == "HD" and self.url_hd:
+            url_suffix = self.url_hd
+            size = "HD"
+        else:
+            url_suffix = self.url_klein
+            size = "LOW"
+
+        parts = url_suffix.split("|")
+        offset = int(parts[0])
+        return size, self.url[0:offset] + parts[1]

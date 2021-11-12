@@ -8,13 +8,27 @@
 # Website: https://github.com/bablokb/mtv_cli
 #
 
+from __future__ import annotations
+
 import datetime
+import hashlib
 import sqlite3
 from dataclasses import astuple
 from multiprocessing import Lock
+from typing import Iterable, Literal, Union
 
 from loguru import logger
-from mtv_filminfo import FilmInfo, FilmlistenEintrag
+from mtv_filminfo import FilmlistenEintrag
+
+# Bedeutung der Status-Codes:
+# V - Vorgemerkt
+# S - Sofort
+# A - Aktiv
+# F - Fehler
+# K - Komplett
+DownloadStatus = Union[
+    Literal["V"], Literal["S"], Literal["A"], Literal["F"], Literal["K"]
+]
 
 
 class FilmDB:
@@ -30,6 +44,8 @@ class FilmDB:
         self.date_cutoff = datetime.date.today() - datetime.timedelta(
             days=self.config["DATE_CUTOFF"]
         )
+        self.filmdb = "filme"
+        self.downloadsdb = "downloads"
 
     def open(self):
         """Datenbank öffnen und Cursor zurückgeben"""
@@ -47,9 +63,9 @@ class FilmDB:
         self.db = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES)
         self.cursor = self.db.cursor()
 
-        self.cursor.execute("DROP TABLE IF EXISTS filme")
+        self.cursor.execute(f"DROP TABLE IF EXISTS {self.filmdb}")
         self.cursor.execute(
-            """CREATE TABLE filme
+            f"""CREATE TABLE {self.filmdb}
       (Sender text,
       Thema text,
       Titel text,
@@ -70,7 +86,7 @@ class FilmDB:
       Url_History text,
       Geo text,
       neu text,
-      _id text primary key )"""
+      _id integer primary key )"""
         )
 
     def is_on_ignorelist(self, eintrag: FilmlistenEintrag) -> bool:
@@ -93,7 +109,7 @@ class FilmDB:
 
     def insert_film(self, eintrag: FilmlistenEintrag) -> None:
         """Satz zur Datenbank hinzufügen"""
-        INSERT_STMT = "INSERT INTO filme VALUES (" + 20 * "?," + "?)"
+        INSERT_STMT = f"INSERT INTO {self.filmdb} VALUES (" + 20 * "?," + "?)"
         self.total += 1
         self.cursor.execute(INSERT_STMT, astuple(eintrag))
 
@@ -104,9 +120,9 @@ class FilmDB:
     def save_filmtable(self):
         """Filme speichern und Index erstellen"""
         self.db.commit()
-        self.cursor.execute("CREATE index id_index ON filme(_id)")
-        self.cursor.execute("CREATE index sender_index ON filme(sender)")
-        self.cursor.execute("CREATE index thema_index ON filme(thema)")
+        self.cursor.execute(f"CREATE index id_index ON {self.filmdb}(_id)")
+        self.cursor.execute(f"CREATE index sender_index ON {self.filmdb}(sender)")
+        self.cursor.execute(f"CREATE index thema_index ON {self.filmdb}(thema)")
         self.db.close()
         self.save_status("_akt")
         self.save_status("_anzahl", str(self.total))
@@ -123,21 +139,19 @@ class FilmDB:
             + parts[0]
         )
 
-    def get_query(self, suche):
+    def get_query(self, suche: list[str]) -> str:
         """Aus Suchbegriff eine SQL-Query erzeugen"""
-        # Basisausdruck
-        select_clause = "select * from Filme where "
 
-        if not len(suche):
-            return select_clause[0:-7]  # remove " where "
-        elif suche[0].lower().startswith("select"):
+        if len(suche) == 0:
+            return f"SELECT * FROM {self.filmdb}"
+        if suche[0].lower().startswith("select"):
             # Suchausdruck ist fertige Query
             return " ".join(suche)
 
         where_clause = ""
         op = ""
         for token in suche:
-            if token in ["(", "und", "oder", "and", "or", ")"]:
+            if token in {"(", "und", "oder", "and", "or", ")"}:
                 if op:
                     where_clause = where_clause + op
                 op = " %s " % token
@@ -199,31 +213,39 @@ class FilmDB:
         if op:
             where_clause = where_clause + op
         logger.debug("SQL-Where: %s" % where_clause)
-        return select_clause + where_clause
+        return f"SELECT * FROM {self.filmdb} WHERE {where_clause}"
 
-    def execute_query(self, statement):
-        """Suche ausführen"""
+    def finde_filme(self, criteria: list[str]) -> Iterable[FilmlistenEintrag]:
+        """Finde alle Filme, die auf Suchkriterium passen"""
+
+        query = self.get_query(criteria)
         cursor = self.open()
-        cursor.execute(statement)
-        result = cursor.fetchall()
+        cursor.execute(query)
+        for item in cursor.fetchall():
+            if not isinstance(item, list):
+                logger.error(f"Ungültiger Rückgabetyp: {item}")
+                raise TypeError("Rückgabewert der Datenbank ist nicht Liste!")
+            film = FilmlistenEintrag.from_item_list(item)
+            yield film
         self.close()
-        return result
 
-    def save_downloads(self, rows):
-        """Downloads, sichern.
-        rows ist eine Liste von (_id,Datum,Status)-Tupeln"""
+    def save_downloads(
+        self, filme: list[FilmlistenEintrag], status=DownloadStatus
+    ) -> int:
+        """Downloads sichern."""
 
-        CREATE_STMT = """CREATE TABLE IF NOT EXISTS downloads (
-                     _id          text primary key,
+        CREATE_STMT = f"""CREATE TABLE IF NOT EXISTS {self.downloadsdb} (
+                     _id          integer primary key,
                      Datum        date,
                      status       text,
                      DatumStatus  date)"""
-        INSERT_STMT = """INSERT OR IGNORE INTO downloads Values (?,?,?,?)"""
+        INSERT_STMT = f"""INSERT OR IGNORE INTO {self.downloadsdb} Values (?,?,?,?)"""
 
         # Aktuelles Datum an Werte anfügen
         today = datetime.date.today()
-        for val_list in rows:
-            val_list.append(today)
+        query_values = [
+            (self.get_film_id(film), film.datum, status, today) for film in filme
+        ]
 
         # Tabelle bei Bedarf erstellen
         cursor = self.open()
@@ -234,15 +256,15 @@ class FilmDB:
         # einem eigenen Aufruf von mtv_cli stattfinden und bei -S immer
         # nach save_downloads
 
-        cursor.executemany(INSERT_STMT, rows)
-        changes = self.db.total_changes
+        cursor.executemany(INSERT_STMT, query_values)
+        changes: int = self.db.total_changes
         self.commit()
         self.close()
         return changes
 
     def delete_downloads(self, rows):
         """Downloads löschen"""
-        DEL_STMT = "DELETE FROM downloads where _id=?"
+        DEL_STMT = f"DELETE FROM {self.downloadsdb} where _id=?"
 
         logger.debug("rows: " + str(rows))
 
@@ -256,29 +278,24 @@ class FilmDB:
         self.close()
         return changes
 
-    def update_downloads(self, _id, status):
+    def update_downloads(self, film: FilmlistenEintrag, status: DownloadStatus):
         """Status eines Satzes ändern"""
-        UPD_STMT = "UPDATE downloads SET status=?,DatumStatus=? where _id=?"
+        UPD_STMT = f"UPDATE {self.downloadsdb} SET status=?,DatumStatus=? where _id=?"
+        film_id = self.get_film_id(film)
         with self.lock:
             cursor = self.open()
-            cursor.execute(UPD_STMT, (status, datetime.date.today(), _id))
+            cursor.execute(UPD_STMT, (status, datetime.date.today(), film_id))
             self.commit()
             self.close()
 
-    def read_downloads(self, ui=True, status="'V','S','A','F','K'"):
-        """Downloads auslesen. Falls ui=True, Subset für Anzeige.
-        Bedeutung der Status-Codes:
-        V - Vorgemerkt
-        S - Sofort
-        A - Aktiv
-        F - Fehler
-        K - Komplett
-        """
+    def read_downloads(self, ui=True, status=list[DownloadStatus]):
+        """Downloads auslesen. Falls ui=True, Subset für Anzeige."""
 
+        status_query_str = ",".join(f"'{cur}'" for cur in status)
         # SQL-Teile
         if ui:
             SEL_STMT = (
-                """SELECT d.status      as status,
+                f"""SELECT d.status      as status,
                            d.DatumStatus as DatumStatus,
                            d._id         as _id,
                            f.sender      as sender,
@@ -286,17 +303,17 @@ class FilmDB:
                            f.titel       as titel,
                            f.dauer       as dauer,
                            f.datum       as datum
-                      FROM filme as f, downloads as d
+                      FROM {self.filmdb} as f, {self.downloadsdb} as d
                         WHERE f._id = d._id AND d.status in (%s)
                         ORDER BY DatumStatus DESC"""
-                % status
+                % status_query_str
             )
         else:
             SEL_STMT = (
-                """SELECT f.*
-                      FROM filme as f, downloads as d
+                f"""SELECT f.*
+                      FROM {self.filmdb} as f, {self.downloadsdb} as d
                         WHERE f._id = d._id AND d.status in (%s)"""
-                % status
+                % status_query_str
             )
 
         logger.debug("SQL-Query: %s" % SEL_STMT)
@@ -311,7 +328,7 @@ class FilmDB:
         if ui:
             return rows
         else:
-            return [FilmInfo(*row) for row in rows]
+            return [FilmlistenEintrag.from_item_list(row) for row in rows]
 
     def save_status(self, key, text=None):
         """Status in Status-Tabelle speichern"""
@@ -361,11 +378,11 @@ class FilmDB:
                      Dateiname    text primary key,
                      DatumDatei   date)"""
         INSERT_STMT = """INSERT OR IGNORE INTO recordings Values (?,?,?,?,?,?)"""
-        SEL_STMT = """SELECT sender,
+        SEL_STMT = f"""SELECT sender,
                             titel,
                             beschreibung,
                             datum
-                      FROM filme
+                      FROM {self.filmdb}
                         WHERE _id = ?"""
 
         # ausgewählte Felder aus Film-DB lesen
@@ -439,3 +456,12 @@ class FilmDB:
             rows = None
         self.close()
         return rows
+
+    @staticmethod
+    def get_film_id(film: FilmlistenEintrag) -> int:
+        datum = "" if film.datum is None else film.datum.isoformat()
+        zeit = "" if film.zeit is None else film.zeit.isoformat()
+        id_str = ",".join([film.sender, film.thema, film.titel, datum, zeit, film.url])
+        id_bytes = id_str.encode("utf-8")
+        hexdigest = hashlib.md5(id_bytes).hexdigest()
+        return int(hexdigest, base=16)
