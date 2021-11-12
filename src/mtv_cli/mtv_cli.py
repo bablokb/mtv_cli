@@ -57,7 +57,7 @@ class FilmlistenEintrag:
     datum: Optional[dt.date]
     zeit: Optional[dt.time]
     dauer: Optional[dt.timedelta]
-    groesze: Optional[int]
+    groesse: int
     beschreibung: str
     url: str
     website: str
@@ -97,7 +97,7 @@ class FilmlistenEintrag:
             datum=datum,
             zeit=zeit,
             dauer=dauer,
-            groesze=None if raw_entry[6] == "" else int(raw_entry[6]),
+            groesse=int(raw_entry[6]) if raw_entry[6] else 0,
             beschreibung=raw_entry[7],
             url=raw_entry[8],
             website=raw_entry[9],
