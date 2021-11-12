@@ -15,7 +15,6 @@ import configparser
 import fcntl
 import lzma
 import os
-import random
 import re
 import ssl
 import sys
@@ -124,7 +123,7 @@ def do_update(options):
     """Update der Filmliste"""
 
     if options.upd_src == "auto":
-        src = random.choice(URL_FILMLISTE)
+        src = URL_FILMLISTE
     elif options.upd_src == "json":
         # existierende Filmliste verwenden
         src = os.path.join(MTV_CLI_HOME, "filme.json")
