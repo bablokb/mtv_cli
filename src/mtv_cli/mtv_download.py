@@ -16,10 +16,13 @@ from multiprocessing.pool import ThreadPool
 from subprocess import DEVNULL, STDOUT
 
 from loguru import logger
+from mtv_filmdb import FilmDB
 
 
 def download_film(options, film):
     """Download eines einzelnen Films"""
+
+    filmDB: FilmDB = options.filmDB
 
     # Infos zusammensuchen
     _id = film._id
@@ -47,7 +50,7 @@ def download_film(options, film):
         os.mkdir(ziel_dir)
 
     # Download ausführen
-    options.filmDB.update_downloads(_id, "A")
+    filmDB.update_downloads(_id, "A")
     logger.info("Start Download (%s) %s" % (size, film.titel[0:50]))
     if isM3U:
         logger.debug("Kommando: %s" % cmd)
@@ -61,17 +64,18 @@ def download_film(options, film):
         "Ende  Download (%s) %s (Return-Code: %d)" % (size, film.titel[0:50], rc),
     )
     if rc == 0:
-        options.filmDB.update_downloads(_id, "K")
-        options.filmDB.save_recs(_id, ziel)
+        filmDB.update_downloads(_id, "K")
+        filmDB.save_recs(_id, ziel)
     else:
-        options.filmDB.update_downloads(_id, "F")
+        filmDB.update_downloads(_id, "F")
 
     return rc
 
 
 def download_filme(options, status="'V','F','A'"):
     # Filme lesen
-    filme = options.filmDB.read_downloads(ui=False, status=status)
+    filmDB: FilmDB = options.filmDB
+    filme = filmDB.read_downloads(ui=False, status=status)
 
     if not filme:
         logger.info("Keine vorgemerkten Filme vorhanden")
@@ -88,4 +92,4 @@ def download_filme(options, status="'V','F','A'"):
             pool.close()
             pool.join()
 
-    options.filmDB.save_status("_download")
+    filmDB.save_status("_download")

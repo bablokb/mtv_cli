@@ -164,8 +164,9 @@ def filme_suchen(options):
     if not options.suche:
         options.suche = get_suche()
 
-    statement = options.filmDB.get_query(options.suche)
-    return options.filmDB.execute_query(statement)
+    filmDB: FilmDB = options.filmDB
+    statement = filmDB.get_query(options.suche)
+    return filmDB.execute_query(statement)
 
 
 def zeige_liste(rows):
@@ -210,7 +211,9 @@ def _do_now_later_common_body(options, do_now):
         selected = [("dummy", i) for i in range(len(rows))]
     else:
         selected = zeige_liste(rows)
-    num_changes = save_selected(options.filmDB, rows, selected, save_selected_status)
+
+    filmDB: FilmDB = options.filmDB
+    num_changes = save_selected(filmDB, rows, selected, save_selected_status)
     logger.info(
         "%d von %d Filme vorgemerkt für %sDownload"
         % (num_changes, len(selected), when_download_wording),
@@ -255,7 +258,8 @@ def do_edit(options):
     """Downloadliste anzeigen und editieren"""
 
     # Liste lesen
-    rows = options.filmDB.read_downloads()
+    filmDB: FilmDB = options.filmDB
+    rows = filmDB.read_downloads()
     if not rows:
         logger.info("Keine vorgemerkten Filme vorhanden")
         return
@@ -282,7 +286,7 @@ def do_edit(options):
         row = rows[sel_index]
         deletes.append((row["_ID"],))
     if len(deletes):
-        changes = options.filmDB.delete_downloads(deletes)
+        changes = filmDB.delete_downloads(deletes)
     else:
         changes = 0
     logger.info("%d vorgemerkte Filme gelöscht" % changes)
