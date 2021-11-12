@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-from __future__ import annotations
 
 import configparser
-import datetime as dt
 import fcntl
 import lzma
 import os
@@ -10,7 +8,6 @@ import re
 import sys
 import urllib.request as request
 from argparse import ArgumentParser
-from dataclasses import dataclass, replace
 from io import TextIOBase
 from typing import Iterable, Optional
 
@@ -29,6 +26,7 @@ from mtv_const import (
 )
 from mtv_download import download_filme
 from mtv_filmdb import FilmDB as FilmDB
+from mtv_filminfo import FilmlistenEintrag
 from pick import pick  # type: ignore[import]
 
 # --------------------------------------------------------------------------
@@ -46,88 +44,6 @@ from pick import pick  # type: ignore[import]
 
 class Options:
     pass
-
-
-@dataclass(frozen=True)
-class FilmlistenEintrag:
-    # TODO: Datum+Zeit zu Sendezeit zusammenfassen; DatumL ganz durch Sendezeit ersetzen
-    sender: str
-    thema: str
-    titel: str
-    datum: Optional[dt.date]
-    zeit: Optional[dt.time]
-    dauer: Optional[dt.timedelta]
-    groesse: int
-    beschreibung: str
-    url: str
-    website: str
-    url_untertitel: str
-    url_rtmp: str
-    url_klein: str
-    url_rtmp_klein: str
-    url_hd: str
-    url_rtmp_hd: str
-    datuml: Optional[int]
-    url_history: str
-    geo: str
-    neu: bool
-
-    @classmethod
-    def from_item_list(cls, raw_entry: list[str]) -> FilmlistenEintrag:
-        datum = (
-            None
-            if raw_entry[3] == ""
-            else dt.datetime.strptime(raw_entry[3], "%d.%m.%Y").date()
-        )
-        zeit = (
-            None
-            if raw_entry[4] == ""
-            else dt.datetime.strptime(raw_entry[4], "%H:%M:%S").time()
-        )
-        dauer_raw = (
-            None
-            if raw_entry[5] == ""
-            else dt.datetime.strptime(raw_entry[5], "%H:%M:%S")
-        )
-        dauer = None if dauer_raw is None else dauer_raw - dt.datetime(1900, 1, 1)
-        return FilmlistenEintrag(
-            sender=raw_entry[0],
-            thema=raw_entry[1],
-            titel=raw_entry[2],
-            datum=datum,
-            zeit=zeit,
-            dauer=dauer,
-            groesse=int(raw_entry[6]) if raw_entry[6] else 0,
-            beschreibung=raw_entry[7],
-            url=raw_entry[8],
-            website=raw_entry[9],
-            url_untertitel=raw_entry[10],
-            url_rtmp=raw_entry[11],
-            url_klein=raw_entry[12],
-            url_rtmp_klein=raw_entry[13],
-            url_hd=raw_entry[14],
-            url_rtmp_hd=raw_entry[15],
-            datuml=None if raw_entry[16] == "" else int(raw_entry[16]),
-            url_history=raw_entry[17],
-            geo=raw_entry[18],
-            neu=raw_entry[19] == "true",
-        )
-
-    def update(self, entry: Optional[FilmlistenEintrag]) -> FilmlistenEintrag:
-        """
-        Übernimm die Felder Sender und Thema, falls nötig
-
-        Falls eines der genannten Felder leer ist, wird es von `eintrag`
-        übernommen.
-        """
-        if entry is None:
-            return self
-        new = self
-        for attr in "sender", "thema":
-            if not getattr(new, attr):
-                new_attr = getattr(entry, attr)
-                new = replace(self, attr=new_attr)
-        return new
 
 
 # --- Stream der Filmliste   ------------------------------------------------
