@@ -24,6 +24,7 @@ DLL_TITEL = ("St" + DLL_FORMAT).format(
 
 MTV_CLI_HOME = Path("~").expanduser() / ".mediathek3"
 FILME_SQLITE = MTV_CLI_HOME / "filme.sqlite"
+MTV_CLI_CONFIG = MTV_CLI_HOME / "mtv_cli.cfg"
 MTV_CLI_SQLITE = MTV_CLI_HOME / "mtv_cli.sqlite"
 
 URL_FILMLISTE = "https://liste.mediathekview.de/Filmliste-akt.xz"

@@ -18,6 +18,7 @@ from mtv_const import (
     DLL_FORMAT,
     DLL_TITEL,
     FILME_SQLITE,
+    MTV_CLI_CONFIG,
     MTV_CLI_HOME,
     SEL_FORMAT,
     SEL_TITEL,
@@ -400,8 +401,10 @@ def get_config(parser):
 
 if __name__ == "__main__":
 
+    if not MTV_CLI_CONFIG.exists():
+        sys.exit("Konfigurationsdatei nicht vorhanden!")
     config_parser = configparser.RawConfigParser()
-    config_parser.read("/etc/mtv_cli.conf")
+    config_parser.read(MTV_CLI_CONFIG)
     try:
         config = get_config(config_parser)
     except Exception as e:
