@@ -10,6 +10,7 @@ python = "^3.7.3"
 pick = "^1.0.0"
 loguru = "^0.5.3"
 ijson = "^3.1.4"
+pydantic = "^1.8.2"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.29.0"

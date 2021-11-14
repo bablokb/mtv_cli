@@ -8,7 +8,6 @@ import re
 import sys
 import urllib.request as request
 from argparse import ArgumentParser
-from dataclasses import asdict
 from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
@@ -231,7 +230,7 @@ def do_search(options):
     if options.doBatch:
         print("[")
         for film in filme:
-            print(asdict(film), end=",")
+            print(film.dict(), end=",")
         print("]")
     else:
         print(SEL_TITEL)

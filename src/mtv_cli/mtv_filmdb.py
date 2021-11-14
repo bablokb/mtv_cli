@@ -13,7 +13,6 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import sqlite3
-from dataclasses import asdict
 from multiprocessing import Lock
 from pathlib import Path
 from typing import Iterable, Literal, Optional, Union
@@ -111,7 +110,7 @@ class FilmDB:
     def insert_film(self, film: FilmlistenEintrag) -> None:
         """Satz zur Datenbank hinzufügen"""
         INSERT_STMT = f"INSERT INTO {self.filmdb} VALUES (" + 20 * "?," + "?)"
-        as_dict = asdict(film)
+        as_dict = film.dict()
         as_dict["_id"] = self.get_film_id(film)
         as_dict["zeit"] = None if film.zeit is None else film.zeit.strftime("%H:%M")
         as_dict["dauer"] = film.dauer_as_minutes()
@@ -238,7 +237,7 @@ class FilmDB:
             else:
                 logger.info("Dauer ist None")
             as_dict["neu"] = bool(as_dict["neu"])
-            film = FilmlistenEintrag(**as_dict)
+            film = FilmlistenEintrag.parse_obj(as_dict)
             yield film
         self.close()
 

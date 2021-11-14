@@ -15,7 +15,6 @@ import json
 import os
 import subprocess
 from argparse import ArgumentParser
-from dataclasses import asdict
 from multiprocessing import Process
 from pathlib import Path
 from typing import Optional
@@ -101,7 +100,7 @@ def suche():
     # Film-DB abfragen
     filmDB: FilmDB = options.filmDB
     filme = list(filmDB.finde_filme(such_args))
-    response = [asdict(film) for film in filme]
+    response = [film.dict() for film in filme]
     logger.debug("Anzahl Treffer: %d" % len(filme))
     bottle.response.content_type = "application/json"
     return json.dumps(response)

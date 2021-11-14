@@ -11,7 +11,6 @@
 
 import shlex
 import subprocess
-from dataclasses import asdict, replace
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from subprocess import DEVNULL, STDOUT
@@ -28,10 +27,12 @@ def download_film(options, film: FilmlistenEintrag) -> int:
 
     # Infos zusammensuchen
     size, url = film.get_url(options.config["QUALITAET"])
-    sanitised_film = replace(
-        film, thema=film.thema.replace("/", "_"), titel=film.titel.replace("/", "_")
-    )
+    sanitised_thema = film.thema.replace("/", "_")
+    sanitised_titel = film.titel.replace("/", "_")
     ext = url.split(".")[-1].lower()
+    film_kwargs = film.dict()
+    film_kwargs.update(dict(titel=sanitised_titel, thema=sanitised_thema))
+    sanitised_film = FilmlistenEintrag.parse_obj(film_kwargs)
 
     # Kommando bei Playlisten anpassen. Die Extension der gespeicherten Datei
     # wird auf mp4 geändert
@@ -43,7 +44,7 @@ def download_film(options, film: FilmlistenEintrag) -> int:
         cmd = options.config["CMD_DOWNLOADS"]
 
     ziel = Path(
-        options.config["ZIEL_DOWNLOADS"].format(ext=ext, **asdict(sanitised_film))
+        options.config["ZIEL_DOWNLOADS"].format(ext=ext, **sanitised_film.dict())
     )
     ziel.parent.mkdir(parents=True, exist_ok=True)
     cmd = cmd.format(ziel=ziel, url=url)
