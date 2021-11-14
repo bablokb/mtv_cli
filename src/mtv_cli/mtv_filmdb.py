@@ -11,9 +11,10 @@
 from __future__ import annotations
 
 import datetime
+import datetime as dt
 import hashlib
 import sqlite3
-from dataclasses import asdict, astuple
+from dataclasses import asdict
 from multiprocessing import Lock
 from pathlib import Path
 from typing import Iterable, Literal, Optional, Union
@@ -86,7 +87,7 @@ class FilmDB:
       DatumL int,
       Url_History text,
       Geo text,
-      neu text,
+      neu bool,
       _id text primary key )"""
         )
 
@@ -227,10 +228,18 @@ class FilmDB:
         cursor = self.open()
         cursor.execute(query)
         for item in cursor.fetchall():
-            if not isinstance(item, list):
-                logger.error(f"Ungültiger Rückgabetyp: {item}")
-                raise TypeError("Rückgabewert der Datenbank ist nicht Liste!")
-            film = FilmlistenEintrag.from_item_list(item)
+            as_dict = {key.lower(): item[key] for key in item.keys()}
+            del as_dict["_id"]
+            if as_dict["zeit"] is not None:
+                as_dict["zeit"] = dt.datetime.strptime(as_dict["zeit"], "%H:%M").time()
+            else:
+                logger.info("Zeit ist None")
+            if as_dict["dauer"] is not None:
+                as_dict["dauer"] = dt.timedelta(minutes=as_dict["dauer"])
+            else:
+                logger.info("Dauer ist None")
+            as_dict["neu"] = bool(as_dict["neu"])
+            film = FilmlistenEintrag(**as_dict)
             yield film
         self.close()
 

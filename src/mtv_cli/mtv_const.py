@@ -13,7 +13,7 @@ from pathlib import Path
 VERSION = 2  # Erhöhung nur bei inkompatiblen Änderungen
 
 
-SEL_FORMAT = "{:7.7}|{:15.15}|{:8.8}|{:8.8}|{:52.52}"
+SEL_FORMAT = "{:7.7}|{:15.15}|{:8.8}|{}|{:52.52}"
 SEL_TITEL = SEL_FORMAT.format("Sender", "Thema", "Datum", "Dauer", "Titel")
 
 DLL_FORMAT = "{:1.1}|{:8.8}|{:7.7}|{:8.8}|{:8.8}|{:8.8}|{:58.58}"

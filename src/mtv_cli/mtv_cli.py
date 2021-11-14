@@ -154,7 +154,7 @@ def get_select(filme: list[FilmlistenEintrag]) -> Iterable[str]:
         thema = film.thema
         titel = film.titel
         datum = "" if film.datum is None else film.datum.isoformat()
-        dauer = film.dauer
+        dauer = film.dauer_as_minutes()
         yield SEL_FORMAT.format(sender, thema, datum, dauer, titel)
 
 

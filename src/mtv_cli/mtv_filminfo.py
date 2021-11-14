@@ -185,6 +185,28 @@ class FilmlistenEintrag:
     geo: str
     neu: bool
 
+    def __post_init__(self) -> None:
+        assert isinstance(self.sender, str)
+        assert isinstance(self.thema, str)
+        assert isinstance(self.titel, str)
+        assert self.datum is None or isinstance(self.datum, dt.date)
+        assert self.zeit is None or isinstance(self.zeit, dt.time)
+        assert self.dauer is None or isinstance(self.dauer, dt.timedelta)
+        assert isinstance(self.groesse, int)
+        assert isinstance(self.beschreibung, str)
+        assert isinstance(self.url, str)
+        assert isinstance(self.website, str)
+        assert isinstance(self.url_untertitel, str)
+        assert isinstance(self.url_rtmp, str)
+        assert isinstance(self.url_klein, str)
+        assert isinstance(self.url_rtmp_klein, str)
+        assert isinstance(self.url_hd, str)
+        assert isinstance(self.url_rtmp_hd, str)
+        assert self.datuml is None or isinstance(self.datuml, int)
+        assert isinstance(self.url_history, str)
+        assert isinstance(self.geo, str)
+        assert isinstance(self.neu, bool)
+
     @classmethod
     def from_item_list(cls, raw_entry: list[str]) -> FilmlistenEintrag:
         datum = (
