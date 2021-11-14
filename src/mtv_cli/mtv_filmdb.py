@@ -13,7 +13,7 @@ from __future__ import annotations
 import datetime
 import hashlib
 import sqlite3
-from dataclasses import astuple
+from dataclasses import asdict, astuple
 from multiprocessing import Lock
 from pathlib import Path
 from typing import Iterable, Literal, Optional, Union
@@ -72,7 +72,7 @@ class FilmDB:
       Titel text,
       Datum date,
       Zeit text,
-      Dauer text,
+      Dauer integer,
       Groesse integer,
       Beschreibung text,
       Url text,
@@ -83,11 +83,11 @@ class FilmDB:
       Url_RTMP_Klein text,
       Url_HD text,
       Url_RTMP_HD text,
-      DatumL text,
+      DatumL int,
       Url_History text,
       Geo text,
       neu text,
-      _id integer primary key )"""
+      _id text primary key )"""
         )
 
     def is_on_ignorelist(self, eintrag: FilmlistenEintrag) -> bool:
@@ -108,11 +108,15 @@ class FilmDB:
             return True
         return False
 
-    def insert_film(self, eintrag: FilmlistenEintrag) -> None:
+    def insert_film(self, film: FilmlistenEintrag) -> None:
         """Satz zur Datenbank hinzufügen"""
         INSERT_STMT = f"INSERT INTO {self.filmdb} VALUES (" + 20 * "?," + "?)"
+        as_dict = asdict(film)
+        as_dict["_id"] = self.get_film_id(film)
+        as_dict["zeit"] = None if film.zeit is None else film.zeit.strftime("%H:%M")
+        as_dict["dauer"] = film.dauer_as_minutes()
         self.total += 1
-        self.cursor.execute(INSERT_STMT, astuple(eintrag))
+        self.cursor.execute(INSERT_STMT, tuple(as_dict.values()))
 
     def commit(self):
         """Commit durchführen"""
@@ -458,10 +462,10 @@ class FilmDB:
         return rows
 
     @staticmethod
-    def get_film_id(film: FilmlistenEintrag) -> int:
+    def get_film_id(film: FilmlistenEintrag) -> str:
         datum = "" if film.datum is None else film.datum.isoformat()
         zeit = "" if film.zeit is None else film.zeit.isoformat()
         id_str = ",".join([film.sender, film.thema, film.titel, datum, zeit, film.url])
         id_bytes = id_str.encode("utf-8")
         hexdigest = hashlib.md5(id_bytes).hexdigest()
-        return int(hexdigest, base=16)
+        return hexdigest

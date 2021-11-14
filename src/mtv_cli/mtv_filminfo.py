@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import datetime as dt
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass
 from typing import Literal, Optional, Union
 
 # Mediathekview auf der Kommandozeile
@@ -235,12 +235,11 @@ class FilmlistenEintrag:
         """
         if entry is None:
             return self
-        new = self
+        new = asdict(self)
         for attr in "sender", "thema":
-            if not getattr(new, attr):
-                new_attr = getattr(entry, attr)
-                new = replace(self, attr=new_attr)
-        return new
+            if not new[attr]:
+                new[attr] = asdict(entry)[attr]
+        return type(self)(**new)
 
     def dauer_as_minutes(self) -> int:
         if self.dauer is None:
