@@ -328,8 +328,7 @@ class FilmDB:
         self.close()
         if ui:
             return rows
-        else:
-            return [FilmlistenEintrag.from_item_list(row) for row in rows]
+        return [FilmlistenEintrag.from_item_list(row) for row in rows]
 
     def save_status(self, key, text=None):
         """Status in Status-Tabelle speichern"""
