@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 import datetime as dt
 from dataclasses import asdict, dataclass
 from typing import Literal, Optional, Union
@@ -69,13 +68,13 @@ class FilmInfo:
 
     def to_date(self, datum):
         """Datumsstring in ein Date-Objekt umwandeln"""
-        if isinstance(datum, datetime.date):
+        if isinstance(datum, dt.date):
             return datum
         if "." in datum:
-            return datetime.datetime.strptime(datum, "%d.%m.%Y").date()
+            return dt.datetime.strptime(datum, "%d.%m.%Y").date()
         else:
             # schon im ISO-Format
-            return datetime.datetime.strptime(datum, "%Y-%m-%d").date()
+            return dt.datetime.strptime(datum, "%Y-%m-%d").date()
 
     def dauer_as_minutes(self):
         """Dauer HH:MM:SS in Minuten (Integer) umwandeln"""

@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-import datetime
 import datetime as dt
 import hashlib
 import sqlite3
@@ -43,7 +42,7 @@ class FilmDB:
         self.last_liste = None
         self.lock = Lock()
         self.total = 0
-        self.date_cutoff = datetime.date.today() - datetime.timedelta(
+        self.date_cutoff = dt.date.today() - dt.timedelta(
             days=self.config["DATE_CUTOFF"]
         )
         self.filmdb = "filme"
@@ -256,7 +255,7 @@ class FilmDB:
         INSERT_STMT = f"""INSERT OR IGNORE INTO {self.downloadsdb} Values (?,?,?,?)"""
 
         # Aktuelles Datum an Werte anfügen
-        today = datetime.date.today()
+        today = dt.date.today()
         query_values = [
             (self.get_film_id(film), film.datum, status, today) for film in filme
         ]
@@ -298,7 +297,7 @@ class FilmDB:
         film_id = self.get_film_id(film)
         with self.lock:
             cursor = self.open()
-            cursor.execute(UPD_STMT, (status, datetime.date.today(), film_id))
+            cursor.execute(UPD_STMT, (status, dt.date.today(), film_id))
             self.commit()
             self.close()
 
@@ -353,7 +352,7 @@ class FilmDB:
         INSERT_STMT = """INSERT OR REPLACE INTO status Values (?,?,?)"""
 
         # Zeitstempel
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
 
         # Tabelle bei Bedarf erstellen
         with self.lock:
@@ -423,9 +422,7 @@ class FilmDB:
         try:
             with self.lock:
                 logger.debug("SQL-Insert: %s" % INSERT_STMT)
-                cursor.execute(
-                    INSERT_STMT, tuple(row) + (Dateiname, datetime.date.today())
-                )
+                cursor.execute(INSERT_STMT, tuple(row) + (Dateiname, dt.date.today()))
                 self.commit()
         except sqlite3.OperationalError as e:
             logger.debug("SQL-Fehler: %s" % e)
