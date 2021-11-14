@@ -15,7 +15,8 @@ import hashlib
 import sqlite3
 from dataclasses import astuple
 from multiprocessing import Lock
-from typing import Iterable, Literal, Union
+from pathlib import Path
+from typing import Iterable, Literal, Optional, Union
 
 from loguru import logger
 from mtv_filminfo import FilmlistenEintrag
@@ -418,7 +419,7 @@ class FilmDB:
             logger.debug("SQL-Fehler: %s" % e)
         self.close()
 
-    def delete_recs(self, rows):
+    def delete_recs(self, rows: list[tuple[Path]]) -> int:
         """Aufnahme löschen.
         rows ist Array von Tuplen: [(name,),(name,), ...]"""
         DEL_STMT = "DELETE FROM recordings where Dateiname=?"
@@ -430,30 +431,30 @@ class FilmDB:
 
         cursor = self.open()
         cursor.executemany(DEL_STMT, rows)
-        changes = self.db.total_changes
+        changes: int = self.db.total_changes
         self.commit()
         self.close()
         return changes
 
-    def read_recs(self, Dateiname=None):
+    def read_recs(self, dateiname: Optional[Path] = None) -> Optional[list[dict]]:
         """Aufnahmen auslesen."""
 
-        if Dateiname:
-            SEL_STMT = "SELECT * from recordings where Dateiname=?"
-        else:
+        if dateiname is None:
             SEL_STMT = "SELECT * from recordings"
+        else:
+            SEL_STMT = "SELECT * from recordings where Dateiname=?"
 
         logger.debug("SQL-Query: %s" % SEL_STMT)
         cursor = self.open()
+        rows: Optional[list[dict]] = None
         try:
-            if Dateiname:
-                cursor.execute(SEL_STMT, (Dateiname,))
-            else:
+            if dateiname is None:
                 cursor.execute(SEL_STMT)
+            else:
+                cursor.execute(SEL_STMT, (str(dateiname),))
             rows = cursor.fetchall()
         except sqlite3.OperationalError as e:
             logger.debug("SQL-Fehler: %s" % e)
-            rows = None
         self.close()
         return rows
 

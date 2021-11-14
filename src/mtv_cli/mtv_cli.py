@@ -4,12 +4,12 @@ from __future__ import annotations
 import configparser
 import fcntl
 import lzma
-import os
 import re
 import sys
 import urllib.request as request
 from argparse import ArgumentParser
 from dataclasses import asdict
+from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
@@ -103,7 +103,7 @@ def get_update_source_file_handle(update_source: str) -> TextIO:
         src = URL_FILMLISTE
     elif update_source == "json":
         # existierende Filmliste verwenden
-        src = os.path.join(MTV_CLI_HOME, "filme.json")
+        src = str(MTV_CLI_HOME / "filme.json")
     else:
         src = update_source
 
@@ -340,6 +340,7 @@ def get_parser():
         dest="dbfile",
         default=FILME_SQLITE,
         help="Datenbankdatei",
+        type=Path,
     )
 
     parser.add_argument(
@@ -370,15 +371,15 @@ def get_parser():
     return parser
 
 
-def get_lock(datei):
+def get_lock(datei: Path):
     global fd_datei
 
-    if not os.path.isfile(datei):
+    if not datei.is_file():
         return True
 
-    fd_datei = open(datei, "r")
+    fd_datei = datei.open("r")
     try:
-        lock = fcntl.flock(fd_datei, fcntl.LOCK_NB | fcntl.LOCK_EX)
+        fcntl.flock(fd_datei, fcntl.LOCK_NB | fcntl.LOCK_EX)
         return True
     except IOError:
         return False
@@ -416,10 +417,9 @@ if __name__ == "__main__":
     logger.level(options.level if options.level else config["MSG_LEVEL"])
 
     # Verzeichnis HOME/.mediathek3 anlegen
-    if not os.path.exists(MTV_CLI_HOME):
-        os.mkdir(MTV_CLI_HOME)
+    MTV_CLI_HOME.mkdir(parents=True, exist_ok=True)
 
-    if not options.upd_src and not os.path.isfile(options.dbfile):
+    if not options.upd_src and not options.dbfile.is_file():
         logger.error("Datenbank %s existiert nicht!" % options.dbfile)
         sys.exit(3)
 

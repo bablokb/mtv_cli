@@ -17,6 +17,8 @@ import subprocess
 from argparse import ArgumentParser
 from dataclasses import asdict
 from multiprocessing import Process
+from pathlib import Path
+from typing import Optional
 
 import bottle
 from bottle import route
@@ -37,8 +39,8 @@ def get_webroot(pgm):
     return os.path.realpath(os.path.join(pgm_dir, "..", "lib", "mtv_cli", "web"))
 
 
-def get_webpath(path):
-    return os.path.join(WEB_ROOT, path)
+def get_webpath(path: str) -> Path:
+    return WEB_ROOT / path
 
 
 @route("/css/<filepath:path>")
@@ -131,7 +133,8 @@ def downloads():
 @route("/dateien", method="POST")
 def dateien():
     # Film-DB abfragen
-    rows = options.filmDB.read_recs()
+    filmDB: FilmDB = options.filmDB
+    rows = filmDB.read_recs()
     if not rows:
         logger.debug("Keine Dateien gefunden")
         return "{[]}"
@@ -140,14 +143,14 @@ def dateien():
     result = []
     deleted = []
     for row in rows:
-        dateiname = row["DATEINAME"]
-        if not os.path.exists(dateiname):
+        dateiname = Path(row["DATEINAME"])
+        if not dateiname.exists():
             logger.warning("Datei %s existiert nicht" % dateiname)
             deleted.append((dateiname,))
             continue
 
         item = {}
-        item["DATEI"] = os.path.basename(dateiname)
+        item["DATEI"] = dateiname.name
         item["DATUMFILM"] = row["DATUMFILM"].strftime("%d.%m.%y")
         item["DATUMDATEI"] = row["DATUMDATEI"].strftime("%d.%m.%y")
         for key in ["SENDER", "TITEL", "BESCHREIBUNG", "DATEINAME"]:
@@ -169,26 +172,27 @@ def dateien():
 def del_datei():
     """Datei löschen"""
 
-    # get name-parameter
-    dateiname = bottle.request.forms.getunicode("name")
-    logger.debug("Löschanforderung (Dateiname: %s)" % dateiname)
-
-    bottle.response.content_type = "application/json"
-
-    if dateiname is None:
+    maybe_dateiname: Optional[str] = bottle.request.forms.getunicode("name")
+    if maybe_dateiname is None:
         msg = '"kein Dateiname angegeben"'
         bottle.response.status = 400  # bad request
         return '{"msg": ' + msg + "}"
 
+    dateiname = Path(maybe_dateiname)
+    logger.debug("Löschanforderung (Dateiname: %s)" % dateiname)
+
+    bottle.response.content_type = "application/json"
+
     # Datei in der Aufname-DB suchen und dann löschen
-    rows = options.filmDB.read_recs(dateiname)
+    filmDB: FilmDB = options.filmDB
+    rows = filmDB.read_recs(dateiname)
     if not rows:
         logger.warning("Dateiname %s nicht in Film-DB" % dateiname)
         msg = '"Ungültiger Dateiname"'
         bottle.response.status = 400  # bad request
-    elif os.path.exists(dateiname):
-        os.unlink(dateiname)
-        options.filmDB.delete_recs([(dateiname,)])
+    elif dateiname.exists():
+        dateiname.unlink()
+        filmDB.delete_recs([(dateiname,)])
         msg = '"Datei erfolgreich gelöscht"'
         bottle.response.status = 200  # OK
         logger.info("Dateiname %s gelöscht" % dateiname)
@@ -205,32 +209,33 @@ def get_datei():
     """Datei herunterladen"""
 
     # get name-parameter
-    dateiname = bottle.request.query.getunicode("name")
-    logger.debug("Downloadanforderung (Dateiname: %s)" % dateiname)
-
+    maybe_dateiname: Optional[str] = bottle.request.query.getunicode("name")
+    logger.debug("Downloadanforderung (Dateiname: %s)" % maybe_dateiname)
     bottle.response.content_type = "application/json"
 
-    if dateiname is None:
+    if maybe_dateiname is None:
         msg = '"kein Dateiname angegeben"'
         bottle.response.status = 400  # bad request
         return '{"msg": ' + msg + "}"
+    dateiname = Path(maybe_dateiname)
 
     # Überprüfen, ob Dateiname in Film-DB existiert
-    rows = options.filmDB.read_recs(dateiname)
+    filmDB: FilmDB = options.filmDB
+    rows = filmDB.read_recs(dateiname)
     if not rows:
         logger.warning("Dateiname %s nicht in Film-DB" % dateiname)
         msg = '"Ungültiger Dateiname"'
         bottle.response.status = 400  # bad request
         return '{"msg": ' + msg + "}"
 
-    if not os.path.exists(dateiname):
+    if not dateiname.exists():
         msg = '"Dateiname existiert nicht"'
         bottle.response.status = 404  # not found
         return '{"msg": ' + msg + "}"
 
     # Datei roh herunterladen
     bottle.response.content_type = "application/mp4"
-    f = '"' + os.path.basename(dateiname) + '"'
+    f = f'"{dateiname.name}"'
     bottle.response.set_header("Content-Disposition", "attachment; filename=%s" % f)
     return subprocess.check_output(["cat", dateiname])
 
@@ -342,8 +347,7 @@ if __name__ == "__main__":
     logger.level(log_level)
 
     # Verzeichnis HOME/.mediathek3 anlegen
-    if not os.path.exists(MTV_CLI_HOME):
-        os.mkdir(MTV_CLI_HOME)
+    MTV_CLI_HOME.mkdir(exist_ok=True, parents=True)
 
     # Globale Objekte anlegen
     options.upd_src = "auto"
@@ -351,7 +355,7 @@ if __name__ == "__main__":
     options.filmDB = FilmDB(options)
 
     # Server starten
-    WEB_ROOT = get_webroot(__file__)
+    WEB_ROOT = Path(get_webroot(__file__))
     logger.debug("Web-Root Verzeichnis: %s" % WEB_ROOT)
     if log_level == "DEBUG":
         logger.debug("Starte den Webserver im Debug-Modus")

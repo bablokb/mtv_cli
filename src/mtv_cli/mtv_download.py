@@ -9,11 +9,11 @@
 #
 
 
-import os
 import shlex
 import subprocess
 from dataclasses import asdict, replace
 from multiprocessing.pool import ThreadPool
+from pathlib import Path
 from subprocess import DEVNULL, STDOUT
 
 from loguru import logger
@@ -42,11 +42,11 @@ def download_film(options, film: FilmlistenEintrag) -> int:
     else:
         cmd = options.config["CMD_DOWNLOADS"]
 
-    ziel = options.config["ZIEL_DOWNLOADS"].format(ext=ext, **asdict(sanitised_film))
+    ziel = Path(
+        options.config["ZIEL_DOWNLOADS"].format(ext=ext, **asdict(sanitised_film))
+    )
+    ziel.parent.mkdir(parents=True, exist_ok=True)
     cmd = cmd.format(ziel=ziel, url=url)
-
-    # Zielverzeichnis erstellen
-    os.makedirs(os.path.dirname(ziel), exist_ok=True)
 
     # Download ausführen
     filmDB.update_downloads(film, "A")
