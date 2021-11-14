@@ -247,7 +247,7 @@ class FilmDB:
         """Downloads sichern."""
 
         CREATE_STMT = f"""CREATE TABLE IF NOT EXISTS {self.downloadsdb} (
-                     _id          integer primary key,
+                     _id          text primary key,
                      Datum        date,
                      status       text,
                      DatumStatus  date)"""
