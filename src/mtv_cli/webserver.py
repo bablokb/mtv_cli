@@ -20,13 +20,12 @@ from pathlib import Path
 from typing import Optional
 
 import bottle
+import cli
 from bottle import route
+from constants import FILME_SQLITE, MTV_CLI_HOME
+from content_retrieval import download_filme
 from loguru import logger
-from mtv_const import FILME_SQLITE, MTV_CLI_HOME
-from mtv_download import download_filme
-from mtv_filmdb import FilmDB as FilmDB
-
-import mtv_cli
+from storage_backend import FilmDB as FilmDB
 
 
 class Options:
@@ -263,7 +262,7 @@ def vormerken():
 
 @route("/aktualisieren", method="GET")
 def aktualisieren():
-    p = Process(target=mtv_cli.do_update, args=(options,))
+    p = Process(target=cli.do_update, args=(options,))
     p.start()
     bottle.response.content_type = "application/json"
     return '{"msg": "Aktualisierung angestoßen"}'
@@ -334,7 +333,7 @@ if __name__ == "__main__":
     # Konfiguration lesen
     config_parser = configparser.RawConfigParser()
     config_parser.read("/etc/mtv_cli.conf")
-    config = mtv_cli.get_config(config_parser)
+    config = cli.get_config(config_parser)
     get_config(config_parser, config)
 
     # Optionen lesen

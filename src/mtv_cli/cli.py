@@ -12,8 +12,7 @@ from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
-from loguru import logger
-from mtv_const import (
+from constants import (
     DLL_FORMAT,
     DLL_TITEL,
     FILME_SQLITE,
@@ -24,10 +23,11 @@ from mtv_const import (
     URL_FILMLISTE,
     VERSION,
 )
-from mtv_download import download_filme
-from mtv_filmdb import DownloadStatus, FilmDB
-from mtv_filminfo import FilmlistenEintrag
+from content_retrieval import download_filme
+from film import FilmlistenEintrag
+from loguru import logger
 from pick import pick
+from storage_backend import DownloadStatus, FilmDB
 
 # Mediathekview auf der Kommandozeile
 #

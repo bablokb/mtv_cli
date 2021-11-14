@@ -15,9 +15,9 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from subprocess import DEVNULL, STDOUT
 
+from film import FilmlistenEintrag
 from loguru import logger
-from mtv_filmdb import DownloadStatus, FilmDB
-from mtv_filminfo import FilmlistenEintrag
+from storage_backend import DownloadStatus, FilmDB
 
 
 def download_film(options, film: FilmlistenEintrag) -> int:
