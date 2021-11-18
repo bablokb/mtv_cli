@@ -128,13 +128,16 @@ def get_suche() -> Iterable[str]:
         # suche_opts anzeigen
         # mit readline Suchebegriff abfragen, speichern in suche_wert
         # break, falls Auswahl "Ende"
-        option, index = pick(suche_opts, suche_titel)
-        if not index:
+        selection = pick(suche_opts, suche_titel)
+        if len(selection) == 0:
             break
-        else:
+        elif len(selection) == 1:
+            option, index = selection[0]
             begriff = input("Suchbegriff: ")
             pos = option.find("[")
             suche_opts[index] = option[0:pos] + " [" + begriff + "]"
+        else:
+            continue
 
     # Ergebnis extrahieren
     square_brackets_split = re.compile(r"\[|\]")
@@ -171,7 +174,7 @@ def zeige_liste(filme: list[FilmlistenEintrag]) -> list[tuple[str, int]]:
     """Filmliste anzeigen, Auswahl zurückgeben"""
     title = f"  {SEL_TITEL}"
     preselection = list(get_select(filme))
-    selection: list[tuple[str, int]] = pick(preselection, title, multi_select=True)
+    selection: list[tuple[str, int]] = pick(preselection, title, multiselect=True)
     return selection
 
 
@@ -264,7 +267,7 @@ def do_edit(options):
         select_liste.append(
             DLL_FORMAT.format(status, datum_status, sender, thema, datum, dauer, titel)
         )
-    selected = pick(select_liste, DLL_TITEL, multi_select=True)
+    selected = pick(select_liste, DLL_TITEL, multiselect=True)
 
     # IDs extrahieren und Daten löschen
     deletes = []

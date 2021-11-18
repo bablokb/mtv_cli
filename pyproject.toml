@@ -7,10 +7,10 @@ license = "GPL-3.0-only"
 
 [tool.poetry.dependencies]
 python = "^3.7.3"
-pick = "^1.0.0"
 loguru = "^0.5.3"
 ijson = "^3.1.4"
 pydantic = "^1.8.2"
+pick = {git = "https://github.com/MaxG87/pick", rev = "ebdcfdbf8bb27118ad6f8a34cccfbd7271357623"}
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.29.0"

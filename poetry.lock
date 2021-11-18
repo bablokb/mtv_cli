@@ -394,13 +394,20 @@ ptyprocess = ">=0.5"
 [[package]]
 name = "pick"
 version = "1.0.0"
-description = "pick an option in the terminal with a simple GUI"
+description = "Pick an option in the terminal with a simple GUI"
 category = "main"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.6"
+develop = false
 
 [package.dependencies]
-windows-curses = {version = "*", markers = "platform_system == \"Windows\""}
+windows-curses = {version = "^2.2.0", markers = "sys_platform == \"win32\""}
+
+[package.source]
+type = "git"
+url = "https://github.com/MaxG87/pick"
+reference = "main"
+resolved_reference = "ebdcfdbf8bb27118ad6f8a34cccfbd7271357623"
 
 [[package]]
 name = "pickleshare"
@@ -689,7 +696,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.3"
-content-hash = "ffcb0a35b01861602797fb4e96ecb4394adac03e33297fa98b28bd5585267b35"
+content-hash = "336055ee6cf5cab927d7de5679989752f47ac7b6047bd65c12ac796bba318f77"
 
 [metadata.files]
 appnope = [
@@ -1011,10 +1018,7 @@ pexpect = [
     {file = "pexpect-4.8.0-py2.py3-none-any.whl", hash = "sha256:0b48a55dcb3c05f3329815901ea4fc1537514d6ba867a152b581d69ae3710937"},
     {file = "pexpect-4.8.0.tar.gz", hash = "sha256:fc65a43959d153d0114afe13997d439c22823a27cefceb5ff35c2178c6784c0c"},
 ]
-pick = [
-    {file = "pick-1.0.0-py2.py3-none-any.whl", hash = "sha256:f32c8bd0fd943490c29e461a8168f4ac267247aaa6a7fc9dd327f97832842b5f"},
-    {file = "pick-1.0.0.tar.gz", hash = "sha256:03f13d4f5bfe74db4b969fb74c0ef110ec443978419d6c0f1f375a0d49539034"},
-]
+pick = []
 pickleshare = [
     {file = "pickleshare-0.7.5-py2.py3-none-any.whl", hash = "sha256:9649af414d74d4df115d5d718f82acb59c9d418196b7b4290ed47a12ce62df56"},
     {file = "pickleshare-0.7.5.tar.gz", hash = "sha256:87683d47965c1da65cdacaf31c8441d12b8044cdec9aca500cd78fc2c683afca"},
