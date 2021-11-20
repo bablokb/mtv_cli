@@ -23,7 +23,7 @@ from constants import (
     URL_FILMLISTE,
     VERSION,
 )
-from content_retrieval import download_filme
+from content_retrieval import LowMemoryFileSystemDownloader, download_filme
 from film import FilmlistenEintrag
 from loguru import logger
 from pick import pick
@@ -183,27 +183,19 @@ def do_later(options):
     _do_now_later_common_body(options, do_now=False)
 
 
-def do_now(options):
+def do_now(options, retriever: LowMemoryFileSystemDownloader):
     """Filmliste anzeigen, sofortiger Download nach Auswahl"""
 
-    num_changes = _do_now_later_common_body(options, do_now=True)
-    if num_changes > 0:
-        do_download(options)
+    selected_movies = select_movies_for_download(options)
+    for film in selected_movies:
+        logger.info(f"About to download {film}.")
+        retriever.download_film(film)
 
 
 def _do_now_later_common_body(options, do_now: bool) -> int:
     save_selected_status: DownloadStatus = "S" if do_now else "V"
     when_download_wording = "Sofort-" if do_now else "Download"
-    filme = list(filme_suchen(options))
-    if len(filme) == 0:
-        logger.info("Keine Suchtreffer")
-        return 0
-
-    if options.doBatch:
-        selection_ids = set(range(len(filme)))
-    else:
-        selection_ids = {idx for (_, idx) in zeige_liste(filme)}
-    selected_filme = [film for (n, film) in enumerate(filme) if n in selection_ids]
+    selected_filme = list(select_movies_for_download(options))
 
     filmDB: FilmDB = options.filmDB
     num_changes = filmDB.save_downloads(selected_filme, status=save_selected_status)
@@ -214,13 +206,25 @@ def _do_now_later_common_body(options, do_now: bool) -> int:
     return num_changes
 
 
+def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:
+    filme = list(filme_suchen(options))
+    if len(filme) == 0:
+        logger.info("Keine Suchtreffer")
+        return 0
+
+    if options.doBatch:
+        selection_ids = set(range(len(filme)))
+    else:
+        selection_ids = {idx for (_, idx) in zeige_liste(filme)}
+
+    for n, film in enumerate(filme):
+        if n in selection_ids:
+            yield film
+
+
 def do_download(options) -> None:
     """Download vorgemerkter Filme"""
-    if options.doNow:
-        # Aufruf aus do_now
-        download_filme(options, status=["S"])
-    else:
-        download_filme(options)
+    download_filme(options)
 
 
 def do_search(options):
@@ -437,6 +441,11 @@ if __name__ == "__main__":
     options.config = config
     options.filmDB = FilmDB(options)
 
+    retriever = LowMemoryFileSystemDownloader(
+        root=Path("~/Videos").expanduser(),
+        quality="HD",
+    )
+
     if options.upd_src:
         do_update(options)
     elif options.doEdit:
@@ -444,7 +453,7 @@ if __name__ == "__main__":
     elif options.doLater:
         do_later(options)
     elif options.doNow:
-        do_now(options)
+        do_now(options, retriever)
     elif options.doDownload:
         do_download(options)
     elif options.doSearch:
