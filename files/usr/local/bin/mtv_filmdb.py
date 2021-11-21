@@ -274,8 +274,15 @@ class FilmDB:
 
     # Aktuelles Datum an Werte anfügen
     today = datetime.date.today()
-    for val_list in rows:
+    rows_with_date = []
+    for vals in rows:
+      # vals ist ein Tuple, d.h. dort kann nichts angefügt werden
+      # Deshalb wird erst eine Liste gebaut, das Datum angehängt
+      # und dann wieder in ein Tuple zurück geschoben
+      val_list = list(vals)
       val_list.append(today)
+      rows_with_date.append(tuple(val_list))
+    rows = rows_with_date
 
     # Tabelle bei Bedarf erstellen
     cursor = self.open()
