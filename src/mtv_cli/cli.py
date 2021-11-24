@@ -23,11 +23,11 @@ from constants import (
     URL_FILMLISTE,
     VERSION,
 )
-from content_retrieval import LowMemoryFileSystemDownloader, download_filme
+from content_retrieval import LowMemoryFileSystemDownloader
 from film import FilmlistenEintrag
 from loguru import logger
 from pick import pick
-from storage_backend import DownloadStatus, FilmDB
+from storage_backend import FilmDB
 
 # Mediathekview auf der Kommandozeile
 #
@@ -180,7 +180,13 @@ def zeige_liste(filme: list[FilmlistenEintrag]) -> list[tuple[str, int]]:
 
 def do_later(options):
     """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-    _do_now_later_common_body(options, do_now=False)
+    filmDB: FilmDB = options.filmDB
+    selected_filme = list(select_movies_for_download(options))
+
+    total = len(selected_filme)
+    num_changes = filmDB.save_downloads(selected_filme, status="V")
+    logger.info(f"{num_changes} von {total} Filme vorgemerkt für Download")
+    return num_changes
 
 
 def do_now(options, retriever: LowMemoryFileSystemDownloader):
@@ -190,20 +196,6 @@ def do_now(options, retriever: LowMemoryFileSystemDownloader):
     for film in selected_movies:
         logger.info(f"About to download {film}.")
         retriever.download_film(film)
-
-
-def _do_now_later_common_body(options, do_now: bool) -> int:
-    save_selected_status: DownloadStatus = "S" if do_now else "V"
-    when_download_wording = "Sofort-" if do_now else "Download"
-    selected_filme = list(select_movies_for_download(options))
-
-    filmDB: FilmDB = options.filmDB
-    num_changes = filmDB.save_downloads(selected_filme, status=save_selected_status)
-    logger.info(
-        "%d von %d Filme vorgemerkt für %sDownload"
-        % (num_changes, len(selected_filme), when_download_wording),
-    )
-    return num_changes
 
 
 def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:

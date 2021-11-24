@@ -22,13 +22,10 @@ from loguru import logger
 
 # Bedeutung der Status-Codes:
 # V - Vorgemerkt
-# S - Sofort
 # A - Aktiv
 # F - Fehler
 # K - Komplett
-DownloadStatus = Union[
-    Literal["V"], Literal["S"], Literal["A"], Literal["F"], Literal["K"]
-]
+DownloadStatus = Union[Literal["V"], Literal["A"], Literal["F"], Literal["K"]]
 
 
 class FilmDB:

@@ -23,7 +23,7 @@ import bottle
 import cli
 from bottle import route
 from constants import FILME_SQLITE, MTV_CLI_HOME
-from content_retrieval import download_filme
+from content_retrieval import LowMemoryFileSystemDownloader
 from loguru import logger
 from storage_backend import FilmDB as FilmDB
 
@@ -270,10 +270,14 @@ def aktualisieren():
 
 @route("/download", method="GET")
 def download():
-    p = Process(target=download_filme, args=(options,))
+    retriever = LowMemoryFileSystemDownloader(
+        root=Path("~/Videos").expanduser(),
+        quality="HD",
+    )
+    p = Process(target=cli.do_download, args=(options, retriever))
     p.start()
     bottle.response.content_type = "application/json"
-    return '{"msg": "Download angestoßen"}'
+    return '{"msg": "Download angestoßen (Qualität: HD)"}'
 
 
 @route("/loeschen", method="POST")
