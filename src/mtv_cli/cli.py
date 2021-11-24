@@ -222,9 +222,18 @@ def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:
             yield film
 
 
-def do_download(options) -> None:
+def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
     """Download vorgemerkter Filme"""
-    download_filme(options)
+    filmDB: FilmDB = options.filmDB
+    selected_movies = list(filmDB.read_downloads(status=["V", "F", "A"]))
+
+    if len(selected_movies) == 0:
+        logger.info("Keine vorgemerkten Filme vorhanden")
+        return
+    for film in selected_movies:
+        logger.info(f"About to download {film}.")
+        retriever.download_film(film)
+    filmDB.save_status("_download")
 
 
 def do_search(options):
@@ -455,7 +464,7 @@ if __name__ == "__main__":
     elif options.doNow:
         do_now(options, retriever)
     elif options.doDownload:
-        do_download(options)
+        do_download(options, retriever)
     elif options.doSearch:
         sucess = do_search(options)
         sys.exit(0 if sucess else 1)

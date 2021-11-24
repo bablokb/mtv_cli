@@ -300,34 +300,15 @@ class FilmDB:
             self.commit()
             self.close()
 
-    def read_downloads(self, ui=True, status=list[DownloadStatus]):
-        """Downloads auslesen. Falls ui=True, Subset für Anzeige."""
+    def read_downloads(
+        self, status=list[DownloadStatus]
+    ) -> Iterable[FilmlistenEintrag]:
+        """Zum Download vorgemerkte Filme auslesen"""
 
         status_query_str = ",".join(f"'{cur}'" for cur in status)
-        # SQL-Teile
-        if ui:
-            SEL_STMT = (
-                f"""SELECT d.status      as status,
-                           d.DatumStatus as DatumStatus,
-                           d._id         as _id,
-                           f.sender      as sender,
-                           f.thema       as thema,
-                           f.titel       as titel,
-                           f.dauer       as dauer,
-                           f.datum       as datum
-                      FROM {self.filmdb} as f, {self.downloadsdb} as d
-                        WHERE f._id = d._id AND d.status in (%s)
-                        ORDER BY DatumStatus DESC"""
-                % status_query_str
-            )
-        else:
-            SEL_STMT = (
-                f"""SELECT f.*
-                      FROM {self.filmdb} as f, {self.downloadsdb} as d
-                        WHERE f._id = d._id AND d.status in (%s)"""
-                % status_query_str
-            )
-
+        SEL_STMT = f"""SELECT f.*
+                  FROM {self.filmdb} as f, {self.downloadsdb} as d
+                    WHERE f._id = d._id AND d.status in ({status_query_str})"""
         logger.debug("SQL-Query: %s" % SEL_STMT)
         cursor = self.open()
         try:
@@ -335,11 +316,10 @@ class FilmDB:
             rows = cursor.fetchall()
         except sqlite3.OperationalError as e:
             logger.debug("SQL-Fehler: %s" % e)
-            rows = None
+            rows = []
         self.close()
-        if ui:
-            return rows
-        return [FilmlistenEintrag.from_item_list(row) for row in rows]
+        for row in rows:
+            yield FilmlistenEintrag.from_item_list(row)
 
     def save_status(self, key, text=None):
         """Status in Status-Tabelle speichern"""
