@@ -271,21 +271,17 @@ class FilmDB:
         self.close()
         return changes
 
-    def delete_downloads(self, rows):
+    def delete_downloads(self, filme: list[FilmlistenEintrag]) -> int:
         """Downloads löschen"""
         DEL_STMT = f"DELETE FROM {self.downloadsdb} where _id=?"
 
-        logger.debug("rows: " + str(rows))
-
-        # Ein Lock ist hier nicht nötig, da Downloads immer in
-        # einem eigene Aufruf von mtv_cli stattfinden
-
         cursor = self.open()
-        cursor.executemany(DEL_STMT, rows)
-        changes = self.db.total_changes
+        film_id = [self.get_film_id(cur) for cur in filme]
+        cursor.executemany(DEL_STMT, film_id)
+        n_changes: int = self.db.total_changes
         self.commit()
         self.close()
-        return changes
+        return n_changes
 
     def update_downloads(self, film: FilmlistenEintrag, status: DownloadStatus):
         """Status eines Satzes ändern"""
@@ -299,13 +295,14 @@ class FilmDB:
 
     def read_downloads(
         self, status=list[DownloadStatus]
-    ) -> Iterable[FilmlistenEintrag]:
+    ) -> Iterable[tuple[FilmlistenEintrag, DownloadStatus, dt.date]]:
         """Zum Download vorgemerkte Filme auslesen"""
 
         status_query_str = ",".join(f"'{cur}'" for cur in status)
-        SEL_STMT = f"""SELECT f.*
+        SEL_STMT = f"""SELECT f.*, d.status, d.DatumStatus
                   FROM {self.filmdb} as f, {self.downloadsdb} as d
-                    WHERE f._id = d._id AND d.status in ({status_query_str})"""
+                    WHERE f._id = d._id AND d.status in ({status_query_str})
+                    ORDER BY DatumStatus DESC"""
         logger.debug("SQL-Query: %s" % SEL_STMT)
         cursor = self.open()
         try:
@@ -316,7 +313,10 @@ class FilmDB:
             rows = []
         self.close()
         for row in rows:
-            yield FilmlistenEintrag.from_item_list(row)
+            as_dict = dict(row)
+            cur_status: DownloadStatus = as_dict.pop("STATUS")
+            datumstatus: dt.date = as_dict.pop("DatumStatus")
+            yield FilmlistenEintrag.from_item_list(row), cur_status, datumstatus
 
     def save_status(self, key, text=None):
         """Status in Status-Tabelle speichern"""

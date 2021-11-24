@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+# Mediathekview auf der Kommandozeile
+#
+# Author: Bernhard Bablok, Max Görner
+# License: GPL3
+#
+# Website: https://github.com/bablokb/mtv_cli
+#
+
 from __future__ import annotations
 
 import configparser
@@ -28,14 +36,6 @@ from film import FilmlistenEintrag
 from loguru import logger
 from pick import pick
 from storage_backend import FilmDB
-
-# Mediathekview auf der Kommandozeile
-#
-# Author: Bernhard Bablok, Max Görner
-# License: GPL3
-#
-# Website: https://github.com/bablokb/mtv_cli
-#
 
 
 class Options:
@@ -222,7 +222,7 @@ def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
     if len(selected_movies) == 0:
         logger.info("Keine vorgemerkten Filme vorhanden")
         return
-    for film in selected_movies:
+    for film, _, _ in selected_movies:
         logger.info(f"About to download {film}.")
         retriever.download_film(film)
     filmDB.save_status("_download")
@@ -248,41 +248,39 @@ def do_search(options):
     return True
 
 
-def do_edit(options):
-    """Downloadliste anzeigen und editieren"""
+def remove_preselection(options) -> None:
+    """Entferne Vormerkungen für Filme"""
 
     # Liste lesen
     filmDB: FilmDB = options.filmDB
-    rows = filmDB.read_downloads()
-    if not rows:
+    filme = list(filmDB.read_downloads())
+    if len(filme) == 0:
         logger.info("Keine vorgemerkten Filme vorhanden")
         return
 
     # Liste aufbereiten
     select_liste = []
-    for row in rows:
-        status = row["STATUS"]
-        datum_status = row["DATUMSTATUS"].strftime("%d.%m.%y")
-        sender = row["SENDER"]
-        thema = row["THEMA"]
-        titel = row["TITEL"]
-        dauer = row["DAUER"]
-        datum = row["DATUM"].strftime("%d.%m.%y")
+    for film, status, datumstatus in filme:
+        datum_status_as_str = datumstatus.strftime("%d.%m.%y")
+        sender = film.sender
+        thema = film.thema
+        titel = film.titel
+        dauer = film.dauer
+        datum = "Unbekannt" if film.datum is None else film.datum.strftime("%d.%m.%y")
 
         select_liste.append(
-            DLL_FORMAT.format(status, datum_status, sender, thema, datum, dauer, titel)
+            DLL_FORMAT.format(
+                status, datum_status_as_str, sender, thema, datum, dauer, titel
+            )
         )
     selected = pick(select_liste, DLL_TITEL, multiselect=True)
 
     # IDs extrahieren und Daten löschen
     deletes = []
     for sel_text, sel_index in selected:
-        row = rows[sel_index]
-        deletes.append((row["_ID"],))
-    if len(deletes):
-        changes = filmDB.delete_downloads(deletes)
-    else:
-        changes = 0
+        film = filme[sel_index][0]
+        deletes.append(film)
+    changes = filmDB.delete_downloads(deletes)
     logger.info("%d vorgemerkte Filme gelöscht" % changes)
 
 
@@ -319,7 +317,7 @@ def get_parser():
         "-E",
         "--edit",
         action="store_true",
-        dest="doEdit",
+        dest="removePreselection",
         help="Downloadliste bearbeiten",
     )
 
@@ -449,8 +447,8 @@ if __name__ == "__main__":
 
     if options.upd_src:
         do_update(options)
-    elif options.doEdit:
-        do_edit(options)
+    elif options.removePreselection:
+        remove_preselection(options)
     elif options.doLater:
         do_later(options)
     elif options.doNow:
