@@ -20,7 +20,7 @@ from pydantic import BaseModel
 class LowMemoryFileSystemDownloader(BaseModel):
     root: Path
     quality: FILM_QUALITAET
-    chunk_size: int = 128
+    chunk_size: int = 1024 * 1024  # 1 MiB
 
     def get_filename(self, film: FilmlistenEintrag) -> Path:
         # Infos zusammensuchen
