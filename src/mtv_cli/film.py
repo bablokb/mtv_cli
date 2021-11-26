@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from sqlite3 import Row
 from typing import Literal, Optional, Union
 
 from pydantic import BaseModel
@@ -81,6 +82,31 @@ class FilmlistenEintrag(BaseModel):
             url_history=raw_entry[17],
             geo=raw_entry[18],
             neu=raw_entry[19] == "true",
+        )
+
+    @classmethod
+    def from_database_row(cls, row: Row) -> FilmlistenEintrag:
+        return FilmlistenEintrag(
+            sender=row[0],
+            thema=row[1],
+            titel=row[2],
+            datum=row[3],
+            zeit=row[4],
+            dauer=row[5],
+            groesse=row[6],
+            beschreibung=row[7],
+            url=row[8],
+            website=row[9],
+            url_untertitel=row[10],
+            url_rtmp=row[11],
+            url_klein=row[12],
+            url_rtmp_klein=row[13],
+            url_hd=row[14],
+            url_rtmp_hd=row[15],
+            datuml=row[16],
+            url_history=row[17],
+            geo=row[18],
+            neu=row[19],
         )
 
     def update(self, entry: Optional[FilmlistenEintrag]) -> FilmlistenEintrag:

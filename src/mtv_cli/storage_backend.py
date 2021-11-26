@@ -313,10 +313,9 @@ class FilmDB:
             rows = []
         self.close()
         for row in rows:
-            as_dict = dict(row)
-            cur_status: DownloadStatus = as_dict.pop("STATUS")
-            datumstatus: dt.date = as_dict.pop("DatumStatus")
-            yield FilmlistenEintrag.from_item_list(row), cur_status, datumstatus
+            cur_status: DownloadStatus = row["status"]
+            datumstatus: dt.date = row["DatumStatus"]
+            yield FilmlistenEintrag.from_database_row(row), cur_status, datumstatus
 
     def save_status(self, key, text=None):
         """Status in Status-Tabelle speichern"""
