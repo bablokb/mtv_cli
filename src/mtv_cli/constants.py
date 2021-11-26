@@ -8,6 +8,7 @@
 # Website: https://github.com/bablokb/mtv_cli
 #
 
+import os
 from pathlib import Path
 
 VERSION = 2  # Erhöhung nur bei inkompatiblen Änderungen
@@ -21,10 +22,11 @@ DLL_TITEL = ("St" + DLL_FORMAT).format(
     "a", "S-Datum", "Sender", "Thema", "Datum", "Dauer", "Titel"
 )
 
+DEFAULT_CONFIG_DIR = Path("~/.config/").expanduser()
+DEFAULT_CACHE_DIR = Path("~/.cache/").expanduser()
 
 MTV_CLI_HOME = Path("~").expanduser() / ".mediathek3"
-FILME_SQLITE = MTV_CLI_HOME / "filme.sqlite"
-MTV_CLI_CONFIG = MTV_CLI_HOME / "mtv_cli.cfg"
-MTV_CLI_SQLITE = MTV_CLI_HOME / "mtv_cli.sqlite"
+MTV_CLI_CONFIG = Path(os.getenv("XDG_CONFIG_HOME", DEFAULT_CONFIG_DIR)) / "mtv-cli.cfg"
+FILME_SQLITE = Path(os.getenv("XDG_CACHE_HOME", DEFAULT_CACHE_DIR)) / "mtv-cli.sqlite"
 
 URL_FILMLISTE = "https://liste.mediathekview.de/Filmliste-akt.xz"
