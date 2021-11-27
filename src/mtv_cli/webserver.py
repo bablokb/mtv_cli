@@ -20,12 +20,13 @@ from pathlib import Path
 from typing import Optional
 
 import bottle
-import cli
 from bottle import route
-from constants import FILME_SQLITE, MTV_CLI_HOME
-from content_retrieval import LowMemoryFileSystemDownloader
 from loguru import logger
-from storage_backend import FilmDB as FilmDB
+
+from mtv_cli import cli
+from mtv_cli.constants import FILME_SQLITE, MTV_CLI_HOME
+from mtv_cli.content_retrieval import LowMemoryFileSystemDownloader
+from mtv_cli.storage_backend import FilmDB as FilmDB
 
 
 class Options:
@@ -333,7 +334,7 @@ def get_config(parser, config):
         config["HOST"] = "0.0.0.0"
 
 
-if __name__ == "__main__":
+def main() -> None:
     # Konfiguration lesen
     config_parser = configparser.RawConfigParser()
     config_parser.read("/etc/mtv_cli.conf")
@@ -366,3 +367,7 @@ if __name__ == "__main__":
         bottle.run(
             host=config["HOST"], port=config["PORT"], debug=False, reloader=False
         )
+
+
+if __name__ == "__main__":
+    main()

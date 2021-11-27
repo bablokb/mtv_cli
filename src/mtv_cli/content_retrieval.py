@@ -12,9 +12,10 @@
 from pathlib import Path
 
 import requests
-from film import FILM_QUALITAET, FilmlistenEintrag
 from loguru import logger
 from pydantic import BaseModel
+
+from mtv_cli.film import FILM_QUALITAET, FilmlistenEintrag
 
 
 class FilmDownloadFehlerhaft(RuntimeError):

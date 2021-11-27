@@ -17,8 +17,9 @@ from multiprocessing import Lock
 from pathlib import Path
 from typing import Iterable, Literal, Optional, Union
 
-from film import FilmlistenEintrag
 from loguru import logger
+
+from mtv_cli.film import FilmlistenEintrag
 
 # Bedeutung der Status-Codes:
 # V - Vorgemerkt

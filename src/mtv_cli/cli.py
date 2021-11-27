@@ -21,7 +21,10 @@ from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
-from constants import (
+from loguru import logger
+from pick import pick
+
+from mtv_cli.constants import (
     DLL_FORMAT,
     DLL_TITEL,
     FILME_SQLITE,
@@ -32,11 +35,12 @@ from constants import (
     URL_FILMLISTE,
     VERSION,
 )
-from content_retrieval import FilmDownloadFehlerhaft, LowMemoryFileSystemDownloader
-from film import FilmlistenEintrag
-from loguru import logger
-from pick import pick
-from storage_backend import DownloadStatus, FilmDB
+from mtv_cli.content_retrieval import (
+    FilmDownloadFehlerhaft,
+    LowMemoryFileSystemDownloader,
+)
+from mtv_cli.film import FilmlistenEintrag
+from mtv_cli.storage_backend import DownloadStatus, FilmDB
 
 
 class Options:
@@ -412,8 +416,7 @@ def get_config(parser):
     }
 
 
-if __name__ == "__main__":
-
+def main() -> None:
     if not MTV_CLI_CONFIG.exists():
         sys.exit("Konfigurationsdatei nicht vorhanden!")
     config_parser = configparser.RawConfigParser()
@@ -466,3 +469,7 @@ if __name__ == "__main__":
     elif options.doSearch:
         sucess = do_search(options)
         sys.exit(0 if sucess else 1)
+
+
+if __name__ == "__main__":
+    main()
