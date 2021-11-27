@@ -31,7 +31,7 @@ from constants import (
     URL_FILMLISTE,
     VERSION,
 )
-from content_retrieval import LowMemoryFileSystemDownloader
+from content_retrieval import FilmDownloadFehlerhaft, LowMemoryFileSystemDownloader
 from film import FilmlistenEintrag
 from loguru import logger
 from pick import pick
@@ -224,7 +224,12 @@ def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
         return
     for film, _, _ in selected_movies:
         logger.info(f"About to download {film}.")
-        retriever.download_film(film)
+        try:
+            retriever.download_film(film)
+            download_was_successful = True
+        except FilmDownloadFehlerhaft:
+            download_was_successful = False
+        filmDB.update_downloads(film, "K" if download_was_successful else "F")
     filmDB.save_status("_download")
 
 

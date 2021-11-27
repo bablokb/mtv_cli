@@ -17,6 +17,10 @@ from loguru import logger
 from pydantic import BaseModel
 
 
+class FilmDownloadFehlerhaft(RuntimeError):
+    pass
+
+
 class LowMemoryFileSystemDownloader(BaseModel):
     root: Path
     quality: FILM_QUALITAET
@@ -40,6 +44,12 @@ class LowMemoryFileSystemDownloader(BaseModel):
                 " vorhanden! Nutze stattdessen {real_quality}."
             )
         response = requests.get(url, stream=True)
-        with self.get_filename(film).open("wb") as fh:
-            for chunk in response.iter_content(chunk_size=self.chunk_size):
-                fh.write(chunk)
+        try:
+            response.raise_for_status()
+            with self.get_filename(film).open("wb") as fh:
+                for chunk in response.iter_content(chunk_size=self.chunk_size):
+                    fh.write(chunk)
+        except requests.HTTPError as http_err:
+            logger.error(f"Download des Films {film} ist fehlgeschlagen!")
+            logger.exception(http_err)
+            raise FilmDownloadFehlerhaft from http_err
