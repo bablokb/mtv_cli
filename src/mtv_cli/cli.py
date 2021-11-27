@@ -217,7 +217,7 @@ def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:
 def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
     """Download vorgemerkter Filme"""
     filmDB: FilmDB = options.filmDB
-    selected_movies = list(filmDB.read_downloads(status=["V", "F", "A"]))
+    selected_movies = list(filmDB.read_downloads(status=["V", "F"]))
 
     if len(selected_movies) == 0:
         logger.info("Keine vorgemerkten Filme vorhanden")
