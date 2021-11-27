@@ -275,7 +275,7 @@ class FilmDB:
         DEL_STMT = f"DELETE FROM {self.downloadsdb} where _id=?"
 
         cursor = self.open()
-        film_id = [self.get_film_id(cur) for cur in filme]
+        film_id = [(self.get_film_id(cur),) for cur in filme]
         cursor.executemany(DEL_STMT, film_id)
         n_changes: int = self.db.total_changes
         self.commit()

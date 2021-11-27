@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import configparser
+import datetime as dt
 import fcntl
 import lzma
 import re
@@ -35,7 +36,7 @@ from content_retrieval import FilmDownloadFehlerhaft, LowMemoryFileSystemDownloa
 from film import FilmlistenEintrag
 from loguru import logger
 from pick import pick
-from storage_backend import FilmDB
+from storage_backend import DownloadStatus, FilmDB
 
 
 class Options:
@@ -256,6 +257,20 @@ def do_search(options):
 def remove_preselection(options) -> None:
     """Entferne Vormerkungen für Filme"""
 
+    def format_download_row(
+        arg: tuple[FilmlistenEintrag, DownloadStatus, dt.date]
+    ) -> str:
+        film, status, datumstatus = arg
+        return DLL_FORMAT.format(
+            status,
+            datumstatus.strftime("%d.%m.%y"),
+            film.sender,
+            film.thema,
+            "Unbekannt" if film.datum is None else film.datum.strftime("%d.%m.%y"),
+            film.dauer_as_minutes(),
+            film.titel,
+        )
+
     # Liste lesen
     filmDB: FilmDB = options.filmDB
     filme = list(filmDB.read_downloads())
@@ -264,21 +279,9 @@ def remove_preselection(options) -> None:
         return
 
     # Liste aufbereiten
-    select_liste = []
-    for film, status, datumstatus in filme:
-        datum_status_as_str = datumstatus.strftime("%d.%m.%y")
-        sender = film.sender
-        thema = film.thema
-        titel = film.titel
-        dauer = film.dauer
-        datum = "Unbekannt" if film.datum is None else film.datum.strftime("%d.%m.%y")
-
-        select_liste.append(
-            DLL_FORMAT.format(
-                status, datum_status_as_str, sender, thema, datum, dauer, titel
-            )
-        )
-    selected = pick(select_liste, DLL_TITEL, multiselect=True)
+    selected = pick(
+        filme, DLL_TITEL, multiselect=True, options_map_func=format_download_row
+    )
 
     # IDs extrahieren und Daten löschen
     deletes = []
