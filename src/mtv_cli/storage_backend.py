@@ -294,7 +294,7 @@ class FilmDB:
             self.close()
 
     def read_downloads(
-        self, status=list[DownloadStatus]
+        self, status: list[DownloadStatus] = ["V", "F", "K"]
     ) -> Iterable[tuple[FilmlistenEintrag, DownloadStatus, dt.date]]:
         """Zum Download vorgemerkte Filme auslesen"""
 
