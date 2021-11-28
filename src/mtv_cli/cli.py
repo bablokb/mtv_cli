@@ -425,8 +425,7 @@ def main() -> None:
     try:
         config = get_config(config_parser)
     except Exception as e:
-        logger.error(f"Konfiguration fehlerhaft! Fehler: {e}")
-        sys.exit(3)
+        sys.exit(f"Konfiguration fehlerhaft! Fehler: {e}")
 
     opt_parser = get_parser()
     options = opt_parser.parse_args(namespace=Options)
@@ -434,7 +433,9 @@ def main() -> None:
         print("Version: %s" % VERSION)
         sys.exit(0)
 
-    logger.level(options.level if options.level else config["MSG_LEVEL"])
+    logger.remove()
+    log_level: str = options.level if options.level else config["MSG_LEVEL"]
+    logger.add(sys.stderr, level=log_level)
 
     # Verzeichnis HOME/.mediathek3 anlegen
     MTV_CLI_HOME.mkdir(parents=True, exist_ok=True)
