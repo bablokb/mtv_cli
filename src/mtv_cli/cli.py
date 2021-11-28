@@ -40,7 +40,8 @@ from mtv_cli.content_retrieval import (
     LowMemoryFileSystemDownloader,
 )
 from mtv_cli.film import FilmlistenEintrag
-from mtv_cli.storage_backend import DownloadStatus, FilmDB, FilmFilter
+from mtv_cli.storage_backend import DownloadStatus, FilmDB
+from mtv_cli.film_filter import FilmFilter, AgeDurationFilter
 
 
 class Options:
@@ -450,7 +451,7 @@ def main() -> None:
     # Globale Objekte anlegen
     options.config = config
     options.filmDB = FilmDB(dbfile=options.dbfile)
-    options.film_filter = FilmFilter(
+    options.film_filter = AgeDurationFilter(
         max_age=options.DATE_CUTOFF,
         min_duration=options.DAUER_CUTOFF,
     )
