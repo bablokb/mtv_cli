@@ -40,8 +40,8 @@ from mtv_cli.content_retrieval import (
     LowMemoryFileSystemDownloader,
 )
 from mtv_cli.film import FilmlistenEintrag
+from mtv_cli.film_filter import AgeDurationFilter, FilmFilter
 from mtv_cli.storage_backend import DownloadStatus, FilmDB
-from mtv_cli.film_filter import FilmFilter, AgeDurationFilter
 
 
 class Options:
@@ -407,8 +407,8 @@ def get_lock(datei: Path):
 def get_config(parser):
     return {
         "MSG_LEVEL": parser.get("CONFIG", "MSG_LEVEL"),
-        "DATE_CUTOFF": parser.getint("CONFIG", "DATE_CUTOFF"),
-        "DAUER_CUTOFF": parser.getint("CONFIG", "DAUER_CUTOFF"),
+        "MAX_ALTER": parser.getint("CONFIG", "MAX_ALTER"),
+        "MIN_DAUER": parser.getint("CONFIG", "MIN_DAUER"),
         "NUM_DOWNLOADS": parser.getint("CONFIG", "NUM_DOWNLOADS"),
         "ZIEL_DOWNLOADS": parser.get("CONFIG", "ZIEL_DOWNLOADS"),
         "CMD_DOWNLOADS": parser.get("CONFIG", "CMD_DOWNLOADS"),
@@ -452,8 +452,8 @@ def main() -> None:
     options.config = config
     options.filmDB = FilmDB(dbfile=options.dbfile)
     options.film_filter = AgeDurationFilter(
-        max_age=options.DATE_CUTOFF,
-        min_duration=options.DAUER_CUTOFF,
+        max_age=config["MAX_ALTER"],
+        min_duration=config["MIN_DAUER"],
     )
 
     retriever = LowMemoryFileSystemDownloader(
