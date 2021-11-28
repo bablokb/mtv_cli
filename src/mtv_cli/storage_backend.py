@@ -13,12 +13,15 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import sqlite3
+from dataclasses import dataclass, field
 from multiprocessing import Lock
+from multiprocessing.synchronize import Lock as Lock_T
 from pathlib import Path
 from typing import Iterable, Literal, Optional, Union
 
 from loguru import logger
 
+from mtv_cli.constants import FILME_SQLITE
 from mtv_cli.film import FilmlistenEintrag
 
 # Bedeutung der Status-Codes:
@@ -27,22 +30,67 @@ from mtv_cli.film import FilmlistenEintrag
 # K - Komplett
 DownloadStatus = Union[Literal["V"], Literal["F"], Literal["K"]]
 
+MINUTES_T = int
+DAYS_T = int
 
+
+class FilmMissesDateError(ValueError):
+    "Raised if a film with missing date is encountered unexpectedly."
+    pass
+
+
+class FilmFilter(BaseModel):
+    # Filme können negatives Alter haben, wenn sie vor der Ausstrahlung
+    # veröffentlicht wurden.
+    min_age: Optional[DAYS_T] = None
+    max_age: Optional[DAYS_T] = None
+    min_duration: MINUTES_T = 0
+    max_duration: Optional[MINUTES_T] = None
+    today: dt.date = Field(default_factory=dt.date.today)
+
+    def is_permitted(self, film: FilmlistenEintrag) -> bool:
+        for test in self.is_too_young, self.is_too_old:
+            if test(film):
+                return False
+        return True
+
+    def misses_date(self, film) -> bool:
+        return film.datum is None
+
+    def is_too_short(self, film: FilmlistenEintrag) -> bool:
+        return film.dauer_as_minutes() < self.min_duration
+
+    def is_too_long(self, film: FilmlistenEintrag) -> bool:
+        if self.max_duration is None:
+            return False
+        return film.dauer_as_minutes() > self.max_duration
+
+    def is_too_young(self, film: FilmlistenEintrag) -> bool:
+        if film.datum is None:
+            raise FilmMissesDateError
+        if self.min_age is None:
+            return False
+        age = self.today - film.datum
+        return age.days < self.min_age
+
+    def is_too_old(self, film: FilmlistenEintrag) -> bool:
+        if film.datum is None:
+            raise FilmMissesDateError
+        if self.max_age is None:
+            return False
+        age = self.today - film.datum
+        return age.days > self.max_age
+
+
+@dataclass
 class FilmDB:
     """Datenbank aller Filme"""
 
-    def __init__(self, options):
-        """Constructor"""
-        self.config = options.config
-        self.dbfile = options.dbfile
-        self.last_liste = None
-        self.lock = Lock()
-        self.total = 0
-        self.date_cutoff = dt.date.today() - dt.timedelta(
-            days=self.config["DATE_CUTOFF"]
-        )
-        self.filmdb = "filme"
-        self.downloadsdb = "downloads"
+    dbfile: Path
+    lock: Lock_T = field(default_factory=Lock)
+    downloadsdb: str = "downloads"
+    filmdb: str = "filme"
+    total: int = 0
 
     def open(self):
         """Datenbank öffnen und Cursor zurückgeben"""
@@ -85,24 +133,6 @@ class FilmDB:
       neu bool,
       _id text primary key )"""
         )
-
-    def is_on_ignorelist(self, eintrag: FilmlistenEintrag) -> bool:
-        """Gibt True zurück für Filme, die ausgeschlossen werden sollen
-
-        Momentan werden Filme wegen einem von drei Gründen ausgeschlossen:
-
-            * Es fehlt ein Datum (Livestreams)
-            * zu alt
-            * zu kurz
-        """
-
-        if eintrag.datum is None:
-            return True
-        if eintrag.datum < self.date_cutoff:
-            return True
-        if eintrag.dauer_as_minutes() < self.config["DAUER_CUTOFF"]:
-            return True
-        return False
 
     def insert_film(self, film: FilmlistenEintrag) -> None:
         """Satz zur Datenbank hinzufügen"""

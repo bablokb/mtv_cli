@@ -40,7 +40,7 @@ from mtv_cli.content_retrieval import (
     LowMemoryFileSystemDownloader,
 )
 from mtv_cli.film import FilmlistenEintrag
-from mtv_cli.storage_backend import DownloadStatus, FilmDB
+from mtv_cli.storage_backend import DownloadStatus, FilmDB, FilmFilter
 
 
 class Options:
@@ -93,10 +93,10 @@ def do_update(options) -> None:
     filmDB: FilmDB = options.filmDB
     filmDB.create_filmtable()
     filmDB.cursor.execute("BEGIN;")
+    film_filter: FilmFilter = options.film_filter
     for entry in entry_candidates:
-        if filmDB.is_on_ignorelist(entry):
-            continue
-        filmDB.insert_film(entry)
+        if film_filter.is_permitted(entry):
+            filmDB.insert_film(entry)
     filmDB.commit()
     filmDB.save_filmtable()
 
@@ -449,7 +449,11 @@ def main() -> None:
 
     # Globale Objekte anlegen
     options.config = config
-    options.filmDB = FilmDB(options)
+    options.filmDB = FilmDB(dbfile=options.dbfile)
+    options.film_filter = FilmFilter(
+        max_age=options.DATE_CUTOFF,
+        min_duration=options.DAUER_CUTOFF,
+    )
 
     retriever = LowMemoryFileSystemDownloader(
         root=Path("~/Videos").expanduser(),

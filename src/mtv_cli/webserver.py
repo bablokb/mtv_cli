@@ -26,7 +26,7 @@ from loguru import logger
 from mtv_cli import cli
 from mtv_cli.constants import FILME_SQLITE, MTV_CLI_HOME
 from mtv_cli.content_retrieval import LowMemoryFileSystemDownloader
-from mtv_cli.storage_backend import FilmDB as FilmDB
+from mtv_cli.storage_backend import FilmDB
 
 
 class Options:
@@ -355,7 +355,7 @@ def main() -> None:
     # Globale Objekte anlegen
     options.upd_src = "auto"
     options.config = config
-    options.filmDB = FilmDB(options)
+    options.filmDB = FilmDB(options.dbfile)
 
     # Server starten
     WEB_ROOT = Path(get_webroot(__file__))
