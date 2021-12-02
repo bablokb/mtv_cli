@@ -9,7 +9,6 @@
 
 from __future__ import annotations
 
-import typer
 import configparser
 import datetime as dt
 import fcntl
@@ -17,11 +16,11 @@ import lzma
 import re
 import sys
 import urllib.request as request
-from argparse import ArgumentParser
 from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
+import typer
 from loguru import logger
 from pick import pick
 
@@ -34,21 +33,25 @@ from mtv_cli.constants import (
     SEL_FORMAT,
     SEL_TITEL,
     URL_FILMLISTE,
-    VERSION,
 )
 from mtv_cli.content_retrieval import (
     FilmDownloadFehlerhaft,
     LowMemoryFileSystemDownloader,
 )
-from mtv_cli.film import FilmlistenEintrag, FILM_QUALITAET
+from mtv_cli.film import FilmlistenEintrag, MovieQuality
 from mtv_cli.film_filter import AgeDurationFilter, FilmFilter
 from mtv_cli.storage_backend import DownloadStatus, FilmDB
 
 app = typer.Typer(name="mtv-cli")
 
+BATCH_PROCESSING_OPTION = typer.Option(False, help="Aktiviere Nicht-Interaktiven Modus")
 CONFIG_OPTION = typer.Option(MTV_CLI_CONFIG, exists=True)
 DBFILE_OPTION = typer.Option(FILME_SQLITE, help="Datei mit SQLITE-Datenbankdatei")
-BATCH_PROCESSING_OPTION = typer.Option(False, help="Aktiviere Nicht-Interaktiven Modus")
+DESTINATION_DIR_OPTION = typer.Option(
+    Path("~/Videos"), help="Zielordner für heruntergeladene Filme."
+)
+QUALITY_OPTION = typer.Option("HD", help="Gewünschte Filmqualität.")
+LOGLEVEL_OPTION = typer.Option(None, help="Level für Logausgabe")
 
 
 class Options:
@@ -200,7 +203,9 @@ def zeige_liste(filme: list[FilmlistenEintrag]) -> list[tuple[str, int]]:
 
 
 @app.command()
-def filme_vormerken(dbfile: Path = DBFILE_OPTION):
+def filme_vormerken(
+    dbfile: Path = DBFILE_OPTION, log_level: Optional[str] = LOGLEVEL_OPTION
+):
     """Filmliste anzeigen, Auswahl für späteren Download speichern"""
     filmDB: FilmDB = FilmDB(dbfile)
     selected_filme = list(select_movies_for_download(options))
@@ -214,12 +219,9 @@ def filme_vormerken(dbfile: Path = DBFILE_OPTION):
 @app.command()
 def sofort_herunterladen(
     dbfile: Path = DBFILE_OPTION,
-    zielordner: Path = typer.Option(
-        Path("~/Videos"), help="Zielordner für heruntergeladene Filme."
-    ),
-    qualitaet: FILM_QUALITAET = typer.Option(
-        "HD", help="Gewünschte Filmqualität. Erlaubte Werte: LOW|SD|HD"
-    ),
+    zielordner: Path = DESTINATION_DIR_OPTION,
+    log_level: Optional[str] = LOGLEVEL_OPTION,
+    qualitaet: MovieQuality = QUALITY_OPTION,
 ) -> None:
     """Filmliste anzeigen, sofortiger Download nach Auswahl"""
     retriever = LowMemoryFileSystemDownloader(
@@ -253,12 +255,9 @@ def select_movies_for_download(options, do_batch: bool) -> Iterable[FilmlistenEi
 def vormerkungen_herunterladen(
     options,
     dbfile: Path = DBFILE_OPTION,
-    zielordner: Path = typer.Option(
-        Path("~/Videos"), help="Zielordner für heruntergeladene Filme."
-    ),
-    qualitaet: FILM_QUALITAET = typer.Option(
-        "HD", help="Gewünschte Filmqualität. Erlaubte Werte: LOW|SD|HD"
-    ),
+    zielordner: Path = DESTINATION_DIR_OPTION,
+    log_level: Optional[str] = LOGLEVEL_OPTION,
+    qualitaet: MovieQuality = QUALITY_OPTION,
 ) -> None:
     """Download vorgemerkter Filme"""
     filmDB: FilmDB = FilmDB(dbfile)
@@ -284,12 +283,12 @@ def vormerkungen_herunterladen(
 
 
 @app.command()
-def suche(stapelverarbeitung: BATCH_PROCESSING_OPTION) -> None:
+def suche(stapelverarbeitung: bool = BATCH_PROCESSING_OPTION) -> None:
     """Suche Film ohne diesen herunterzuladen"""
 
     filme = list(filme_suchen(options))
     if len(filme) == 0:
-        return False
+        return
 
     if stapelverarbeitung:
         print("[")
@@ -301,12 +300,12 @@ def suche(stapelverarbeitung: BATCH_PROCESSING_OPTION) -> None:
         print(len(SEL_TITEL) * "_")
         for line in get_select(filme):
             print(line)
-    return True
 
 
 @app.command()
 def entferne_filmvormerkungen(
     dbfile: Path = DBFILE_OPTION,
+    log_level: Optional[str] = LOGLEVEL_OPTION,
 ) -> None:
     """Entferne Vormerkungen für Filme"""
 
@@ -345,74 +344,6 @@ def entferne_filmvormerkungen(
     logger.info("%d vorgemerkte Filme gelöscht" % changes)
 
 
-def get_parser():
-    parser = ArgumentParser(
-        add_help=False, description="Mediathekview auf der Kommandozeile"
-    )
-
-    parser.add_argument(
-        "-V",
-        "--vormerken",
-        action="store_true",
-        dest="doLater",
-        help="Filmauswahl im Vormerk-Modus",
-    )
-    parser.add_argument(
-        "-S",
-        "--sofort",
-        action="store_true",
-        dest="doNow",
-        help="Filmauswahl im Sofort-Modus",
-    )
-
-    parser.add_argument(
-        "-D",
-        "--download",
-        action="store_true",
-        dest="doDownload",
-        help="Vorgemerkte Filme herunterladen",
-    )
-    parser.add_argument(
-        "-Q", "--query", action="store_true", dest="doSearch", help="Filme suchen"
-    )
-
-    parser.add_argument(
-        "-b",
-        "--batch",
-        action="store_true",
-        dest="doBatch",
-        help="Ausführung ohne User-Interface (zusammen mit -V, -Q und -S)",
-    )
-    parser.add_argument(
-        "-d",
-        "--db",
-        metavar="Datei",
-        dest="dbfile",
-        default=FILME_SQLITE,
-        help="Datenbankdatei",
-        type=Path,
-    )
-
-    parser.add_argument(
-        "-l",
-        "--level",
-        metavar="Log-Level",
-        dest="level",
-        default=None,
-        help="Meldungen ab angegebenen Level ausgeben",
-    )
-    parser.add_argument(
-        "--version",
-        action="store_true",
-        dest="doVersionInfo",
-        help="Ausgabe Versionsnummer",
-    )
-    parser.add_argument("-h", "--hilfe", action="help", help="Diese Hilfe ausgeben")
-
-    parser.add_argument("suche", nargs="*", metavar="Suchausdruck", help="Suchausdruck")
-    return parser
-
-
 def get_lock(datei: Path):
     global fd_datei
 
@@ -449,12 +380,6 @@ def main() -> None:
         config = get_config(config_parser)
     except Exception as e:
         sys.exit(f"Konfiguration fehlerhaft! Fehler: {e}")
-
-    opt_parser = get_parser()
-    options = opt_parser.parse_args(namespace=Options)
-    if options.doVersionInfo:
-        print("Version: %s" % VERSION)
-        sys.exit(0)
 
     logger.remove()
     log_level: str = options.level if options.level else config["MSG_LEVEL"]

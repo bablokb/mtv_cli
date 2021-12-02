@@ -13,13 +13,13 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import sqlite3
+from dataclasses import dataclass, field
 from multiprocessing import Lock
 from multiprocessing.synchronize import Lock as Lock_T
 from pathlib import Path
 from typing import Iterable, Literal, Optional, Union
 
 from loguru import logger
-from dataclasses import dataclass, field
 
 from mtv_cli.film import FilmlistenEintrag
 
