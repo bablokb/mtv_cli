@@ -9,12 +9,17 @@
 from __future__ import annotations
 
 import datetime as dt
+from enum import Enum
 from sqlite3 import Row
-from typing import Literal, Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel
 
-FILM_QUALITAET = Union[Literal["HD"], Literal["SD"], Literal["LOW"]]
+
+class MovieQuality(str, Enum):
+    HD = "HD"
+    SD = "SD"
+    LOW = "LOW"
 
 
 class FilmlistenEintrag(BaseModel):
@@ -133,21 +138,21 @@ class FilmlistenEintrag(BaseModel):
             return minutes_in_day
         return self.dauer.seconds // 60
 
-    def get_url(self, qualitaet: FILM_QUALITAET) -> tuple[FILM_QUALITAET, str]:
+    def get_url(self, quality: MovieQuality) -> tuple[MovieQuality, str]:
         """Bevorzugte URL zurückgeben
 
         Ergebnis ist (Qualität,URL)
         """
-        if qualitaet == "SD" or not self.url_hd:
-            return "SD", self.url
+        if quality == MovieQuality.SD or not self.url_hd:
+            return MovieQuality.SD, self.url
 
-        size: FILM_QUALITAET
-        if qualitaet == "HD" and self.url_hd:
+        size: MovieQuality
+        if quality == MovieQuality.HD and self.url_hd:
             url_suffix = self.url_hd
-            size = "HD"
+            size = quality
         else:
             url_suffix = self.url_klein
-            size = "LOW"
+            size = MovieQuality.LOW
 
         parts = url_suffix.split("|")
         offset = int(parts[0])

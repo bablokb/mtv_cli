@@ -11,16 +11,15 @@ from __future__ import annotations
 
 import configparser
 import datetime as dt
-import fcntl
 import lzma
 import re
 import sys
 import urllib.request as request
-from argparse import ArgumentParser
 from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
+import typer
 from loguru import logger
 from pick import pick
 
@@ -33,15 +32,55 @@ from mtv_cli.constants import (
     SEL_FORMAT,
     SEL_TITEL,
     URL_FILMLISTE,
-    VERSION,
 )
 from mtv_cli.content_retrieval import (
     FilmDownloadFehlerhaft,
     LowMemoryFileSystemDownloader,
 )
-from mtv_cli.film import FilmlistenEintrag
-from mtv_cli.film_filter import AgeDurationFilter, FilmFilter
+from mtv_cli.film import FilmlistenEintrag, MovieQuality
+from mtv_cli.film_filter import AgeDurationFilter
 from mtv_cli.storage_backend import DownloadStatus, FilmDB
+
+app = typer.Typer(name="mtv-cli")
+
+BATCH_PROCESSING_OPTION = typer.Option(False, help="Aktiviere Nicht-Interaktiven Modus")
+CONFIG_OPTION = typer.Option(MTV_CLI_CONFIG, exists=True, help="Konfigurationsdatei")
+DBFILE_OPTION = typer.Option(
+    FILME_SQLITE, exists=True, help="Datei mit SQLITE-Datenbankdatei"
+)
+DESTINATION_DIR_OPTION = typer.Option(
+    Path("~/Videos"), exists=True, help="Zielordner für heruntergeladene Filme."
+)
+LOGLEVEL_OPTION = typer.Option(None, help="Level für Logausgabe")
+MAYBE_DBFILE_OPTION = typer.Option(FILME_SQLITE, help="Datei mit SQLITE-Datenbankdatei")
+QUALITY_OPTION = typer.Option("HD", help="Gewünschte Filmqualität.")
+QUERY_ARG = typer.Argument(None, help="Suchausdrücke")
+
+
+def setup_logging(level: Optional[str], config) -> None:
+    logger.remove()
+    log_level: str = level if level else config["MSG_LEVEL"]
+    logger.add(sys.stderr, level=log_level)
+
+
+def load_configuration(config_f: Path) -> dict:
+    if not config_f.exists():
+        sys.exit("Konfigurationsdatei nicht vorhanden!")
+    parser = configparser.RawConfigParser()
+    parser.read(config_f)
+    try:
+        return {
+            "MSG_LEVEL": parser.get("CONFIG", "MSG_LEVEL"),
+            "MAX_ALTER": parser.getint("CONFIG", "MAX_ALTER"),
+            "MIN_DAUER": parser.getint("CONFIG", "MIN_DAUER"),
+            "NUM_DOWNLOADS": parser.getint("CONFIG", "NUM_DOWNLOADS"),
+            "ZIEL_DOWNLOADS": parser.get("CONFIG", "ZIEL_DOWNLOADS"),
+            "CMD_DOWNLOADS": parser.get("CONFIG", "CMD_DOWNLOADS"),
+            "CMD_DOWNLOADS_M3U": parser.get("CONFIG", "CMD_DOWNLOADS_M3U"),
+            "QUALITAET": parser.get("CONFIG", "QUALITAET"),
+        }
+    except Exception as e:
+        sys.exit(f"Konfiguration fehlerhaft! Fehler: {e}")
 
 
 class Options:
@@ -85,18 +124,34 @@ def extract_entries_from_filmliste(fh: TextIO) -> Iterable[FilmlistenEintrag]:
             raw_entry.append(cur_item[-1])
 
 
-def do_update(options) -> None:
+@app.command()
+def aktualisiere_filmliste(
+    config: Path = CONFIG_OPTION,
+    dbfile: Path = MAYBE_DBFILE_OPTION,
+    quelle: str = typer.Option(
+        URL_FILMLISTE,
+        help="Quelle für neue Filmliste. Erlaubte Werte sind auto|json|Url|Datei.",
+    ),
+    log_level: str = LOGLEVEL_OPTION,
+) -> None:
     """Update der Filmliste"""
     # TODO: Führe UpdateSource als ContextManager ein
-    fh = get_update_source_file_handle(options.upd_src)
+    cfg = load_configuration(config)
+    setup_logging(log_level, cfg)
+
+    fh = get_update_source_file_handle(quelle)
     entry_candidates = extract_entries_from_filmliste(fh)
 
-    filmDB: FilmDB = options.filmDB
+    filmDB = FilmDB(dbfile)
+    film_filter = AgeDurationFilter(
+        max_age=cfg["MAX_ALTER"],
+        min_duration=cfg["MIN_DAUER"],
+    )
     filmDB.create_filmtable()
     filmDB.cursor.execute("BEGIN;")
-    film_filter: FilmFilter = options.film_filter
     for entry in entry_candidates:
         if film_filter.is_permitted(entry):
+            logger.debug(f"Füge Eintrag zur Filmdatenbank hinzu: {entry}")
             filmDB.insert_film(entry)
     filmDB.commit()
     filmDB.save_filmtable()
@@ -166,14 +221,13 @@ def get_select(filme: list[FilmlistenEintrag]) -> Iterable[str]:
         yield SEL_FORMAT.format(sender, thema, datum, dauer, titel)
 
 
-def filme_suchen(options) -> Iterable[FilmlistenEintrag]:
+def filme_suchen(
+    query: Optional[list[str]], filmDB: FilmDB
+) -> Iterable[FilmlistenEintrag]:
     """Filme gemäß Vorgabe suchen"""
-    if not options.suche:
-        options.suche = list(get_suche())
-
-    criteria: list[str] = options.suche
-    filmDB: FilmDB = options.filmDB
-    return filmDB.finde_filme(criteria)
+    if query is None:
+        query = list(get_suche())
+    return filmDB.finde_filme(query)
 
 
 def zeige_liste(filme: list[FilmlistenEintrag]) -> list[tuple[str, int]]:
@@ -184,10 +238,20 @@ def zeige_liste(filme: list[FilmlistenEintrag]) -> list[tuple[str, int]]:
     return selection
 
 
-def do_later(options):
+@app.command()
+def filme_vormerken(
+    config: Path = CONFIG_OPTION,
+    dbfile: Path = DBFILE_OPTION,
+    log_level: Optional[str] = LOGLEVEL_OPTION,
+    suche: Optional[list[str]] = QUERY_ARG,
+):
     """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-    filmDB: FilmDB = options.filmDB
-    selected_filme = list(select_movies_for_download(options))
+    options = load_configuration(config)
+    setup_logging(log_level, options)
+    filmDB: FilmDB = FilmDB(dbfile)
+    selected_filme = list(
+        select_movies_for_download(suche, filmDB=filmDB, do_batch=False)
+    )
 
     total = len(selected_filme)
     num_changes = filmDB.save_downloads(selected_filme, status="V")
@@ -195,22 +259,39 @@ def do_later(options):
     return num_changes
 
 
-def do_now(options, retriever: LowMemoryFileSystemDownloader):
+@app.command()
+def sofort_herunterladen(
+    config: Path = CONFIG_OPTION,
+    dbfile: Path = DBFILE_OPTION,
+    zielordner: Path = DESTINATION_DIR_OPTION,
+    log_level: Optional[str] = LOGLEVEL_OPTION,
+    qualitaet: MovieQuality = QUALITY_OPTION,
+    suche: Optional[list[str]] = QUERY_ARG,
+) -> None:
     """Filmliste anzeigen, sofortiger Download nach Auswahl"""
+    options = load_configuration(config)
+    setup_logging(log_level, options)
+    filmDB = FilmDB(dbfile)
+    retriever = LowMemoryFileSystemDownloader(
+        root=zielordner.expanduser(),
+        quality=qualitaet,
+    )
 
-    selected_movies = select_movies_for_download(options)
+    selected_movies = select_movies_for_download(suche, filmDB=filmDB, do_batch=False)
     for film in selected_movies:
         logger.info(f"About to download {film}.")
         retriever.download_film(film)
 
 
-def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:
-    filme = list(filme_suchen(options))
+def select_movies_for_download(
+    query: Optional[list[str]], do_batch: bool, filmDB: FilmDB
+) -> Iterable[FilmlistenEintrag]:
+    filme = list(filme_suchen(query, filmDB))
     if len(filme) == 0:
         logger.info("Keine Suchtreffer")
         return 0
 
-    if options.doBatch:
+    if do_batch:
         selection_ids = set(range(len(filme)))
     else:
         selection_ids = {idx for (_, idx) in zeige_liste(filme)}
@@ -220,9 +301,23 @@ def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:
             yield film
 
 
-def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
+@app.command()
+def vormerkungen_herunterladen(
+    config: Path = CONFIG_OPTION,
+    dbfile: Path = DBFILE_OPTION,
+    zielordner: Path = DESTINATION_DIR_OPTION,
+    log_level: Optional[str] = LOGLEVEL_OPTION,
+    qualitaet: MovieQuality = QUALITY_OPTION,
+) -> None:
     """Download vorgemerkter Filme"""
-    filmDB: FilmDB = options.filmDB
+    options = load_configuration(config)
+    setup_logging(log_level, options)
+    filmDB: FilmDB = FilmDB(dbfile)
+    retriever = LowMemoryFileSystemDownloader(
+        root=zielordner.expanduser(),
+        quality=qualitaet,
+    )
+
     selected_movies = list(filmDB.read_downloads(status=["V", "F"]))
 
     if len(selected_movies) == 0:
@@ -239,14 +334,23 @@ def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
     filmDB.save_status("_download")
 
 
-def do_search(options):
-    """Suche ohne Download"""
-
-    filme = list(filme_suchen(options))
+@app.command()
+def suche(
+    config: Path = CONFIG_OPTION,
+    dbfile: Path = DBFILE_OPTION,
+    stapelverarbeitung: bool = BATCH_PROCESSING_OPTION,
+    log_level: str = LOGLEVEL_OPTION,
+    suche: Optional[list[str]] = QUERY_ARG,
+) -> None:
+    """Suche Film ohne diesen herunterzuladen"""
+    options = load_configuration(config)
+    setup_logging(log_level, options)
+    filmDB = FilmDB(dbfile)
+    filme = list(filme_suchen(suche, filmDB))
     if len(filme) == 0:
-        return False
+        return
 
-    if options.doBatch:
+    if stapelverarbeitung:
         print("[")
         for film in filme:
             print(film.dict(), end=",")
@@ -256,11 +360,17 @@ def do_search(options):
         print(len(SEL_TITEL) * "_")
         for line in get_select(filme):
             print(line)
-    return True
 
 
-def remove_preselection(options) -> None:
+@app.command()
+def entferne_filmvormerkungen(
+    config: Path = CONFIG_OPTION,
+    dbfile: Path = DBFILE_OPTION,
+    log_level: Optional[str] = LOGLEVEL_OPTION,
+) -> None:
     """Entferne Vormerkungen für Filme"""
+    options = load_configuration(config)
+    setup_logging(log_level, options)
 
     def format_download_row(
         arg: tuple[FilmlistenEintrag, DownloadStatus, dt.date]
@@ -277,7 +387,7 @@ def remove_preselection(options) -> None:
         )
 
     # Liste lesen
-    filmDB: FilmDB = options.filmDB
+    filmDB: FilmDB = FilmDB(dbfile)
     filme = list(filmDB.read_downloads())
     if len(filme) == 0:
         logger.info("Keine vorgemerkten Filme vorhanden")
@@ -297,184 +407,8 @@ def remove_preselection(options) -> None:
     logger.info("%d vorgemerkte Filme gelöscht" % changes)
 
 
-def get_parser():
-    parser = ArgumentParser(
-        add_help=False, description="Mediathekview auf der Kommandozeile"
-    )
-
-    parser.add_argument(
-        "-A",
-        "--akt",
-        metavar="Quelle",
-        dest="upd_src",
-        nargs="?",
-        default=None,
-        const="auto",
-        help="Filmliste aktualisieren (Quelle: auto|json|Url|Datei)",
-    )
-    parser.add_argument(
-        "-V",
-        "--vormerken",
-        action="store_true",
-        dest="doLater",
-        help="Filmauswahl im Vormerk-Modus",
-    )
-    parser.add_argument(
-        "-S",
-        "--sofort",
-        action="store_true",
-        dest="doNow",
-        help="Filmauswahl im Sofort-Modus",
-    )
-    parser.add_argument(
-        "-E",
-        "--edit",
-        action="store_true",
-        dest="removePreselection",
-        help="Downloadliste bearbeiten",
-    )
-
-    parser.add_argument(
-        "-D",
-        "--download",
-        action="store_true",
-        dest="doDownload",
-        help="Vorgemerkte Filme herunterladen",
-    )
-    parser.add_argument(
-        "-Q", "--query", action="store_true", dest="doSearch", help="Filme suchen"
-    )
-
-    parser.add_argument(
-        "-b",
-        "--batch",
-        action="store_true",
-        dest="doBatch",
-        help="Ausführung ohne User-Interface (zusammen mit -V, -Q und -S)",
-    )
-    parser.add_argument(
-        "-d",
-        "--db",
-        metavar="Datei",
-        dest="dbfile",
-        default=FILME_SQLITE,
-        help="Datenbankdatei",
-        type=Path,
-    )
-
-    parser.add_argument(
-        "-q",
-        "--quiet",
-        default=False,
-        action="store_true",
-        dest="quiet",
-        help="Keine Meldungen ausgeben",
-    )
-    parser.add_argument(
-        "-l",
-        "--level",
-        metavar="Log-Level",
-        dest="level",
-        default=None,
-        help="Meldungen ab angegebenen Level ausgeben",
-    )
-    parser.add_argument(
-        "--version",
-        action="store_true",
-        dest="doVersionInfo",
-        help="Ausgabe Versionsnummer",
-    )
-    parser.add_argument("-h", "--hilfe", action="help", help="Diese Hilfe ausgeben")
-
-    parser.add_argument("suche", nargs="*", metavar="Suchausdruck", help="Suchausdruck")
-    return parser
-
-
-def get_lock(datei: Path):
-    global fd_datei
-
-    if not datei.is_file():
-        return True
-
-    fd_datei = datei.open("r")
-    try:
-        fcntl.flock(fd_datei, fcntl.LOCK_NB | fcntl.LOCK_EX)
-        return True
-    except IOError:
-        return False
-
-
-def get_config(parser):
-    return {
-        "MSG_LEVEL": parser.get("CONFIG", "MSG_LEVEL"),
-        "MAX_ALTER": parser.getint("CONFIG", "MAX_ALTER"),
-        "MIN_DAUER": parser.getint("CONFIG", "MIN_DAUER"),
-        "NUM_DOWNLOADS": parser.getint("CONFIG", "NUM_DOWNLOADS"),
-        "ZIEL_DOWNLOADS": parser.get("CONFIG", "ZIEL_DOWNLOADS"),
-        "CMD_DOWNLOADS": parser.get("CONFIG", "CMD_DOWNLOADS"),
-        "CMD_DOWNLOADS_M3U": parser.get("CONFIG", "CMD_DOWNLOADS_M3U"),
-        "QUALITAET": parser.get("CONFIG", "QUALITAET"),
-    }
-
-
 def main() -> None:
-    if not MTV_CLI_CONFIG.exists():
-        sys.exit("Konfigurationsdatei nicht vorhanden!")
-    config_parser = configparser.RawConfigParser()
-    config_parser.read(MTV_CLI_CONFIG)
-    try:
-        config = get_config(config_parser)
-    except Exception as e:
-        sys.exit(f"Konfiguration fehlerhaft! Fehler: {e}")
-
-    opt_parser = get_parser()
-    options = opt_parser.parse_args(namespace=Options)
-    if options.doVersionInfo:
-        print("Version: %s" % VERSION)
-        sys.exit(0)
-
-    logger.remove()
-    log_level: str = options.level if options.level else config["MSG_LEVEL"]
-    logger.add(sys.stderr, level=log_level)
-
-    # Verzeichnis HOME/.mediathek3 anlegen
-    MTV_CLI_HOME.mkdir(parents=True, exist_ok=True)
-
-    if not options.upd_src and not options.dbfile.is_file():
-        logger.error("Datenbank %s existiert nicht!" % options.dbfile)
-        sys.exit(3)
-
-    # Lock anfordern
-    if not get_lock(options.dbfile):
-        logger.error("Datenbank %s ist gesperrt" % options.dbfile)
-        sys.exit(3)
-
-    # Globale Objekte anlegen
-    options.config = config
-    options.filmDB = FilmDB(dbfile=options.dbfile)
-    options.film_filter = AgeDurationFilter(
-        max_age=config["MAX_ALTER"],
-        min_duration=config["MIN_DAUER"],
-    )
-
-    retriever = LowMemoryFileSystemDownloader(
-        root=Path("~/Videos").expanduser(),
-        quality="HD",
-    )
-
-    if options.upd_src:
-        do_update(options)
-    elif options.removePreselection:
-        remove_preselection(options)
-    elif options.doLater:
-        do_later(options)
-    elif options.doNow:
-        do_now(options, retriever)
-    elif options.doDownload:
-        do_download(options, retriever)
-    elif options.doSearch:
-        sucess = do_search(options)
-        sys.exit(0 if sucess else 1)
+    app()
 
 
 if __name__ == "__main__":

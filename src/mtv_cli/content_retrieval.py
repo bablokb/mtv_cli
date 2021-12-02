@@ -15,7 +15,7 @@ import requests
 from loguru import logger
 from pydantic import BaseModel
 
-from mtv_cli.film import FILM_QUALITAET, FilmlistenEintrag
+from mtv_cli.film import FilmlistenEintrag, MovieQuality
 
 
 class FilmDownloadFehlerhaft(RuntimeError):
@@ -24,12 +24,12 @@ class FilmDownloadFehlerhaft(RuntimeError):
 
 class LowMemoryFileSystemDownloader(BaseModel):
     root: Path
-    quality: FILM_QUALITAET
+    quality: MovieQuality
     chunk_size: int = 1024 * 1024  # 1 MiB
 
     def get_filename(self, film: FilmlistenEintrag) -> Path:
         # Infos zusammensuchen
-        size, url = film.get_url(self.quality)
+        _, url = film.get_url(self.quality)
         thema = film.thema.replace("/", "_")
         titel = film.titel.replace("/", "_")
         ext = url.split(".")[-1].lower()
