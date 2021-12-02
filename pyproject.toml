@@ -12,6 +12,7 @@ ijson = "^3.1.4"
 pydantic = "^1.8.2"
 pick = {git = "https://github.com/MaxG87/pick", rev = "ebdcfdbf8bb27118ad6f8a34cccfbd7271357623"}
 requests = "^2.26.0"
+typer = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.29.0"

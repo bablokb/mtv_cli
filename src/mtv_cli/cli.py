@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import typer
 import configparser
 import datetime as dt
 import fcntl
@@ -39,9 +40,15 @@ from mtv_cli.content_retrieval import (
     FilmDownloadFehlerhaft,
     LowMemoryFileSystemDownloader,
 )
-from mtv_cli.film import FilmlistenEintrag
+from mtv_cli.film import FilmlistenEintrag, FILM_QUALITAET
 from mtv_cli.film_filter import AgeDurationFilter, FilmFilter
 from mtv_cli.storage_backend import DownloadStatus, FilmDB
+
+app = typer.Typer(name="mtv-cli")
+
+CONFIG_OPTION = typer.Option(MTV_CLI_CONFIG, exists=True)
+DBFILE_OPTION = typer.Option(FILME_SQLITE, help="Datei mit SQLITE-Datenbankdatei")
+BATCH_PROCESSING_OPTION = typer.Option(False, help="Aktiviere Nicht-Interaktiven Modus")
 
 
 class Options:
@@ -85,13 +92,21 @@ def extract_entries_from_filmliste(fh: TextIO) -> Iterable[FilmlistenEintrag]:
             raw_entry.append(cur_item[-1])
 
 
-def do_update(options) -> None:
+@app.command()
+def aktualisiere_filmliste(
+    config: Path = CONFIG_OPTION,
+    dbfile: Path = DBFILE_OPTION,
+    quelle: str = typer.Option(
+        URL_FILMLISTE,
+        help="Quelle für neue Filmliste. Erlaubte Werte sind auto|json|Url|Datei.",
+    ),
+) -> None:
     """Update der Filmliste"""
     # TODO: Führe UpdateSource als ContextManager ein
-    fh = get_update_source_file_handle(options.upd_src)
+    fh = get_update_source_file_handle(quelle)
     entry_candidates = extract_entries_from_filmliste(fh)
 
-    filmDB: FilmDB = options.filmDB
+    filmDB: FilmDB = FilmDB(dbfile)
     filmDB.create_filmtable()
     filmDB.cursor.execute("BEGIN;")
     film_filter: FilmFilter = options.film_filter
@@ -184,9 +199,10 @@ def zeige_liste(filme: list[FilmlistenEintrag]) -> list[tuple[str, int]]:
     return selection
 
 
-def do_later(options):
+@app.command()
+def filme_vormerken(dbfile: Path = DBFILE_OPTION):
     """Filmliste anzeigen, Auswahl für späteren Download speichern"""
-    filmDB: FilmDB = options.filmDB
+    filmDB: FilmDB = FilmDB(dbfile)
     selected_filme = list(select_movies_for_download(options))
 
     total = len(selected_filme)
@@ -195,8 +211,21 @@ def do_later(options):
     return num_changes
 
 
-def do_now(options, retriever: LowMemoryFileSystemDownloader):
+@app.command()
+def sofort_herunterladen(
+    dbfile: Path = DBFILE_OPTION,
+    zielordner: Path = typer.Option(
+        Path("~/Videos"), help="Zielordner für heruntergeladene Filme."
+    ),
+    qualitaet: FILM_QUALITAET = typer.Option(
+        "HD", help="Gewünschte Filmqualität. Erlaubte Werte: LOW|SD|HD"
+    ),
+) -> None:
     """Filmliste anzeigen, sofortiger Download nach Auswahl"""
+    retriever = LowMemoryFileSystemDownloader(
+        root=zielordner.expanduser(),
+        quality=qualitaet,
+    )
 
     selected_movies = select_movies_for_download(options)
     for film in selected_movies:
@@ -204,13 +233,13 @@ def do_now(options, retriever: LowMemoryFileSystemDownloader):
         retriever.download_film(film)
 
 
-def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:
+def select_movies_for_download(options, do_batch: bool) -> Iterable[FilmlistenEintrag]:
     filme = list(filme_suchen(options))
     if len(filme) == 0:
         logger.info("Keine Suchtreffer")
         return 0
 
-    if options.doBatch:
+    if do_batch:
         selection_ids = set(range(len(filme)))
     else:
         selection_ids = {idx for (_, idx) in zeige_liste(filme)}
@@ -220,9 +249,24 @@ def select_movies_for_download(options) -> Iterable[FilmlistenEintrag]:
             yield film
 
 
-def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
+@app.command()
+def vormerkungen_herunterladen(
+    options,
+    dbfile: Path = DBFILE_OPTION,
+    zielordner: Path = typer.Option(
+        Path("~/Videos"), help="Zielordner für heruntergeladene Filme."
+    ),
+    qualitaet: FILM_QUALITAET = typer.Option(
+        "HD", help="Gewünschte Filmqualität. Erlaubte Werte: LOW|SD|HD"
+    ),
+) -> None:
     """Download vorgemerkter Filme"""
-    filmDB: FilmDB = options.filmDB
+    filmDB: FilmDB = FilmDB(dbfile)
+    retriever = LowMemoryFileSystemDownloader(
+        root=zielordner.expanduser(),
+        quality=qualitaet,
+    )
+
     selected_movies = list(filmDB.read_downloads(status=["V", "F"]))
 
     if len(selected_movies) == 0:
@@ -239,14 +283,15 @@ def do_download(options, retriever: LowMemoryFileSystemDownloader) -> None:
     filmDB.save_status("_download")
 
 
-def do_search(options):
-    """Suche ohne Download"""
+@app.command()
+def suche(stapelverarbeitung: BATCH_PROCESSING_OPTION) -> None:
+    """Suche Film ohne diesen herunterzuladen"""
 
     filme = list(filme_suchen(options))
     if len(filme) == 0:
         return False
 
-    if options.doBatch:
+    if stapelverarbeitung:
         print("[")
         for film in filme:
             print(film.dict(), end=",")
@@ -259,7 +304,10 @@ def do_search(options):
     return True
 
 
-def remove_preselection(options) -> None:
+@app.command()
+def entferne_filmvormerkungen(
+    dbfile: Path = DBFILE_OPTION,
+) -> None:
     """Entferne Vormerkungen für Filme"""
 
     def format_download_row(
@@ -277,7 +325,7 @@ def remove_preselection(options) -> None:
         )
 
     # Liste lesen
-    filmDB: FilmDB = options.filmDB
+    filmDB: FilmDB = FilmDB(dbfile)
     filme = list(filmDB.read_downloads())
     if len(filme) == 0:
         logger.info("Keine vorgemerkten Filme vorhanden")
@@ -303,16 +351,6 @@ def get_parser():
     )
 
     parser.add_argument(
-        "-A",
-        "--akt",
-        metavar="Quelle",
-        dest="upd_src",
-        nargs="?",
-        default=None,
-        const="auto",
-        help="Filmliste aktualisieren (Quelle: auto|json|Url|Datei)",
-    )
-    parser.add_argument(
         "-V",
         "--vormerken",
         action="store_true",
@@ -325,13 +363,6 @@ def get_parser():
         action="store_true",
         dest="doNow",
         help="Filmauswahl im Sofort-Modus",
-    )
-    parser.add_argument(
-        "-E",
-        "--edit",
-        action="store_true",
-        dest="removePreselection",
-        help="Downloadliste bearbeiten",
     )
 
     parser.add_argument(
@@ -362,14 +393,6 @@ def get_parser():
         type=Path,
     )
 
-    parser.add_argument(
-        "-q",
-        "--quiet",
-        default=False,
-        action="store_true",
-        dest="quiet",
-        help="Keine Meldungen ausgeben",
-    )
     parser.add_argument(
         "-l",
         "--level",
@@ -456,25 +479,7 @@ def main() -> None:
         max_age=config["MAX_ALTER"],
         min_duration=config["MIN_DAUER"],
     )
-
-    retriever = LowMemoryFileSystemDownloader(
-        root=Path("~/Videos").expanduser(),
-        quality="HD",
-    )
-
-    if options.upd_src:
-        do_update(options)
-    elif options.removePreselection:
-        remove_preselection(options)
-    elif options.doLater:
-        do_later(options)
-    elif options.doNow:
-        do_now(options, retriever)
-    elif options.doDownload:
-        do_download(options, retriever)
-    elif options.doSearch:
-        sucess = do_search(options)
-        sys.exit(0 if sucess else 1)
+    app()
 
 
 if __name__ == "__main__":
