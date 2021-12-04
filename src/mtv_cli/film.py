@@ -129,7 +129,7 @@ class FilmlistenEintrag(BaseModel):
             # Die Dauer des Eintrages ist unbekannt. Es wird daher ein
             # Maximalwert zurückgegeben, damit der Film nicht als zu kurz
             # aussortiert wird.
-            minutes_in_day = 24 * 60 * 60
+            minutes_in_day = 24 * 60
             return minutes_in_day
         return self.dauer.seconds // 60
 
