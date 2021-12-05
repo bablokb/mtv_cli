@@ -4,19 +4,42 @@ Mediathekview auf der Kommandozeile
 Mediathekview ist eine sehr gute Anwendung, ist aber nicht auf der
 Kommandozeile verwendbar.
 
-Das Kommando `mtv_cli.py` läuft dagegen auch ohne grafische Oberfläche,
+Das Kommando `mtv-cli` läuft dagegen auch ohne grafische Oberfläche,
 etwa wenn man sich per SSH auf einen Pi mit Kodi-Distribution einlogged.
 
-Die Kommandozeilenversion von Mediathekview wird nie den Funktionsumfang
-des Originals erhalten. Es geht um eine einfache, schlanke Lösung die
-sich eher an Experten, denn an absolute Laien richtet.
+Die Kommandozeilenversion von Mediathekview wird nie den Funktionsumfang des
+Originals erhalten. Es geht um eine einfache, schlanke Lösung die sich eher
+an Experten, denn an absolute Laien richtet.
 
 Die Anwendung verwendet die Mediathekview-Filmliste, allerdings konvertiert
 in ein richtiges Datenbankformat.
 
 
+Installation
+------------
+
+Das Programm kann wie jedes andere Python-Projekt auch installiert werden. Es
+wird angeraten, dafür `pipx` zu verwenden, da `pipx` für jedes Programm
+eine eigene virtuelle Umgebung pflegt.
+
+    poetry build
+    pipx install dist/mtv-cli*tar.gz
+
+Danach steht das Programm als `mtv-cli` zur Verfügung.
+
+Um die Filmlistenauffrischung und das Herunterladen vorgemerkter Filme
+mit Cron zu automatisieren, kann das Skript `tools/registriere-cronjobs`
+ausgeführt werden.
+
 Status/Neuigkeiten
 ------------------
+
+### Version 8 / ??? ###
+  - Erstellung neuer Kommandozeilenschnittstelle mit Unterkommandos
+  - Installation des Programmes zu `pip` bzw. `pipx` kompatibel gemacht
+  - Abhängigkeit zu externem Downloadprogramm entfernt
+  - Konfigurationsdatei und Filmdatenbank werden XDG-konform abgelegt
+  - Einige Vereinfachungen / Modernisierungen des Quellcodes
 
 ### Version 7 / 09.07.21 ###
 
@@ -225,13 +248,12 @@ Konfiguration
 In der Datei `/etc/mtv_cli.conf` gibt es im Abschnitt `[CONFIG]`
 eine Reihe von Konfigurationsvariablen:
 
-  - `DATE_CUTOFF`: Filme die älter sind, landen bei der Aktualisierung nicht
+  - `MAX_ALTER`: Filme die älter sind, landen bei der Aktualisierung nicht
      in der Datenbank
-  - `DAUER_CUTOFF`: Filme die kürzer sind, landen bei der Aktualisierung nicht
+  - `MIN_DAUER`: Filme die kürzer sind, landen bei der Aktualisierung nicht
      in der Datenbank
   - `MSG_LEVEL`: Steuert die Ausgaben des Programms. Gültige Werte:
      `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`
-  - `NUM_DOWNLOADS`: Anzahl paralleler Downloads
   - `ZIEL_DOWNLOADS`: Maske für Dateinamen
   - `CMD_DOWNLOADS`: Download-Kommando
   - `QUALITAET`: Download-Qualität ("LOW", "SD", "HD")
@@ -254,12 +276,13 @@ Anwendungsfälle
 
 Die typischen Anwendungsszenarien von `mtv_cli` sehen so aus:
 
-  - Automatische Aktualisierung der Filmliste (`mtv_cli.py -A`) mit einem
+  - Automatische Aktualisierung der Filmliste (`mtv_cli.py aktualisiere-filmliste`)
+    mit einem Cronjob.
+  - Einplanung des Downloads (`mtv_cli.py filme-vormerken`) ebenfalls per
     Cronjob.
-  - Einplanung des Downloads (`mtv_cli.py -D`) ebenfalls per Cronjob.
   - Automatisierte Suche mit Versand des Ergebnisses per Mail, z.B.
 
-        mtv_cli.py -Q thema:"erlebnis erde" | \
+        mtv_cli.py suche thema:"erlebnis erde" | \
             mail -s"Neues zu Erlebnis Erde" ich@meinprovider.de
 
     Hierfür gibt es ein Beispielskript (`/usr/local/bin/mtv_sendinfo`)
@@ -268,4 +291,5 @@ Die typischen Anwendungsszenarien von `mtv_cli` sehen so aus:
     Sendungen in die Downloadliste auf, die dort noch nicht vorhanden sind.
     (**Achtung: diese Funktionalität ist aktuell nicht stabil**)
   - Für den nochmaligen Download einer Sendung muss der entsprechende
-    Eintrag in der Downloadliste erst mit `mtv_cli.py -E` gelöscht werden.
+    Eintrag in der Downloadliste erst mit
+    `mtv_cli.py entferne-filmvormerkungen` gelöscht werden.
