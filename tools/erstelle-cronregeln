@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function randint() {
+    # Generiere Zufallszahl im rechtsoffenen Intervall
+    # [lower_bound, upper_bound[
+    local lower_bound=$1
+    local upper_bound=$2
+    range=$((upper_bound  - lower_bound))
+    echo $((range*RANDOM/32767 + lower_bound))
+}
+
+minute_for_update=$(randint 0 59)
+hour_for_update=$(randint 2 5)
+minute_for_download="$minute_for_update"
+hour_for_download=$((hour_for_update+1))
+cat <<EOF
+$minute_for_update $hour_for_update   * * * mtv-cli aktualisiere-filmliste
+#30 $hour_for_update   * * *  /usr/local/bin/mtv_sendinfo
+$minute_for_download $hour_for_download   * * *  mtv-cli vormerkungen-herunterladen
+EOF

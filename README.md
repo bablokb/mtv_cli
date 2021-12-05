@@ -27,9 +27,10 @@ eine eigene virtuelle Umgebung pflegt.
 
 Danach steht das Programm als `mtv-cli` zur Verfügung.
 
-Um die Filmlistenauffrischung und das Herunterladen vorgemerkter Filme
-mit Cron zu automatisieren, kann das Skript `tools/registriere-cronjobs`
-ausgeführt werden.
+Um die Filmlistenauffrischung und das Herunterladen vorgemerkter Filme mit Cron
+zu automatisieren, kann das Skript `tools/erstelle-cronregeln` ausgeführt
+werden. Wenn es noch keine Cron-Regeln gibt, können die generierten Regeln
+direkt mittels `tools/erstelle-cronregeln | crontab -` übernommen werden
 
 Status/Neuigkeiten
 ------------------
