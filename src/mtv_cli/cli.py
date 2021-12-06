@@ -50,7 +50,7 @@ DBFILE_OPTION = typer.Option(
 )
 LOGLEVEL_OPTION = typer.Option(None, help="Level für Logausgabe")
 MAYBE_DBFILE_OPTION = typer.Option(FILME_SQLITE, help="Datei mit SQLITE-Datenbankdatei")
-QUALITY_OPTION = typer.Option("HD", help="Gewünschte Filmqualität.")
+MAYBE_QUALITY_OPTION = typer.Option(None, help="Gewünschte Filmqualität.")
 QUERY_ARG = typer.Argument(None, help="Suchausdrücke")
 
 
@@ -73,7 +73,7 @@ def load_configuration(config_f: Path) -> dict[str, Any]:
             "NUM_DOWNLOADS": parser.getint("CONFIG", "NUM_DOWNLOADS"),
             "CMD_DOWNLOADS": parser.get("CONFIG", "CMD_DOWNLOADS"),
             "CMD_DOWNLOADS_M3U": parser.get("CONFIG", "CMD_DOWNLOADS_M3U"),
-            "QUALITAET": parser.get("CONFIG", "QUALITAET"),
+            "QUALITAET": MovieQuality(parser.get("CONFIG", "QUALITAET")),
             "ZIEL_DOWNLOADS": Path(parser.get("CONFIG", "ZIEL_DOWNLOADS")).expanduser(),
         }
     except Exception as e:
@@ -266,7 +266,7 @@ def sofort_herunterladen(
     config: Path = CONFIG_OPTION,
     dbfile: Path = DBFILE_OPTION,
     log_level: Optional[str] = LOGLEVEL_OPTION,
-    qualitaet: MovieQuality = QUALITY_OPTION,
+    qualitaet: Optional[MovieQuality] = MAYBE_QUALITY_OPTION,
     suche: Optional[list[str]] = QUERY_ARG,
 ) -> None:
     """Filmliste anzeigen, sofortiger Download nach Auswahl"""
@@ -274,6 +274,7 @@ def sofort_herunterladen(
     setup_logging(log_level, options)
     filmDB = FilmDB(dbfile)
     zielordner: Path = options["ZIEL_DOWNLOADS"]
+    qualitaet = options["QUALITAET"] if qualitaet is None else qualitaet
     retriever = LowMemoryFileSystemDownloader(root=zielordner, quality=qualitaet)
 
     selected_movies = select_movies_for_download(suche, filmDB=filmDB, do_batch=False)
@@ -305,13 +306,14 @@ def vormerkungen_herunterladen(
     config: Path = CONFIG_OPTION,
     dbfile: Path = DBFILE_OPTION,
     log_level: Optional[str] = LOGLEVEL_OPTION,
-    qualitaet: MovieQuality = QUALITY_OPTION,
+    qualitaet: Optional[MovieQuality] = MAYBE_QUALITY_OPTION,
 ) -> None:
     """Download vorgemerkter Filme"""
     options = load_configuration(config)
     setup_logging(log_level, options)
     zielordner: Path = options["ZIEL_DOWNLOADS"]
     filmDB: FilmDB = FilmDB(dbfile)
+    qualitaet = options["QUALITAET"] if qualitaet is None else qualitaet
     retriever = LowMemoryFileSystemDownloader(root=zielordner, quality=qualitaet)
 
     selected_movies = list(filmDB.read_downloads(status=["V", "F"]))
