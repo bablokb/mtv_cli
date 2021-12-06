@@ -67,12 +67,9 @@ def load_configuration(config_f: Path) -> dict[str, Any]:
     parser.read(config_f)
     try:
         cfg = {
-            "MSG_LEVEL": parser.get("CONFIG", "MSG_LEVEL"),
             "MAX_ALTER": parser.getint("CONFIG", "MAX_ALTER"),
             "MIN_DAUER": parser.getint("CONFIG", "MIN_DAUER"),
-            "NUM_DOWNLOADS": parser.getint("CONFIG", "NUM_DOWNLOADS"),
-            "CMD_DOWNLOADS": parser.get("CONFIG", "CMD_DOWNLOADS"),
-            "CMD_DOWNLOADS_M3U": parser.get("CONFIG", "CMD_DOWNLOADS_M3U"),
+            "MSG_LEVEL": parser.get("CONFIG", "MSG_LEVEL"),
             "QUALITAET": MovieQuality(parser.get("CONFIG", "QUALITAET")),
             "ZIEL_DOWNLOADS": Path(parser.get("CONFIG", "ZIEL_DOWNLOADS")).expanduser(),
         }
