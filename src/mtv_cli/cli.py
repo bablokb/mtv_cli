@@ -16,7 +16,7 @@ import re
 import sys
 import urllib.request as request
 from pathlib import Path
-from typing import Iterable, Optional, TextIO
+from typing import Any, Iterable, Optional, TextIO
 
 import ijson  # type: ignore[import]
 import typer
@@ -48,9 +48,6 @@ CONFIG_OPTION = typer.Option(MTV_CLI_CONFIG, exists=True, help="Konfigurationsda
 DBFILE_OPTION = typer.Option(
     FILME_SQLITE, exists=True, help="Datei mit SQLITE-Datenbankdatei"
 )
-DESTINATION_DIR_OPTION = typer.Option(
-    Path("~/Videos"), exists=True, help="Zielordner für heruntergeladene Filme."
-)
 LOGLEVEL_OPTION = typer.Option(None, help="Level für Logausgabe")
 MAYBE_DBFILE_OPTION = typer.Option(FILME_SQLITE, help="Datei mit SQLITE-Datenbankdatei")
 QUALITY_OPTION = typer.Option("HD", help="Gewünschte Filmqualität.")
@@ -63,24 +60,29 @@ def setup_logging(level: Optional[str], config) -> None:
     logger.add(sys.stderr, level=log_level)
 
 
-def load_configuration(config_f: Path) -> dict:
+def load_configuration(config_f: Path) -> dict[str, Any]:
     if not config_f.exists():
         sys.exit("Konfigurationsdatei nicht vorhanden!")
     parser = configparser.RawConfigParser()
     parser.read(config_f)
     try:
-        return {
+        cfg = {
             "MSG_LEVEL": parser.get("CONFIG", "MSG_LEVEL"),
             "MAX_ALTER": parser.getint("CONFIG", "MAX_ALTER"),
             "MIN_DAUER": parser.getint("CONFIG", "MIN_DAUER"),
             "NUM_DOWNLOADS": parser.getint("CONFIG", "NUM_DOWNLOADS"),
-            "ZIEL_DOWNLOADS": parser.get("CONFIG", "ZIEL_DOWNLOADS"),
             "CMD_DOWNLOADS": parser.get("CONFIG", "CMD_DOWNLOADS"),
             "CMD_DOWNLOADS_M3U": parser.get("CONFIG", "CMD_DOWNLOADS_M3U"),
             "QUALITAET": parser.get("CONFIG", "QUALITAET"),
+            "ZIEL_DOWNLOADS": Path(parser.get("CONFIG", "ZIEL_DOWNLOADS")).expanduser(),
         }
     except Exception as e:
         sys.exit(f"Konfiguration fehlerhaft! Fehler: {e}")
+    zielordner = cfg["ZIEL_DOWNLOADS"]
+    if not zielordner.is_dir():  # type: ignore[attr-defined]
+        sys.exit(f"Der Zielordner >>{zielordner}<< für Filme existiert nicht.")
+
+    return cfg
 
 
 class Options:
@@ -263,7 +265,6 @@ def filme_vormerken(
 def sofort_herunterladen(
     config: Path = CONFIG_OPTION,
     dbfile: Path = DBFILE_OPTION,
-    zielordner: Path = DESTINATION_DIR_OPTION,
     log_level: Optional[str] = LOGLEVEL_OPTION,
     qualitaet: MovieQuality = QUALITY_OPTION,
     suche: Optional[list[str]] = QUERY_ARG,
@@ -272,10 +273,8 @@ def sofort_herunterladen(
     options = load_configuration(config)
     setup_logging(log_level, options)
     filmDB = FilmDB(dbfile)
-    retriever = LowMemoryFileSystemDownloader(
-        root=zielordner.expanduser(),
-        quality=qualitaet,
-    )
+    zielordner: Path = options["ZIEL_DOWNLOADS"]
+    retriever = LowMemoryFileSystemDownloader(root=zielordner, quality=qualitaet)
 
     selected_movies = select_movies_for_download(suche, filmDB=filmDB, do_batch=False)
     for film in selected_movies:
@@ -305,21 +304,17 @@ def select_movies_for_download(
 def vormerkungen_herunterladen(
     config: Path = CONFIG_OPTION,
     dbfile: Path = DBFILE_OPTION,
-    zielordner: Path = DESTINATION_DIR_OPTION,
     log_level: Optional[str] = LOGLEVEL_OPTION,
     qualitaet: MovieQuality = QUALITY_OPTION,
 ) -> None:
     """Download vorgemerkter Filme"""
     options = load_configuration(config)
     setup_logging(log_level, options)
+    zielordner: Path = options["ZIEL_DOWNLOADS"]
     filmDB: FilmDB = FilmDB(dbfile)
-    retriever = LowMemoryFileSystemDownloader(
-        root=zielordner.expanduser(),
-        quality=qualitaet,
-    )
+    retriever = LowMemoryFileSystemDownloader(root=zielordner, quality=qualitaet)
 
     selected_movies = list(filmDB.read_downloads(status=["V", "F"]))
-
     if len(selected_movies) == 0:
         logger.info("Keine vorgemerkten Filme vorhanden")
         return
