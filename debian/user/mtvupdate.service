@@ -1,0 +1,8 @@
+[Unit]
+Description=Aktualisierung der Medithekview Filmliste
+After=network.target network-online.target systemd-networkd.service NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mtvclient -A
+

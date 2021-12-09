@@ -1,0 +1,11 @@
+[Unit]
+Description=Aktualisierung der Filmliste einmal am Tag
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=3h
+Persistent=true
+Unit=mtvupdate.service
+
+[Install]
+WantedBy=timers.target
