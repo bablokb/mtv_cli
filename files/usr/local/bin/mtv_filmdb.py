@@ -396,7 +396,7 @@ class FilmDB:
     SEL_STMT = "SELECT * FROM status WHERE key in %s" % str(tuple(keys))
     rows = None
     try:
-      with self.lock():
+      with self.lock:
         cursor = self.open()
         cursor.execute(SEL_STMT)
         rows = cursor.fetchall()
