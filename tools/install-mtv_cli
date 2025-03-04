@@ -33,7 +33,12 @@ if [ -n "$PACKAGES" ] && check_packages $PACKAGES; then
   apt-get -y install $PACKAGES
 fi
 
-pip3 show pick | grep -q Version || pip3 install pick
+# breaking system packages is ok since pick does not pull in anything else
+if pip3 install --help | grep -q -- --break-system-packages; then
+  pip3 show pick | grep -q Version || pip3 install --break-system-packages pick
+else
+  pip3 show pick | grep -q Version || pip3 install pick
+fi
 
 # --- install specific files   ----------------------------------------------
 
