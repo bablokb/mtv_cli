@@ -32,6 +32,7 @@ class FilmDB:
     self.last_liste = None
     self.lock = Lock()
     self.total = 0
+    self.error = 0
     self.date_cutoff=(datetime.date.today() -
                       datetime.timedelta(days=self.config["DATE_CUTOFF"]))
 
@@ -133,8 +134,12 @@ class FilmDB:
 
     film_info = self.rec2FilmInfo(record)
     if film_info:
-      self.total += 1
-      self.cursor.execute(INSERT_STMT,film_info.asTuple())
+      try:
+        self.cursor.execute(INSERT_STMT,film_info.asTuple())
+        self.total += 1
+      except Exception as ex:
+        Msg.msg("TRACE", f"{ex} beim insert von {record}")
+        self.error += 1
 
   # ------------------------------------------------------------------------
 
@@ -147,6 +152,12 @@ class FilmDB:
   def get_count(self):
     """Anzahl der schon eingefügten Sätze zurückgeben"""
     return self.total
+
+  # ------------------------------------------------------------------------
+
+  def get_error(self):
+    """Anzahl der nicht eingefügten Sätze zurückgeben"""
+    return self.error
 
   # ------------------------------------------------------------------------
 

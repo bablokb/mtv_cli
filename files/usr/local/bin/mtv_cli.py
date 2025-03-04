@@ -106,7 +106,7 @@ def split_content(fpin,filmDB):
   Msg.msg("INFO","Anzahl Buffer:              %d" % buf_count)
   Msg.msg("INFO","Anzahl Sätze (gesamt):      %d" % total)
   Msg.msg("INFO","Anzahl Sätze (gespeichert): %d" % filmDB.get_count())
-
+  Msg.msg("INFO","Anzahl Sätze (Dubletten):   %d" % filmDB.get_error())
 
 # --- Update verarbeiten   --------------------------------------------------
 
