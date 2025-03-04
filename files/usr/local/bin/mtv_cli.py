@@ -46,7 +46,7 @@ class Options:
 
 def get_url_fp(url):
   """ URL öffnen und Filepointer zurückgeben"""
-  return request.urlopen(url,context=ssl.SSLContext())
+  return request.urlopen(url,context=ssl.create_default_context())
 
 # --- Stream des LZMA-Entpackers   ------------------------------------------
 
