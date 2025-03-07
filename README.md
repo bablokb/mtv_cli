@@ -18,6 +18,17 @@ in ein richtiges Datenbankformat.
 Status/Neuigkeiten
 ------------------
 
+N.B: die interne Version (Abfrage über `mtv_cli --version`) bleibt auf
+`2`, da diese nur bei programmier-relevanten, inkompatiblen
+Änderungen hochgesetzt wird.
+
+### Version 8 / 07.03.25 ###
+
+  - Support für den Bau von Debian-Packages (implementiert von Kunzol)
+  - Keine Deprecated-Warnung mehr beim Erstellen des SSLContexts
+  - Aufruf von pip3 mit `--break-system-packages` auf neueren Systemen
+  - Doppelte Einträge in der Filmliste werden gezählt, aber ignoriert
+
 ### Version 7 / 09.07.21 ###
 
   - Codebereinigungen und Fixe (implementiert von MaxG87)
