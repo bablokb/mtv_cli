@@ -12,7 +12,33 @@
 #
 # --------------------------------------------------------------------------
 
-REP_TAB = str.maketrans("/'`:","_´´\u2236") # U+2236 (ratio) sieht aus wie ein :
+# Default Ersatzzeichen-Tabelle
+# (Shells und Dateisysteme haben Probleme mit einigen Zeichen)
+
+REP_TAB_FROM = ("/" +
+                "'" +
+                "`" +
+                ":" +
+                "\"" +
+                "*" +
+                "<" +
+                ">" +
+                "?" +
+                "\\" +
+                "|" +
+                "&")
+REP_TAB_TO   = ("\u2215" +         # division slash
+                "\u2019" +         # right single quotation mark
+                "\u2018" +         # left single quotation mark
+                "\u2236" +         # ratio
+                "\uFF02" +         # full width quotation mark
+                "\u2731" +         # heavy asterisk
+                "\u3008" +         # left angle bracket
+                "\u3009" +         # right angle bracket
+                "\uFF1F" +         # fullwidth question mark
+                "\uFF3C" +         # fullwidth reverse solidus
+                "\uFF5C" +         # fullwidth vertical line
+                "\uFF06")          # fullwidth ampersand
 
 # --- System-Imports   -----------------------------------------------------
 
@@ -34,8 +60,12 @@ def download_film(options,film):
   # Infos zusammensuchen
   _id = film._id
   size,url = film.get_url(options.config["QUALITAET"])
-  film.thema = film.thema.translate(REP_TAB)
-  film.titel = film.titel.translate(REP_TAB)
+  rep_tab = str.maketrans(
+    options.config.get("REP_TAB_FROM", REP_TAB_FROM),
+    options.config.get("REP_TAB_TO", REP_TAB_TO)
+    )
+  film.thema = film.thema.translate(rep_tab)
+  film.titel = film.titel.translate(rep_tab)
   ext        = url.split(".")[-1].lower()
 
   # Kommando bei Playlisten anpassen. Die Extension der gespeicherten Datei
