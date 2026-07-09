@@ -22,6 +22,18 @@ N.B: die interne Version (Abfrage über `mtv_cli --version`) bleibt auf
 `2`, da diese nur bei programmier-relevanten, inkompatiblen
 Änderungen hochgesetzt wird.
 
+### Version 10 / 09.07.25 ###
+
+  - Ersetzungstabelle für Dateinamen. Diese war schon immer vorhanden, es
+    wurden aber nur wenige Zeichen ersetzt. Jetzt ist sie erweitert und
+    umfasst alle Zeichen, die gängige Dateisysteme nicht akzeptieren (exFat
+    scheint am meisten eingeschränkt zu sein).
+  - Die Ersetzung versucht, visuell ähnliche Zeichen zu verwenden, zum
+    Beispiel "Ratio" statt "Doppelpunkt" (die in den meisten Fonts kaum zu
+    unterscheiden sind).
+  - In der Konfigurationsdatei kann die Übersetzungstabelle angepasst werden
+    (Schlüssel `REP_TAB_FROM` und `REP_TAB_TO`).
+
 ### Version 9 / 22.03.25 ###
 
   - Unterstützung der aktuellen Pick-Version (mit `multiselect` statt
