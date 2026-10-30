@@ -99,6 +99,24 @@ def download_film(options,film):
   rc = p.returncode
   Msg.msg("INFO",
       "Ende  Download (%s) %s (Return-Code: %d)" % (size,film.titel[0:50],rc))
+
+  # Download Check mit ffmpeg
+  movie_check = options.config["MOVIE_CHECK"]
+
+  if rc==0 and movie_check == "true":
+    Msg.msg("INFO", "Start Film Check %s" % (film.titel[0:50]))
+    check = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", ziel, "-f", "null", "-"],
+        stdout=DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    Msg.msg("INFO", "Ende Film Check %s" % (film.titel[0:50]))
+
+    if check.stderr:
+        Msg.msg("ERROR", "ffmpeg meldet Fehler:\n%s" % check.stderr)
+        rc = 1
+
   if rc==0:
     options.filmDB.update_downloads(_id,'K')
     options.filmDB.save_recs(_id,ziel)

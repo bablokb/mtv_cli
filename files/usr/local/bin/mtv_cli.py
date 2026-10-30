@@ -395,7 +395,8 @@ def get_config(parser):
     "ZIEL_DOWNLOADS":    parser.get('CONFIG',"ZIEL_DOWNLOADS"),
     "CMD_DOWNLOADS":     parser.get('CONFIG',"CMD_DOWNLOADS"),
     "CMD_DOWNLOADS_M3U": parser.get('CONFIG',"CMD_DOWNLOADS_M3U"),
-    "QUALITAET":         parser.get('CONFIG',"QUALITAET")
+    "QUALITAET":         parser.get('CONFIG',"QUALITAET"),
+    "MOVIE_CHECK":       parser.get('CONFIG',"MOVIE_CHECK"),
     }
 
 # --- Hauptprogramm   -------------------------------------------------------
