@@ -22,6 +22,11 @@ N.B: die interne Version (Abfrage über `mtv_cli --version`) bleibt auf
 `2`, da diese nur bei programmier-relevanten, inkompatiblen
 Änderungen hochgesetzt wird.
 
+### Version 11 / 30.10.26 ###
+
+  - Optionale Überprüfung der heruntergeladenen Datei auf Fehler. Einschalten
+    über die Konfiguration (`MOVIE_CHECK`) (implementiert von cc13com).
+
 ### Version 10 / 09.07.25 ###
 
   - Ersetzungstabelle für Dateinamen. Diese war schon immer vorhanden, es
